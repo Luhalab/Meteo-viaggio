@@ -212,7 +212,7 @@ function minZoom(c){
 
 /* ---------- regione attiva ---------- */
 async function loadRegion(id){
-  const r = await fetch('regions/'+id+'.json');
+  const r = await fetch('region-'+id+'.json');
   if (!r.ok) throw new Error('regione non trovata');
   const j = await r.json();
   REG = j;
@@ -247,7 +247,7 @@ async function pickRegion(){
     if (pos){
       const la=pos.coords.latitude, lo=pos.coords.longitude;
       for (const r of REGIONI){
-        try{ const j=await (await fetch('regions/'+r.id+'.json')).json();
+        try{ const j=await (await fetch('region-'+r.id+'.json')).json();
           if (la>=j.bounds[0][0] && la<=j.bounds[1][0] && lo>=j.bounds[0][1] && lo<=j.bounds[1][1]) return r.id;
         }catch(e){}
       }

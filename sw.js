@@ -2,7 +2,7 @@
    I dati di meteo, mare, meduse e luoghi NON vengono mai messi in cache:
    passano sempre dalla rete, così non vedi mai previsioni vecchie. */
 const CACHE = 'viaggio-v2';
-const SHELL = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest', './regions/italia.json', './regions/svizzera.json'];
+const SHELL = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest', './region-italia.json', './region-svizzera.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -5,11 +5,11 @@ guida delle città con foto, eventi. Italia e Svizzera.
 
 ## Struttura
 - `index.html` — l'app (il "motore", uguale per tutte le regioni)
-- `regions/italia.json` — 7.894 comuni + 105 punti mare
-- `regions/svizzera.json` — 1.415 località, senza mare
+- `region-italia.json` — 7.894 comuni + 105 punti mare
+- `region-svizzera.json` — 1.415 località, senza mare
 - `sw.js`, `manifest.webmanifest`, `icon-*.png` — installazione come app
 
-Per aggiungere una regione: nuovo file in `regions/` e una riga nell'elenco
+Per aggiungere una regione: nuovo file in la cartella principale e una riga nell'elenco
 `REGIONI` dentro `index.html`.
 
 ## Fonti (nessuna API key)
