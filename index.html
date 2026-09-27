@@ -49,6 +49,10 @@ main{max-width:760px;margin:0 auto;padding:12px 12px 36px}
 .mk .b .mn{font-weight:400;color:#6a737c;font-size:11.5px}
 .mk .n{font:600 11.5px -apple-system,sans-serif;color:#13161a;margin-top:1px;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;white-space:nowrap}
 .mk.big .b{font-size:14.5px}
+.mk.here .b{box-shadow:0 0 0 3px #1f6fd1, 0 1px 5px rgba(0,0,0,.4)}
+.me-dot{width:16px;height:16px;border-radius:50%;background:#1f6fd1;border:3px solid #fff;box-shadow:0 0 0 2px rgba(31,111,209,.35),0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%)}
+.me-dot::after{content:'';position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(31,111,209,.18);animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.25);opacity:0}}
 .mk.cp .mn{display:none}.mk.cp .b{padding:1px 6px 1px 3px;font-size:13px}.mk.cp .n{font-size:10.5px}
 .leaflet-div-icon{background:none;border:none}
 .jl-mk{font-size:22px;transform:translate(-50%,-50%);width:max-content}
@@ -127,7 +131,7 @@ footer a{color:var(--tx2)}
 </head>
 <body>
 <header>
-  <div class="hrow"><h1>🧭 Meteo e viaggio</h1><button class="hbtn" id="regBtn" aria-label="Cambia regione">🌍</button><button class="hbtn" id="themeBtn" aria-label="Tema">🌓</button></div>
+  <div class="hrow"><h1>🧭 Meteo e viaggio</h1><button class="hbtn" id="meBtn" aria-label="Dove sono">📍</button><button class="hbtn" id="regBtn" aria-label="Cambia regione">🌍</button><button class="hbtn" id="themeBtn" aria-label="Tema">🌓</button></div>
   <div class="search"><span class="ico">🔍</span>
     <input id="q" type="search" placeholder="Cerca una città: Taormina, Noto, Lipari…" autocomplete="off" aria-label="Cerca una città">
     <div class="sugg" id="sugg"></div></div>
@@ -182,6 +186,20 @@ const REGIONI = [
   {id:'svizzera', nome:'Svizzera', emoji:'🇨🇭'}
 ];
 let REG=null, COMUNI=[], SEA_PTS=[], PROV={}, byName={};
+let userPos=null, hereName=null, posChiesta=null;
+
+/* posizione del telefono: chiesta una volta sola, poi riusata */
+function getPos(){
+  if (posChiesta) return posChiesta;
+  posChiesta = new Promise(res => {
+    if (!navigator.geolocation) return res(null);
+    navigator.geolocation.getCurrentPosition(
+      p => res(userPos = {lat:p.coords.latitude, lon:p.coords.longitude}),
+      () => res(null),
+      {timeout:8000, maximumAge:300000, enableHighAccuracy:false});
+  });
+  return posChiesta;
+}
 const _ISLANDS_UNUSED = ['Lipari','Pantelleria','Lampedusa e Linosa','Favignana','Ustica','Santa Marina Salina','Leni','Malfa'];
 const _TOURIST_UNUSED = ['Cefalù','Taormina','Noto','San Vito Lo Capo','Castellammare del Golfo','Scicli','Erice','Piazza Armerina','Sciacca','Giardini-Naxos','Milazzo','Castelbuono','Marzamemi','Modica'];
 const MODELS = 'italia_meteo_arpae_icon_2i,best_match';
@@ -233,26 +251,27 @@ async function loadRegion(id){
   $('layerSeg').style.display = j.mare ? '' : 'none';
   if (!j.mare){ layer='wx'; $('layerSeg').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on', i===0)); map.removeLayer(seaLayer); map.removeLayer(jellyLayer); }
   map.setMaxBounds(L.latLngBounds(j.bounds).pad(0.4));
-  map.fitBounds(j.bounds);
+  const dentro = userPos && userPos.lat>=j.bounds[0][0] && userPos.lat<=j.bounds[1][0] && userPos.lon>=j.bounds[0][1] && userPos.lon<=j.bounds[1][1];
+  hereName = dentro ? COMUNI.reduce((b,c)=> km(userPos.lat,userPos.lon,c.lat,c.lon) < km(userPos.lat,userPos.lon,b.lat,b.lon) ? c : b, COMUNI[0]).n : null;
+  if (dentro) map.setView([userPos.lat, userPos.lon], 10);   /* né troppo vicino né troppo largo: ~40 km di raggio */
+  else map.fitBounds(j.bounds);
+  drawMe();
   renderLegend(); renderFavs(); refreshMarkers();
   if (j.mare){ loadMarine(); loadJelly(); }
 }
 
 /* sceglie la regione: quella salvata, altrimenti quella dove ti trovi, altrimenti Italia */
 async function pickRegion(){
-  const saved = store.get('ss_reg', null);
-  if (saved && REGIONI.some(r=>r.id===saved)) return saved;
-  if (navigator.geolocation){
-    const pos = await new Promise(res => navigator.geolocation.getCurrentPosition(p=>res(p), ()=>res(null), {timeout:6000, maximumAge:600000}));
-    if (pos){
-      const la=pos.coords.latitude, lo=pos.coords.longitude;
-      for (const r of REGIONI){
-        try{ const j=await (await fetch('region-'+r.id+'.json')).json();
-          if (la>=j.bounds[0][0] && la<=j.bounds[1][0] && lo>=j.bounds[0][1] && lo<=j.bounds[1][1]) return r.id;
-        }catch(e){}
-      }
+  const pos = await getPos();                     /* serve anche per centrare la mappa */
+  if (pos){
+    for (const r of REGIONI){
+      try{ const j=await (await fetch('region-'+r.id+'.json')).json();
+        if (pos.lat>=j.bounds[0][0] && pos.lat<=j.bounds[1][0] && pos.lon>=j.bounds[0][1] && pos.lon<=j.bounds[1][1]) return r.id;
+      }catch(e){}
     }
   }
+  const saved = store.get('ss_reg', null);
+  if (saved && REGIONI.some(r=>r.id===saved)) return saved;
   return 'italia';
 }
 
@@ -333,10 +352,21 @@ function setTiles(){
 }
 setTiles();
 const wxLayer = L.layerGroup().addTo(map), seaLayer = L.layerGroup(), jellyLayer = L.layerGroup();
+const meLayer = L.layerGroup().addTo(map);
+
+/* mostra dove ti trovi: puntino blu discreto, sotto ai riquadri del meteo */
+function drawMe(){
+  meLayer.clearLayers();
+  if (!userPos) return;
+  L.marker([userPos.lat, userPos.lon], {
+    icon: L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[0,0]}),
+    zIndexOffset:-500, interactive:true
+  }).bindPopup('<div class="pop"><b>Sei qui</b>'+(hereName?'<div class="row">Località più vicina: '+esc(hereName)+'</div>':'')+'</div>').addTo(meLayer);
+}
 const markers = {};
 
 function markerHtml(c){
-  const d = mapData[c.n], big = (minZoom(c)===7 ? ' big' : '') + (map.getZoom()<8 ? ' cp' : '');
+  const d = mapData[c.n], big = (minZoom(c)===7 ? ' big' : '') + (map.getZoom()<8 ? ' cp' : '') + (c.n===hereName ? ' here' : '');
   if (!d) return '<div class="mk'+big+'"><div class="b"><span class="i">⏳</span></div><div class="n">'+esc(c.n)+'</div></div>';
   const i = mapDay, code = d.daily.weather_code[i], tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i];
   return '<div class="mk'+big+'"><div class="b"><span class="i">'+wmo(code)[1]+'</span><span style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</span>'+
@@ -448,6 +478,18 @@ async function loadJelly(){
   }catch(e){ jelly=[]; jellyErr=true; }
   drawSea(); if (city) renderSea();
 }
+
+$('meBtn').onclick = async () => {
+  const b=$('meBtn'); b.textContent='…';
+  const pos = await (userPos ? Promise.resolve(userPos) : (posChiesta=null, getPos()));
+  b.textContent='📍';
+  if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
+  const j=REG;
+  const dentro = pos.lat>=j.bounds[0][0] && pos.lat<=j.bounds[1][0] && pos.lon>=j.bounds[0][1] && pos.lon<=j.bounds[1][1];
+  if (!dentro){ alert('Ti trovi fuori da '+j.nome+'. Cambia regione con il tasto accanto.'); return; }
+  hereName = COMUNI.reduce((x,c)=> km(pos.lat,pos.lon,c.lat,c.lon) < km(pos.lat,pos.lon,x.lat,x.lon) ? c : x, COMUNI[0]).n;
+  location.hash=''; map.setView([pos.lat,pos.lon], 10); drawMe(); refreshMarkers();
+};
 
 $('regBtn').onclick = () => {
   const i = REGIONI.findIndex(r => REG && r.id===REG.id);
