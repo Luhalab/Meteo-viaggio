@@ -152,5 +152,123 @@
     "lon": 12.8251,
     "extract": "Coppia di templi dorici quasi identici affiancati sull'acropoli, che molti studiosi attribuiscono ai Dioscuri, Castore e Polluce. Il Tempio A, periptero esastilo di circa 40 × 16 metri e costruito intorno alla metà del V secolo a.C., conserva le due scalette a chiocciola che salivano al tetto. Dopo la conquista cartaginese del 409 a.C. il suo pronao fu riutilizzato come area sacra punica e pavimentato a mosaico.",
     "url": null
+  },
+  {
+    "title": "Grotta della Sibilla (San Giovanni al Boeo)",
+    "lat": 37.80066,
+    "lon": 12.42809,
+    "extract": "Sotto la piccola chiesa di San Giovanni Battista al Boeo si scende a quasi 5 metri in un ipogeo scavato nella roccia, con una sorgente d'acqua dolce ritenuta miracolosa. La tradizione lo lega alla Sibilla Lilibetana; fu tra i primi luoghi di culto cristiano di Lilibeo. Visite su richiesta al Parco archeologico.",
+    "url": null
+  },
+  {
+    "title": "Ipogeo di Crispia Salvia",
+    "lat": 37.80438,
+    "lon": 12.43715,
+    "extract": "Camera funeraria romana del II-III secolo d.C., scoperta per caso nel 1994 durante una demolizione e oggi sotto un palazzo di via D'Azeglio. Le pareti sono affrescate e un'iscrizione ricorda Crispia Salvia, morta a circa 45 anni, a cui la dedicò il marito Iulius Demetrius. Visite guidate nel fine settimana.",
+    "url": null
+  },
+  {
+    "title": "Complesso di Santa Maria della Grotta",
+    "lat": 37.79922,
+    "lon": 12.44253,
+    "extract": "Chiesa barocca ricavata dentro antiche latomie: prima necropoli punica e romana, poi sepolture dei primi cristiani e, dal 1097, la prima abbazia basiliana fondata dopo la conquista normanna. Nel Settecento i Gesuiti la fecero ricostruire da Giovanni Biagio Amico. Si visita su prenotazione.",
+    "url": null
+  },
+  {
+    "title": "Monumento ai Mille",
+    "lat": 37.79604,
+    "lon": 12.43163,
+    "extract": "Monumento moderno sul mare che ricorda lo sbarco di Garibaldi e dei Mille a Marsala, l'11 maggio 1860. Ospita un punto informazioni ed è uno dei posti più belli per guardare il tramonto.",
+    "url": null
+  },
+  {
+    "title": "Chiesa di San Giuseppe",
+    "lat": 37.79968,
+    "lon": 12.43441,
+    "extract": "Piccola chiesa sul Cassaro, a pochi passi dalla Chiesa Madre, costruita alla fine del Cinquecento dalla confraternita di San Giuseppe. Portale in marmo grigio e, all'interno, un altare barocco con la statua settecentesca di San Giuseppe con Gesù Bambino.",
+    "url": null
+  },
+  {
+    "title": "Chiesa di Santo Stefano",
+    "lat": 37.80133,
+    "lon": 12.43398,
+    "extract": "Chiesa a navata unica con ricchi stucchi barocchi, parte di un complesso conventuale. È nota anche per un camminamento segreto; si apre di solito solo durante il festival Le Vie dei Tesori.",
+    "url": null
+  },
+  {
+    "title": "Convento del Carmine e campanile",
+    "lat": 37.79937,
+    "lon": 12.43144,
+    "extract": "Antico convento carmelitano con un bel chiostro, oggi sede della Pinacoteca comunale: oltre 750 opere di artisti contemporanei. Il campanile si sale con una stretta scala a chiocciola, e in cima sembra quasi di oscillare.",
+    "url": null
+  },
+  {
+    "title": "Cantine Florio",
+    "lat": 37.78691,
+    "lon": 12.44522,
+    "extract": "Storiche cantine del vino Marsala, con centinaia di botti di rovere nelle lunghe gallerie del baglio. Si visitano con degustazione, prenotando.",
+    "url": null
+  },
+  {
+    "title": "Chiesa Madonna delle Grazie e grotta di Santa Venera",
+    "lat": 37.80816,
+    "lon": 12.47121,
+    "extract": "Chiesa nata, secondo la tradizione, dopo un miracolo, e costruita dentro una grotta: facciata barocca, navata unica e cinque altari.",
+    "url": null
+  },
+  {
+    "title": "Parco delle Cave",
+    "lat": 37.76098,
+    "lon": 12.51652,
+    "extract": "Antiche cave di tufo recuperate da una coppia di custodi: si scende fino a circa 30 metri sotto il livello della strada, tra gallerie e ambienti scavati a mano. Solo su prenotazione.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Un nome arabo",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "Secondo l'etimologia più diffusa Marsala viene dall'arabo Marsā Allāh, «porto di Dio»; altri propongono Marsā ʿAlī, «porto di Ali». In epoca antica la città si chiamava Lilibeo.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Il vino nato per gli inglesi",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "Il vino Marsala fu lanciato nel 1773 dal mercante inglese John Woodhouse, che lo fortificò perché reggesse il viaggio per mare fino in Inghilterra.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "La porta di Garibaldi",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "L'11 maggio 1860 Garibaldi sbarcò a Marsala con i Mille ed entrò in città dalla Porta di Mare, che da allora porta il suo nome. Al Museo garibaldino del Complesso San Pietro si conserva, secondo la tradizione, la poltrona su cui si riposò dopo lo sbarco.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Un Duomo per un santo inglese",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "La Chiesa Madre è dedicata a San Tommaso Becket, arcivescovo di Canterbury. Una leggenda racconta del naufragio di una nave che trasportava colonne destinate a una chiesa: i marsalesi le avrebbero usate per il loro tempio, dedicandolo al santo.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Gli arazzi del re di Spagna",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "Gli otto arazzi fiamminghi del Museo degli Arazzi, del 1570 circa, raccontano la guerra romana contro Gerusalemme. Furono donati alla Chiesa Madre nel 1589 dall'arcivescovo di Messina per conto di Filippo II di Spagna.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "La nave punica",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "Al museo archeologico Baglio Anselmi si vede ciò che resta di una nave da guerra cartaginese affondata al largo delle Egadi durante la prima guerra punica, ricostruita in parte.",
+    "url": null
   }
 ]
