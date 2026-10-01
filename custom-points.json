@@ -317,5 +317,40 @@
     "extract": "Sono ciò che resta delle fortificazioni rinforzate dagli spagnoli sul lato nord della città. Il nome viene dalla tramontana, il vento freddo che soffia da quella parte. Ai loro piedi si apre una piccola spiaggia cittadina, a pochi passi dal centro storico.",
     "url": null,
     "kind": "curiosita"
+  },
+  {
+    "title": "Palazzo Riccio di Morana",
+    "lat": 38.01811,
+    "lon": 12.51292,
+    "extract": "Palazzo nobiliare di origine cinquecentesca su via Garibaldi, l'antica Rua Nova. La facciata neoclassica su tre livelli ha figure allegoriche in marmo e un timpano con lo stemma della famiglia Riccio; dentro si conservano sale con pavimenti in maiolica. Di solito non è visitabile.",
+    "url": null
+  },
+  {
+    "title": "Palazzo Milo",
+    "lat": 38.01767,
+    "lon": 12.51225,
+    "extract": "Palazzo seicentesco di via Garibaldi, con facciata in stile barocco locale e balconi in ferro battuto dai disegni insoliti. Oggi ospita la Soprintendenza ai Beni Culturali e una mostra di anfore antiche da trasporto, visibile anche dalla strada attraverso le grandi vetrate.",
+    "url": null
+  },
+  {
+    "title": "Chiesa di Sant'Agostino",
+    "lat": 38.01492,
+    "lon": 12.50981,
+    "extract": "Nata nel 1101 come cappella dei Cavalieri Templari dedicata a San Giovanni Battista, nel Trecento passò agli Agostiniani. Facciata a capanna con portale gotico, un grande rosone a dodici colonnine e una Madonna col Bambino di scuola gaginiana. Non è più usata per il culto e ospita mostre ed eventi.",
+    "url": null
+  },
+  {
+    "title": "Bastione Imperiale",
+    "lat": 38.01732,
+    "lon": 12.50184,
+    "extract": "Bastione cinquecentesco, detto anche di Sant'Anna, voluto da Carlo V dal 1545 per difendere la città dalle incursioni dei pirati e completato nella forma attuale nel 1673. Fu usato anche come prigione. L'interno non è visitabile, ma si passeggia sulle mura vicine, con vista sul mare di tramontana.",
+    "url": null
+  },
+  {
+    "title": "Porta Oscura e Torre dell'Orologio",
+    "lat": 38.01544,
+    "lon": 12.50966,
+    "extract": "Antica porta della città, chiamata Oscura per il suo passaggio buio, sormontata dalla Torre dell'Orologio accanto al Palazzo Senatorio. La torre porta orologi astronomici del 1596, con il sole e le fasi della luna, ancora funzionanti.",
+    "url": null
   }
 ]
