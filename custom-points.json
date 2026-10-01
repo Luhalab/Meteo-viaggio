@@ -277,5 +277,45 @@
     "lon": 12.43372,
     "extract": "Fontana settecentesca in stile barocco al centro di Piazza Piemonte e Lombardo, detta \"del Purgatorio\" per la chiesa che vi si affaccia (1771). Una vasca ottagonale in pietra, un fusto a balaustro e una tazza su cui un putto a cavallo di un delfino regge una conchiglia. All'ombra dei grandi ficus, con i tavolini dei bar intorno, è uno degli angoli più tranquilli del centro storico.",
     "url": null
+  },
+  {
+    "title": "Trapani, bianca come una colomba",
+    "lat": 38.0185,
+    "lon": 12.5137,
+    "extract": "Il viaggiatore e geografo arabo Ibn Jubayr, nel XII secolo, descrisse Trapani come una città non grande, cinta di mura e bianca come una colomba. Un'immagine che ancora oggi riassume la luce chiara della pietra e del sale che la circondano.",
+    "url": null,
+    "kind": "curiosita"
+  },
+  {
+    "title": "Torre di Ligny, sentinella tra due mari",
+    "lat": 38.0185,
+    "lon": 12.5137,
+    "extract": "Fu eretta nel 1671 per ordine di Claude Lamoral, principe di Ligne, capitano generale del Regno di Sicilia sotto il dominio spagnolo. Costruita con il tufo delle cave di Favignana sugli scogli detti Pietra Palazzo, è collegata alla terraferma da una lingua di terra dal 1806 e abbraccia il Tirreno da un lato e il Mediterraneo dall'altro.",
+    "url": null,
+    "kind": "curiosita"
+  },
+  {
+    "title": "La Colombaia, il castello nel mare",
+    "lat": 38.0185,
+    "lon": 12.5137,
+    "extract": "Detta anche Castello di Mare o Torre Peliade, sorge su un'isoletta all'imboccatura del porto. Lo storico Diodoro Siculo attribuisce la prima fortificazione ad Amilcare Barca, intorno al 260 a.C., durante la prima guerra punica. La torre è alta 32 metri su quattro piani: il primo era una cisterna e l'ingresso originario si trovava al secondo.",
+    "url": null,
+    "kind": "curiosita"
+  },
+  {
+    "title": "Villino Nasi, il dono a un ministro",
+    "lat": 38.0185,
+    "lon": 12.5137,
+    "extract": "Questo gioiello Liberty sullo Scoglio Palumbo, tra la Torre di Ligny e la Colombaia, fu iniziato nel 1898 su progetto dell'ingegner Giuseppe Manzo. I trapanesi vollero donarlo al loro concittadino Nunzio Nasi, parlamentare e ministro del Regno, che qui lavorava mentre il mare in tempesta batteva contro le finestre.",
+    "url": null,
+    "kind": "curiosita"
+  },
+  {
+    "title": "Le Mura di Tramontana",
+    "lat": 38.0185,
+    "lon": 12.5137,
+    "extract": "Sono ciò che resta delle fortificazioni rinforzate dagli spagnoli sul lato nord della città. Il nome viene dalla tramontana, il vento freddo che soffia da quella parte. Ai loro piedi si apre una piccola spiaggia cittadina, a pochi passi dal centro storico.",
+    "url": null,
+    "kind": "curiosita"
   }
 ]
