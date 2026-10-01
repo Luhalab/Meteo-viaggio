@@ -358,8 +358,18 @@ async function pickRegion(){
 
 /* ---------- tema ---------- */
 if (store.get('ss_theme',null)) document.documentElement.dataset.theme = store.get('ss_theme');
-const isDark = () => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()==='#111417';
-$('themeBtn').onclick = () => { const t = isDark()?'light':'dark'; document.documentElement.dataset.theme=t; store.set('ss_theme',t); };
+const isDark = () => { const t = document.documentElement.dataset.theme;
+  return t ? t==='dark' : !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches); };
+const SUN_IC = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+const MOON_IC = '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>';
+/* l'icona mostra il tema in cui passi toccandola */
+function themeIcon(){ const d = isDark();
+  $('themeBtn').innerHTML = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+(d?SUN_IC:MOON_IC)+'</svg>';
+  $('themeBtn').setAttribute('aria-label', d ? 'Passa al tema chiaro' : 'Passa al tema scuro');
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = d ? '#0f3550' : '#164b6e'; }
+$('themeBtn').onclick = () => { const t = isDark()?'light':'dark'; document.documentElement.dataset.theme=t; store.set('ss_theme',t); themeIcon(); };
+themeIcon();
+if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', themeIcon);
 
 /* ---------- meteo ---------- */
 const WMO={0:['Sereno','☀️'],1:['Quasi sereno','🌤️'],2:['Poco nuvoloso','⛅'],3:['Coperto','☁️'],45:['Nebbia','🌫️'],48:['Nebbia','🌫️'],51:['Pioviggine','🌦️'],53:['Pioviggine','🌦️'],55:['Pioviggine','🌧️'],56:['Pioviggine gelata','🌧️'],57:['Pioviggine gelata','🌧️'],61:['Pioggia debole','🌦️'],63:['Pioggia','🌧️'],65:['Pioggia forte','🌧️'],66:['Pioggia gelata','🌧️'],67:['Pioggia gelata','🌧️'],71:['Neve debole','🌨️'],73:['Neve','🌨️'],75:['Neve forte','❄️'],77:['Nevischio','🌨️'],80:['Rovesci','🌦️'],81:['Rovesci','🌧️'],82:['Rovesci forti','⛈️'],85:['Rovesci di neve','🌨️'],86:['Rovesci di neve','❄️'],95:['Temporale','⛈️'],96:['Temporale e grandine','⛈️'],99:['Temporale e grandine','⛈️']};
