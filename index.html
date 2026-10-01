@@ -83,6 +83,11 @@ h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 .mk.big .b{font-size:14.5px}
 .mk.here .b{box-shadow:0 0 0 2.5px var(--sea),0 3px 10px rgba(20,36,48,.25)}
 .mk.cp .mn{display:none}.mk.cp .b{padding:1px 6px 1px 3px;font-size:13px}.mk.cp .n{font-size:10.5px}
+.me{position:relative;width:0;height:0}
+.me .me-dot{position:absolute;left:0;top:0}
+.me-cone{position:absolute;left:-36px;top:-36px;width:72px;height:72px;display:none;transform-origin:36px 36px;transition:transform .15s linear;pointer-events:none}
+.me.hd .me-cone{display:block}
+.hbtn.on{background:rgba(255,255,255,.32)}
 .me-dot{width:16px;height:16px;border-radius:50%;background:#2470b8;border:3px solid #fff;box-shadow:0 0 0 2px rgba(36,112,184,.35),0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%)}
 .me-dot::after{content:'';position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(36,112,184,.18);animation:pulse 2.4s ease-out infinite}
 @keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.25);opacity:0}}
@@ -481,11 +486,13 @@ async function loadJelly(){
 }
 
 $('meBtn').onclick = async () => {
+  startCompass();                                   /* va chiamato subito, dentro il tocco */
   const b=$('meBtn'); b.classList.add('busy');
-  const pos = await freshPos(); b.classList.remove('busy');
+  const pos = (watchId != null && userPos) ? userPos : await freshPos(); b.classList.remove('busy');
   if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
-  drawEMe(); const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true});
-  emap.setView([pos.lat,pos.lon], 16);
+  tracking = true; startTracking(); drawEMe(); setFollow(true);
+  const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true});
+  emap.setView([pos.lat,pos.lon], Math.max(emap.getZoom(), 16));
 };
 
 $('regBtn').onclick = () => {
@@ -1052,14 +1059,72 @@ async function shareToClaude(text, file){
 function freshPos(){
   return new Promise(res => {
     if (!navigator.geolocation) return res(null);
-    navigator.geolocation.getCurrentPosition(p => res(userPos = {lat:p.coords.latitude, lon:p.coords.longitude}), () => res(null),
+    navigator.geolocation.getCurrentPosition(p => res(userPos = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}), () => res(null),
       {timeout:9000, maximumAge:30000, enableHighAccuracy:true});
   });
 }
+/* ---------- la tua posizione: si aggiorna mentre ti muovi, con la direzione in cui guardi ---------- */
+let watchId = null, tracking = false, follow = false, meMk = null, meAcc = null;
+let heading = null, gpsHeadAt = 0, compassOn = false, headRaf = 0;
+const ME_HTML = '<div class="me"><svg class="me-cone" viewBox="0 0 72 72" aria-hidden="true"><defs><radialGradient id="meg" cx="36" cy="36" r="34" gradientUnits="userSpaceOnUse">'+
+  '<stop offset="0" stop-color="#2470b8" stop-opacity=".6"/><stop offset="1" stop-color="#2470b8" stop-opacity="0"/></radialGradient></defs>'+
+  '<path d="M36 36 L19 6.6 A34 34 0 0 1 53 6.6 Z" fill="url(#meg)"/></svg><div class="me-dot"></div></div>';
 function drawEMe(){
-  eMe.clearLayers(); if (!userPos) return;
-  L.marker([userPos.lat, userPos.lon], { icon: L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[0,0]}), zIndexOffset:-500 }).addTo(eMe);
+  if (!userPos){ eMe.clearLayers(); meMk = meAcc = null; return; }
+  const ll = [userPos.lat, userPos.lon];
+  if (!meMk){
+    meAcc = L.circle(ll, { radius: 0, color:'#2470b8', weight:1, opacity:.3, fillColor:'#2470b8', fillOpacity:.07, interactive:false }).addTo(eMe);
+    meMk = L.marker(ll, { icon: L.divIcon({className:'', html: ME_HTML, iconSize:[0,0]}), interactive:false, keyboard:false, zIndexOffset:-500 }).addTo(eMe);
+  } else { meMk.setLatLng(ll); meAcc.setLatLng(ll); }
+  meAcc.setRadius(Math.min(userPos.acc || 0, 300));
+  applyHeading();
 }
+function applyHeading(){
+  const el = meMk && meMk.getElement(); if (!el) return;
+  const w = el.querySelector('.me'); if (!w) return;
+  if (heading == null){ w.classList.remove('hd'); return; }
+  w.classList.add('hd'); w.querySelector('.me-cone').style.transform = 'rotate('+heading+'deg)';
+}
+function setHeading(h){
+  heading = (h + 360) % 360;
+  if (!headRaf) headRaf = requestAnimationFrame(() => { headRaf = 0; applyHeading(); });
+}
+/* bussola del telefono: su Android funziona subito, su iPhone chiede il permesso al primo tocco */
+function startCompass(){
+  if (compassOn || typeof window.DeviceOrientationEvent === 'undefined') return;
+  const on = e => {
+    let h = null;
+    if (e.webkitCompassHeading != null) h = e.webkitCompassHeading;
+    else if (e.absolute && e.alpha != null) h = 360 - e.alpha;
+    if (h == null) return;
+    if (Date.now() - gpsHeadAt < 4000) return;          /* mentre ti muovi vale la direzione del GPS */
+    setHeading(h + ((screen.orientation && screen.orientation.angle) || window.orientation || 0));
+  };
+  const add = () => { compassOn = true;
+    if ('ondeviceorientationabsolute' in window) window.addEventListener('deviceorientationabsolute', on);
+    else window.addEventListener('deviceorientation', on); };
+  if (typeof DeviceOrientationEvent.requestPermission === 'function')
+    DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') add(); }).catch(() => {});
+  else add();
+}
+function startTracking(){
+  if (!navigator.geolocation || watchId != null) return;
+  watchId = navigator.geolocation.watchPosition(p => {
+    const c = p.coords;
+    userPos = { lat: c.latitude, lon: c.longitude, acc: c.accuracy };
+    if (c.heading != null && !isNaN(c.heading) && (c.speed || 0) > 1){ gpsHeadAt = Date.now(); setHeading(c.heading); }
+    drawEMe();
+    if (follow) emap.panTo([userPos.lat, userPos.lon], { animate: true });
+  }, () => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 });
+}
+function stopTracking(){ if (watchId != null){ navigator.geolocation.clearWatch(watchId); watchId = null; } }
+function setFollow(f){ follow = f; $('meBtn').classList.toggle('on', f); }
+/* per non consumare batteria: fermo il GPS quando l'app non è in primo piano */
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopTracking(); else if (tracking) startTracking(); });
+emap.on('dragstart', () => setFollow(false));
+/* se il permesso c'è già, la posizione si muove da sola fin dall'apertura */
+if (navigator.permissions && navigator.permissions.query)
+  navigator.permissions.query({ name: 'geolocation' }).then(r => { if (r.state === 'granted'){ tracking = true; startTracking(); startCompass(); } }).catch(() => {});
 $('eMark').onclick = async () => {
   const b = $('eMark'); b.classList.add('busy');
   const pos = await freshPos(); b.classList.remove('busy');
