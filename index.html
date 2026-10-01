@@ -36,7 +36,7 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;
-  padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  padding-bottom:env(safe-area-inset-bottom,0px)}
 a{color:var(--acc);text-decoration:none}
 button{font-family:inherit}
 button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -68,13 +68,9 @@ main{max-width:760px;margin:0 auto;padding:14px 12px 28px}
 h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 
 /* ---------- controlli sopra la mappa ---------- */
-.bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
-.pill{flex:0 0 auto;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:999px;padding:7px 13px;font-size:13px;cursor:pointer;white-space:nowrap}
-.pill.on{background:var(--sea);border-color:var(--sea);color:#fff}
 .seg{display:flex;background:var(--card);border-radius:14px;padding:4px;margin-bottom:10px;box-shadow:var(--shadow)}
 .seg button{flex:1;border:none;background:transparent;color:var(--tx2);padding:9px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer}
 .seg button.on{background:var(--acc-soft);color:var(--acc);font-weight:600}
-#map{height:58vh;min-height:360px;border-radius:18px;overflow:hidden;background:var(--soft);box-shadow:var(--shadow);position:relative;z-index:0;isolation:isolate}
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--tx2);margin:10px 4px 14px}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
 
@@ -115,16 +111,9 @@ h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 @media (prefers-reduced-motion:reduce){.sec>summary .chev{transition:none}}
 
 /* ---------- città selezionata (pagina Meteo) ---------- */
-.hero{background:var(--sea);color:#fff;border-radius:20px;padding:18px 18px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
-.ctop{display:flex;align-items:center;gap:8px}
-.ctop h2{flex:1;margin:0;font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.015em;line-height:1.05}
-.back{background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:12px;width:42px;height:42px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.hero .card{background:none;box-shadow:none;padding:0;margin:14px 0 0;border-radius:0;color:#fff}
-.hero .muted,.hero .src{color:rgba(255,255,255,.74)}
 .now:not(.hr){display:flex;align-items:center;gap:14px}
-.now .ic{font-size:46px;line-height:1}
-.now .big{font-family:var(--serif);font-size:52px;font-weight:500;line-height:1;letter-spacing:-.02em}
-.hero .now .big{color:#fff!important}
+.now .ic{font-size:40px;line-height:1}
+.now .big{font-family:var(--serif);font-size:46px;font-weight:500;line-height:1;letter-spacing:-.02em}
 .src{font-size:11px;color:var(--tx2);margin-top:10px}
 
 .days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
@@ -155,7 +144,6 @@ h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 .badge{flex:0 0 auto;border-radius:12px;padding:8px 10px;color:#fff;font-weight:600;font-size:14px;text-align:center;min-width:96px}
 .badge small{display:block;font-weight:400;font-size:11px;opacity:.9}
 .sub{font-weight:600;font-size:13px;color:var(--tx2);margin:14px 0 2px}
-.favs{display:flex;gap:6px;flex-wrap:wrap}
 
 /* ---------- testi lunghi (curiosità, leggende) ---------- */
 .guide details{border-bottom:1px solid var(--line);padding:11px 0}
@@ -172,9 +160,6 @@ h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 .gal img{height:150px;width:auto;max-width:230px;object-fit:cover;border-radius:12px;background:var(--soft);display:block}
 
 /* ---------- barra delle pagine ---------- */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;gap:8px;background:var(--card);border-top:1px solid var(--line);padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 18px rgba(20,36,48,.06)}
-.tabs button{flex:1;max-width:380px;margin:0 auto;height:54px;border:none;border-radius:14px;background:transparent;color:var(--tx2);font-size:12.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
-.tabs button.on{background:var(--acc-soft);color:var(--acc)}
 
 /* ---------- Esplora ---------- */
 .ehero{display:flex;align-items:flex-end;gap:12px;margin:2px 2px 12px}
@@ -263,42 +248,20 @@ footer a{color:var(--tx2)}
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
     <div class="legend" id="eLegend"></div>
-    <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi mare, foto, monumenti e curiosità.</div></div></div>
-    <details class="sec" id="eSeaS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="eSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eSea"></div></div></details>
+    <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi meteo, mare, foto, monumenti e curiosità.</div></div></div>
+    <details class="sec" id="wxS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st" id="cTitle">Meteo</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cNow"></div><div class="sub">Prossimi 15 giorni <span style="font-weight:400">(tocca un giorno)</span></div><div class="days" id="cDays"></div><div class="sub" id="cTodoT">Ora per ora</div><div id="cVerdict"></div><div id="cTodo"></div></div></details>
+    <details class="sec" id="cSeaS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="cSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cSea"></div></div></details>
     <details class="sec" id="ePhotoS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 16-5-5-9 8"/></svg></span><span class="st" id="ePhotoT">Foto</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="ePhotos"></div></div></details>
     <details class="sec heritage" id="eMonS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
     <details class="sec" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="guide" id="eCur"></div></div></details>
-  </section>
-
-  <!-- ======== MAPPA ======== -->
-  <section class="view" id="vMap">
-    <div class="seg" id="layerSeg"><button data-l="wx" class="on">Meteo</button><button data-l="sea">Mare e meduse</button></div>
-    <div class="bar" id="mapDays"></div>
-    <div id="map"></div>
-    <div class="legend" id="legend"></div>
-    <div id="mCity" style="display:none">
-      <div class="hero">
-        <div class="ctop"><h2 id="cName"></h2><button class="back" id="favBtn" aria-label="Aggiungi ai preferiti"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button><button class="back" id="closeCity" aria-label="Chiudi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
-        <div class="card" id="cNow"></div>
-      </div>
-      <details class="sec" open><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st">Prossimi 15 giorni</span><span class="sn">tocca un giorno</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="days" id="cDays"></div></div></details>
-      <details class="sec" open><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="st" id="cTodoT">Ora per ora</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cVerdict"></div><div id="cTodo"></div></div></details>
-      <details class="sec" id="cSeaS" open><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="cSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cSea"></div></div></details>
-    </div>
-    <div id="favBox"></div>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
-      Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap, © CARTO · Luoghi © OpenStreetMap ·
+      Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa Esri e © OpenStreetMap · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
       Comuni e abitanti: ISTAT
     </footer>
   </section>
 
 </main>
-<nav class="tabs" aria-label="Pagine">
-  <button id="tabE" class="on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Esplora</button>
-  <button id="tabM"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Meteo</button>
-</nav>
-
 <script>
 /* registrato a parte, così vale anche se la mappa non dovesse caricarsi */
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
@@ -312,7 +275,7 @@ const REGIONI = [
   {id:'svizzera', nome:'Svizzera', emoji:'🇨🇭'}
 ];
 let REG=null, COMUNI=[], SEA_PTS=[], PROV={}, byName={};
-let userPos=null, hereName=null, posChiesta=null;
+let userPos=null, posChiesta=null;
 
 /* posizione del telefono: chiesta una volta sola, poi riusata */
 function getPos(){
@@ -359,25 +322,17 @@ async function loadRegion(id){
   SEA_PTS = (j.puntiMare||[]).map(a => ({n:a[0], lat:a[1], lon:a[2]}));
   PROV = j.aree || {};
   byName = {}; COMUNI.forEach(c => byName[c.n]=c);
-  favs = store.get('ss_favs_'+id, []);
-  marine=null; marineErr=false; jelly=null; jellyErr=false; mapDays=null;
+  marine=null; marineErr=false; jelly=null; jellyErr=false;
   for (const k in mapData) delete mapData[k];
   for (const k in cityCache) delete cityCache[k];
-  pending.clear(); wxLayer.clearLayers(); for (const k in markers) delete markers[k];
+  pending.clear();
   store.set('ss_reg', id);
   $('regBtn').textContent = (REGIONI.find(x=>x.id===id)||{emoji:'🌍'}).emoji;
   $('q').placeholder = 'Cerca una città in '+j.nome;
   document.title = j.nome+' · Meteo e viaggio';
   $('hReg').textContent = j.nome;
-  $('layerSeg').style.display = j.mare ? '' : 'none';
-  if (!j.mare){ layer='wx'; $('layerSeg').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on', i===0)); map.removeLayer(seaLayer); map.removeLayer(jellyLayer); }
-  map.setMaxBounds(L.latLngBounds(j.bounds).pad(0.4));
   const dentro = userPos && userPos.lat>=j.bounds[0][0] && userPos.lat<=j.bounds[1][0] && userPos.lon>=j.bounds[0][1] && userPos.lon<=j.bounds[1][1];
-  hereName = dentro ? COMUNI.reduce((b,c)=> km(userPos.lat,userPos.lon,c.lat,c.lon) < km(userPos.lat,userPos.lon,b.lat,b.lon) ? c : b, COMUNI[0]).n : null;
-  if (dentro) map.setView([userPos.lat, userPos.lon], 10);   /* né troppo vicino né troppo largo: ~40 km di raggio */
-  else map.fitBounds(j.bounds);
-  drawMe(); eOnRegion(j, dentro);
-  renderLegend(); renderFavs(); refreshMarkers();
+  eOnRegion(j, dentro);
   if (j.mare){ loadMarine(); loadJelly(); }
 }
 
@@ -445,15 +400,12 @@ async function openMeteo(qs){
 /* ================= MAPPA ================= */
 const MAP_DV = ['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum'];
 const mapData = {}, pending = new Set();
-let mapDay = 0, layer = 'wx', mapDays = null;
-const map = L.map('map', { minZoom:6.5, maxZoom:13, zoomSnap:0.5, zoomDelta:1, maxBounds:[[34.9,11.2],[39.4,16.4]], maxBoundsViscosity:0.9, attributionControl:true });
-map.fitBounds([[36.62,11.9],[38.45,15.66]]);
-let tiles = null;
+const mapDay = 0;   /* giorno mostrato sulla mappa: oggi */
 /* Sfondo mappa. Ordine: CARTO se hai una chiave, altrimenti Esri (veloce e pulito),
    con OpenStreetMap come rete di sicurezza se Esri non risponde. */
 const CARTO_KEY = '';
 const TILE_OPTS = { maxZoom:19, updateWhenZooming:false, keepBuffer:3 };
-let tileProvider = CARTO_KEY ? 'carto' : 'esri', tileFails = 0;
+let tileProvider = CARTO_KEY ? 'carto' : 'esri';
 /* Sfondo sempre chiaro, anche con l'app in tema scuro: così le tile restano in cache
    quando cambi tema e non vengono riscaricate. */
 function tileLayerFor(p){
@@ -463,62 +415,6 @@ function tileLayerFor(p){
     Object.assign({maxNativeZoom:16, attribution:'Sfondo Esri, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}, TILE_OPTS));
   return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     Object.assign({attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}, TILE_OPTS));
-}
-function setTiles(){
-  if (tiles) map.removeLayer(tiles);
-  tiles = tileLayerFor(tileProvider).addTo(map);
-  tileFails = 0;
-  tiles.on('tileerror', () => { /* se lo sfondo non arriva, passo a OpenStreetMap */
-    if (++tileFails===6 && tileProvider!=='osm'){ tileProvider='osm'; setTiles(); } });
-}
-setTiles();
-const wxLayer = L.layerGroup().addTo(map), seaLayer = L.layerGroup(), jellyLayer = L.layerGroup();
-const meLayer = L.layerGroup().addTo(map);
-
-/* mostra dove ti trovi: puntino blu discreto, sotto ai riquadri del meteo */
-function drawMe(){
-  meLayer.clearLayers();
-  if (!userPos) return;
-  L.marker([userPos.lat, userPos.lon], {
-    icon: L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[0,0]}),
-    zIndexOffset:-500, interactive:true
-  }).bindPopup('<div class="pop"><b>Sei qui</b>'+(hereName?'<div class="row">Località più vicina: '+esc(hereName)+'</div>':'')+'</div>').addTo(meLayer);
-}
-const markers = {};
-
-function markerHtml(c){
-  const d = mapData[c.n], big = (minZoom(c)===7 ? ' big' : '') + (map.getZoom()<8 ? ' cp' : '') + ((city ? c.n===city.n : c.n===hereName) ? ' here' : '');
-  if (!d) return '<div class="mk'+big+'"><div class="b"><span class="i">⏳</span></div><div class="n">'+esc(c.n)+'</div></div>';
-  const i = mapDay, code = d.daily.weather_code[i], tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i];
-  return '<div class="mk'+big+'"><div class="b"><span class="i">'+wmo(code)[1]+'</span><span style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</span>'+
-         '<span class="mn">'+(tn==null?'':Math.round(tn)+'°')+'</span></div><div class="n">'+esc(c.n)+'</div></div>';
-}
-function popupHtml(c){
-  const d = mapData[c.n]; let s = '<div class="pop"><b>'+esc(c.n)+'</b><div class="row">'+esc(PROV[c.p]||c.p)+(c.pop?' &middot; '+c.pop.toLocaleString('it-IT')+' ab.':'')+'</div>';
-  if (d){ const i=mapDay, w=wmo(d.daily.weather_code[i]);
-    s += '<div class="row">'+w[1]+' '+w[0]+' · '+Math.round(d.daily.temperature_2m_max[i])+'° / '+Math.round(d.daily.temperature_2m_min[i])+'°</div>'+
-         '<div class="row">💧 '+(d.daily.precipitation_sum[i]||0).toFixed(1)+' mm</div>'; }
-  return s + '</div>';
-}
-function refreshMarkers(){
-  if (layer!=='wx') { wxLayer.clearLayers(); for (const k in markers) delete markers[k]; return; }
-  const z = map.getZoom(), b = map.getBounds().pad(0.15);
-  /* priorità: capoluoghi e località turistiche prima, poi per abitanti; niente sovrapposizioni */
-  const cand = COMUNI.filter(c => minZoom(c)<=Math.floor(z+0.01) && b.contains([c.lat,c.lon]))
-    .sort((a,b2) => (minZoom(a)-minZoom(b2)) || (b2.pop-a.pop));
-  const placed = [], want = [];
-  cand.forEach(c => { const pt = map.latLngToContainerPoint([c.lat,c.lon]);
-    const bw = z<8 ? 60 : 84, bh = z<8 ? 36 : 44;
-    if (placed.some(q => Math.abs(q.x-pt.x)<bw && Math.abs(q.y-pt.y)<bh)) return;
-    placed.push(pt); want.push(c); });
-  const keep = new Set(want.map(c=>c.n));
-  for (const n in markers) if (!keep.has(n)) { wxLayer.removeLayer(markers[n]); delete markers[n]; }
-  want.forEach(c => {
-    const icon = L.divIcon({ className:'', html: markerHtml(c), iconSize:[0,0] });
-    if (markers[c.n]) markers[c.n].setIcon(icon);
-    else { markers[c.n] = L.marker([c.lat,c.lon], {icon, riseOnHover:true, zIndexOffset: 1000-minZoom(c)*100}).bindPopup(() => popupHtml(c)).on('click', () => openCity(c.n)).addTo(wxLayer); }
-  });
-  fetchMissing(want.filter(c => !mapData[c.n] && !pending.has(c.n)));
 }
 let fetchTimer = null;
 function fetchMissing(list){
@@ -532,29 +428,12 @@ function fetchMissing(list){
         const j = await openMeteo('latitude='+chunk.map(c=>c.lat).join(',')+'&longitude='+chunk.map(c=>c.lon).join(',')+'&daily='+MAP_DV.join(',')+'&forecast_days=7');
         const arr = Array.isArray(j) ? j : [j];
         arr.forEach((r,i) => { mapData[chunk[i].n] = normalize(r, MAP_DV); });
-        if (!mapDays) { mapDays = mapData[chunk[0].n].time; renderMapDays(); }
       } catch(e) { chunk.forEach(c => pending.delete(c.n)); showMapError(); }
-      refreshMarkers(); eRefreshWx(); eRenderHero();
+      eRefreshWx(); eRenderHero();
     }
   }, 250);
 }
-function showMapError(){ $('legend').innerHTML = '<span class="err">Previsioni non raggiungibili ora. Controlla la connessione.</span>'; }
-function renderMapDays(){
-  if (!mapDays) { $('mapDays').innerHTML=''; return; }
-  $('mapDays').innerHTML = mapDays.map((t,i)=>'<button class="pill'+(i===mapDay?' on':'')+'" data-i="'+i+'">'+dayLabel(t,i)+'</button>').join('');
-  $('mapDays').querySelectorAll('.pill').forEach(b => b.onclick = () => { mapDay=+b.dataset.i; renderMapDays(); refreshMarkers(); drawSea(); });
-}
-function renderLegend(){
-  if (layer==='wx') $('legend').innerHTML = [[12,'< 12°'],[20,'12–19°'],[27,'20–26°'],[32,'27–31°'],[40,'≥ 32°']].map(([t,l])=>'<span><i style="background:'+tcol(t-1)+'"></i>'+l+'</span>').join('')+
-      '<span>· Ingrandisci per vedere più comuni</span>';
-  else $('legend').innerHTML = DOUGLAS.slice(0,5).map(l=>'<span><i style="background:'+l[2]+'"></i>'+l[1]+'</span>').join('')+'<span>🪼 meduse segnalate (3 sett.)</span>';
-}
-map.on('moveend zoomend', refreshMarkers);
-$('layerSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
-  layer = b.dataset.l; $('layerSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
-  if (layer==='sea'){ seaLayer.addTo(map); jellyLayer.addTo(map); } else { map.removeLayer(seaLayer); map.removeLayer(jellyLayer); }
-  refreshMarkers(); drawSea(); renderLegend();
-});
+function showMapError(){ $('eLegend').innerHTML = '<span class="err">Previsioni non raggiungibili ora. Controlla la connessione.</span>'; }
 
 /* ================= MARE & MEDUSE ================= */
 const DOUGLAS=[[0.1,'Calmo','#2a9d8f'],[0.5,'Poco mosso','#6bbf59'],[1.25,'Mosso','#e0b400'],[2.5,'Molto mosso','#e07a00'],[4,'Agitato','#c8431b'],[6,'Molto agitato','#8e1b1b'],[99,'Grosso','#5a0f0f']];
@@ -567,11 +446,11 @@ function seaFor(i, dkey){
   let sst=null; if (m.hourly&&m.hourly.sea_surface_temperature){const hi=m.hourly.time.indexOf(dkey+'T12:00'); if(hi>=0) sst=m.hourly.sea_surface_temperature[hi];}
   return {h, lv:level(h), dir:m.daily.wave_direction_dominant?m.daily.wave_direction_dominant[k]:null, sst};
 }
-function drawSea(){ drawSeaInto(seaLayer, jellyLayer, layer); if (typeof eDrawSea==='function') eDrawSea(); }
+function drawSea(){ eDrawSea(); }
 function drawSeaInto(seaLayer, jellyLayer, layer){
   seaLayer.clearLayers(); jellyLayer.clearLayers();
   if (layer!=='sea') return;
-  const dkey = mapDays ? mapDays[mapDay] : (marine && marine[0] ? marine[0].daily.time[mapDay] : null);
+  const dkey = marine && marine[0] ? marine[0].daily.time[mapDay] : null;
   SEA_PTS.forEach((p,i) => {
     const w = seaFor(i,dkey);
     L.circleMarker([p.lat,p.lon], {radius:10, color:'#fff', weight:2, fillColor: w?w.lv[2]:'#999', fillOpacity: w?.95:.4})
@@ -586,7 +465,7 @@ async function loadMarine(){
     try{ const r=await fetch(u); if(!r.ok) continue; const j=await r.json(); marine=Array.isArray(j)?j:[j]; break; }catch(e){}
   }
   if (!marine) marineErr=true;
-  drawSea(); if (city) { renderSea(); renderTodo(); } eRenderSea();
+  drawSea(); if (city) { renderSea(); renderTodo(); }
 }
 async function loadJelly(){
   const d1=new Date(Date.now()-21*864e5).toISOString().slice(0,10);
@@ -598,31 +477,21 @@ async function loadJelly(){
       return {lat:ll[0],lon:ll[1],date:o.observed_on,name:(o.taxon&&(o.taxon.preferred_common_name||o.taxon.name))||'Medusa',sci:o.taxon?o.taxon.name:'',place:o.place_guess||'',url:o.uri};})
       .filter(o=>o&&SEA_PTS.some(p=>km(o.lat,o.lon,p.lat,p.lon)<=25));
   }catch(e){ jelly=[]; jellyErr=true; }
-  drawSea(); if (city) renderSea(); eRenderSea();
+  drawSea(); if (city) renderSea();
 }
 
 $('meBtn').onclick = async () => {
   const b=$('meBtn'); b.classList.add('busy');
-  if (page==='esplora'){
-    const pos = await freshPos(); b.classList.remove('busy');
-    if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
-    drawEMe(); const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true});
-    emap.setView([pos.lat,pos.lon], 16); return;
-  }
-  const pos = await (userPos ? Promise.resolve(userPos) : (posChiesta=null, getPos()));
-  b.classList.remove('busy');
+  const pos = await freshPos(); b.classList.remove('busy');
   if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
-  const j=REG;
-  const dentro = pos.lat>=j.bounds[0][0] && pos.lat<=j.bounds[1][0] && pos.lon>=j.bounds[0][1] && pos.lon<=j.bounds[1][1];
-  if (!dentro){ alert('Ti trovi fuori da '+j.nome+'. Cambia regione con il tasto accanto.'); return; }
-  hereName = COMUNI.reduce((x,c)=> km(pos.lat,pos.lon,c.lat,c.lon) < km(pos.lat,pos.lon,x.lat,x.lon) ? c : x, COMUNI[0]).n;
-  map.setView([pos.lat,pos.lon], 10); drawMe(); openCity(hereName); refreshMarkers();
+  drawEMe(); const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true});
+  emap.setView([pos.lat,pos.lon], 16);
 };
 
 $('regBtn').onclick = () => {
   const i = REGIONI.findIndex(r => REG && r.id===REG.id);
   const next = REGIONI[(i+1) % REGIONI.length];
-  closeCity(); loadRegion(next.id).catch(()=>{});
+  loadRegion(next.id).catch(()=>{});
 };
 
 /* ================= RICERCA ================= */
@@ -633,20 +502,10 @@ q.addEventListener('input', () => {
   sugg.innerHTML = hits.length ? hits.map(c=>'<div data-n="'+esc(c.n)+'">'+esc(c.n)+'<small>'+esc(PROV[c.p]||c.p)+'</small></div>').join('') : '<div class="muted">Nessuna località trovata</div>';
   sugg.style.display='block';
   sugg.querySelectorAll('[data-n]').forEach(d => d.onclick = () => { q.value=''; sugg.style.display='none'; q.blur();
-    if (page==='esplora'){ const c=byName[d.dataset.n]; if (c) eSelectCity(c,{zoom:true}); }
-    else showMeteoCity(d.dataset.n); });
+    const c=byName[d.dataset.n]; if (c) eSelectCity(c,{zoom:true}); });
 });
 q.addEventListener('keydown', e => { if (e.key==='Enter'){ const f=sugg.querySelector('[data-n]'); if(f) f.click(); } });
 document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg.style.display='none'; });
-
-/* ================= PREFERITI ================= */
-let favs = [];
-function renderFavs(){
-  $('favBox').innerHTML = favs.length ? '<h2>Le tue città</h2><div class="favs">'+favs.map(n=>'<button class="pill" data-n="'+esc(n)+'">'+esc(n)+'</button>').join('')+'</div>' : '';
-  $('favBox').querySelectorAll('[data-n]').forEach(b => b.onclick = () => showMeteoCity(b.dataset.n));
-  if (city){ const on = favs.includes(city.n); $('favBtn').innerHTML = svgIc('star', on); $('favBtn').setAttribute('aria-label', on ? 'Togli dai preferiti' : 'Aggiungi ai preferiti'); }
-}
-$('favBtn').onclick = () => { if(!city)return; const i=favs.indexOf(city.n); if(i>-1)favs.splice(i,1); else favs.push(city.n); store.set('ss_favs_'+REG.id,favs); renderFavs(); };
 
 /* ================= SCHEDA CITTÀ ================= */
 const CITY_DV=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','precipitation_probability_max','wind_speed_10m_max','wind_direction_10m_dominant','uv_index_max'];
@@ -669,22 +528,12 @@ function openCity(name){
   const c = byName[name]; if (!c) return;
   if (city && city.n===c.n) return;
   city=c; selDay=0; cw=null; const my=++reqId;
-  $('mCity').style.display='';
-  $('cName').textContent = c.n; renderFavs();
+  $('wxS').hidden = false; $('cTitle').textContent = 'Meteo a '+c.n;
   $('cNow').innerHTML = '<span class="muted"><span class="spin"></span>Scarico il meteo…</span>';
-  $('cDays').innerHTML=''; $('cVerdict').innerHTML='';
-  $('cTodo').innerHTML = '<span class="muted"><span class="spin"></span>Carico il dettaglio orario…</span>';
-  renderSea(); refreshMarkers();
-  loadCityWeather(c,my);
+  $('cDays').innerHTML=''; $('cVerdict').innerHTML=''; $('cTodo').innerHTML='';
+  renderSea(); loadCityWeather(c,my);
 }
-/* da ricerca e preferiti: centra la mappa sulla città e scorre fino alle previsioni */
-function showMeteoCity(name){
-  const c = byName[name]; if (!c) return;
-  map.setView([c.lat,c.lon], Math.max(map.getZoom(), 11)); openCity(name);
-  setTimeout(() => $('mCity').scrollIntoView({behavior:'smooth', block:'start'}), 120);
-}
-function closeCity(){ city=null; cw=null; $('mCity').style.display='none'; refreshMarkers(); }
-$('closeCity').onclick = closeCity;
+
 /* previsione completa di una città, scaricata una volta sola e usata da entrambe le pagine */
 const fcPending = {};
 function cityForecast(c){
@@ -820,7 +669,6 @@ function renderTodo(){
 const NEAR_Z = 14, DOT_Z = 11;
 const PROJECT_CHAT_URL = 'https://claude.ai/project/01a0de7f-b1b3-75ca-930e-ca4232eed112';
 const POINTS_REPO = 'Luhalab/Meteo-viaggio';
-let page = 'esplora';
 let eLoading = false, eCity = null, eItems = [], eArea = null, eNear = false, eSel = -1, eLayerMode = 'wx', eReq = 0, eCityReq = 0;
 
 const emap = L.map('emap', { minZoom:5, maxZoom:19, zoomSnap:0.5, zoomDelta:1 });
@@ -1144,24 +992,11 @@ function eRenderHero(){
   const d = mapData[eCity.n];
   $('eHW').innerHTML = d ? wmo(d.daily.weather_code[mapDay])[1]+' <b>'+Math.round(d.daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(d.daily.temperature_2m_min[mapDay])+'°' : esc(PROV[eCity.p]||'');
 }
-let eW = null, eDay = 0;
-/* la previsione serve al mare (data di oggi); il meteo si vede nella pagina Meteo */
-async function eLoadWx(c, my){
-  eW = null; eRenderSea();
-  try { const w = await cityForecast(c); if (my !== eCityReq) return; eW = w; eRenderSea(); } catch(e){}
-}
-function eRenderSea(){
-  if (!eCity || !REG){ $('eSeaS').hidden = true; return; }
-  const senzaMare = !REG.mare || !SEA_PTS.length;
-  $('eSeaS').hidden = senzaMare; if (senzaMare) return;
-  $('eSeaT').textContent = 'Mare e meduse'+(eW ? ', '+dayName(eW, eDay) : '');
-  $('eSea').innerHTML = seaHtml(eCity, eW, eDay);
-}
 function eSelectCity(c, opts){
   opts = opts || {};
   const same = eCity && eCity.n === c.n;
   eCity = c; $('eStart').style.display = 'none';
-  if (!same){ const my = ++eCityReq; eLoadWx(c, my); eLoadPhotos(c, my); eLoadCur(c, my); }
+  if (!same){ const my = ++eCityReq; openCity(c.n); eLoadPhotos(c, my); eLoadCur(c, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
   eRefreshWx(); eRenderHero();
@@ -1256,43 +1091,15 @@ $('eCam').onchange = () => {
 function eOnRegion(j, dentro){
   emap.setMaxBounds(L.latLngBounds(j.bounds).pad(0.4));
   eWx.clearLayers(); for (const k in eMk) delete eMk[k];
-  if (eCity && !byName[eCity.n]){ eCity = null; eW = null; $('eSeaS').hidden = true; eRenderHero(); }
+  if (eCity && !byName[eCity.n]){ eCity = null; city = null; cw = null; $('wxS').hidden = true; $('cSeaS').hidden = true; eRenderHero(); }
   if (dentro) emap.setView([userPos.lat, userPos.lon], 10); else emap.fitBounds(j.bounds);
   if (!j.mare){ eLayerMode = 'wx'; $('eSeg').querySelectorAll('button').forEach((b,i) => b.classList.toggle('on', i===0)); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
   $('eSeg').style.display = (j.mare && !eNear) ? '' : 'none';
   drawEMe(); eRenderLegend(); eRefreshWx(); setHint();
 }
 
-/* ---------- pagine ---------- */
-function setPage(p){ page = p; route(); window.scrollTo(0,0); }
-$('tabE').onclick = () => setPage('esplora');
-$('tabM').onclick = () => setPage('meteo');
-
 /* ================= NAVIGAZIONE ================= */
-/* Le due mappe restano allineate: passando da una pagina all'altra, la mappa che trovi
-   si sposta dove hai lasciato l'altra (stesso centro e zoom) e mostra la stessa città. */
-let syncing=false, movedE=false, movedM=false;
-emap.on('moveend', () => { if (!syncing) movedE = true; });
-map.on('moveend', () => { if (!syncing) movedM = true; });
-function syncInto(target){
-  syncing = true;
-  try {
-    if (target==='meteo' && movedE) map.setView(emap.getCenter(), Math.min(emap.getZoom(), map.getMaxZoom()), {animate:false});
-    if (target==='esplora' && movedM) emap.setView(map.getCenter(), map.getZoom(), {animate:false});
-  } finally { syncing = false; }
-  movedE = movedM = false;
-  if (target==='meteo' && eCity && (!city || city.n!==eCity.n)) openCity(eCity.n);
-  if (target==='esplora' && city && (!eCity || eCity.n!==city.n)) eSelectCity(city);
-}
-function route(){
-  $('tabE').classList.toggle('on', page==='esplora'); $('tabM').classList.toggle('on', page==='meteo');
-  const esp = page==='esplora';
-  $('vEsp').classList.toggle('on', esp); $('vMap').classList.toggle('on', !esp);
-  setTimeout(() => {
-    if (esp){ emap.invalidateSize(); syncInto('esplora'); eRefreshWx(); }
-    else { map.invalidateSize(); syncInto('meteo'); refreshMarkers(); }
-  }, 50);
-}
+function route(){ setTimeout(() => { emap.invalidateSize(); eRefreshWx(); }, 50); }
 
 /* ================= AVVIO ================= */
 (async function start(){
