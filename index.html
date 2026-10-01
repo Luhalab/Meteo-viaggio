@@ -215,6 +215,7 @@ body.e-near .ectl .nr{display:flex}
 .mon .hd span{font-size:12px;color:var(--tx2);white-space:nowrap}
 .mon .ex{font-size:13.5px;line-height:1.5;color:var(--tx2);margin-top:3px}
 .tag-cu{font-size:11.5px;color:#a3452f;font-weight:600}
+.askcity{width:100%;min-height:46px;margin:0 0 12px;border:none;border-radius:14px;background:var(--acc-soft);color:var(--acc);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;text-align:left}
 .askbtn{width:100%;height:46px;margin-top:14px;border:1.5px solid var(--acc);border-radius:12px;background:transparent;color:var(--acc);font-size:14px;font-weight:600;cursor:pointer}
 .empty{display:flex;gap:12px;align-items:flex-start;color:var(--tx2);font-size:14px;line-height:1.5}
 .empty svg{color:var(--acc);margin-top:2px}
@@ -239,6 +240,7 @@ footer a{color:var(--tx2)}
   <!-- ======== ESPLORA ======== -->
   <section class="view on" id="vEsp">
     <div class="ehero" id="eHero" hidden><h2 id="eHName"></h2><div class="ew" id="eHW"></div></div>
+    <button class="askcity" id="eAskCity" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span id="eAskCityT">Chiedi a Claude di aggiungere punti e curiosità</span></button>
     <div class="seg" id="eSeg"><button data-l="wx" class="on">Meteo</button><button data-l="sea">Mare e meduse</button></div>
     <div class="ewrap" id="eWrap">
       <div id="emap"></div>
@@ -972,9 +974,7 @@ async function eLoadCur(c, my){
     .concat(eWpCache[c.n] ? guideBlocks(eWpCache[c.n], CUR_SEC, base, 'Wikipedia', 900) : []);
   $('eCurS').hidden=false;
   $('eCur').innerHTML = (blocks.length ? blocks.join('') : '<span class="muted">Ancora nessuna curiosità per '+esc(c.n)+'.</span>')+
-    '<button class="askbtn" id="eAskMore">Chiedi a Claude di aggiungere punti e curiosità</button>'+
     '<div class="muted" style="margin-top:8px;font-size:11.5px">Testi da Wikipedia (CC BY-SA) e da Claude</div>';
-  $('eAskMore').onclick = () => shareToClaude('Sono a '+c.n+' ('+c.lat.toFixed(5)+', '+c.lon.toFixed(5)+'). Cerca monumenti, punti di interesse artistici e storici e curiosità del posto non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
 }
 
 /* ---------- sezione 2: foto della città ---------- */
@@ -1003,9 +1003,14 @@ async function eLoadPhotos(c, my){
 }
 
 /* ---------- scelta della città ---------- */
+function askCityClaude(c){
+  shareToClaude('Città: '+c.n+' ('+c.lat.toFixed(5)+', '+c.lon.toFixed(5)+'). Cerca monumenti, punti di interesse artistici e storici e curiosità del posto non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
+}
 function eRenderHero(){
-  if (!eCity){ $('eHero').hidden = true; return; }
+  if (!eCity){ $('eHero').hidden = true; $('eAskCity').hidden = true; return; }
   $('eHero').hidden = false; $('eHName').textContent = eCity.n;
+  $('eAskCity').hidden = false; $('eAskCityT').textContent = 'Chiedi a Claude di aggiungere punti e curiosità di '+eCity.n;
+  const c0 = eCity; $('eAskCity').onclick = () => askCityClaude(c0);
   const d = mapData[eCity.n];
   $('eHW').innerHTML = d ? wmo(d.daily.weather_code[mapDay])[1]+' <b>'+Math.round(d.daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(d.daily.temperature_2m_min[mapDay])+'°' : esc(PROV[eCity.p]||'');
 }
