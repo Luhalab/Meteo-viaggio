@@ -352,5 +352,53 @@
     "lon": 12.50966,
     "extract": "Antica porta della città, chiamata Oscura per il suo passaggio buio, sormontata dalla Torre dell'Orologio accanto al Palazzo Senatorio. La torre porta orologi astronomici del 1596, con il sole e le fasi della luna, ancora funzionanti.",
     "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "La pietra di Santa Crescenzia",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Secondo la leggenda, il giovane Vito fuggì da Mazara con il tutore Modesto e la nutrice Crescenzia e sbarcò sulla costa di San Vito. Una frana travolse il villaggio che li aveva respinti: Crescenzia, disobbedendo all'ordine di non voltarsi, rimase pietrificata dove oggi sorge la cappella a lei dedicata, in contrada Valanga.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Una chiesa trasformata in fortezza",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Il santuario nacque come piccola cappella del Trecento dedicata a san Vito. Per ospitare e difendere i pellegrini dai pirati, a fine Quattrocento divenne una fortezza-alloggio, con feritoie e mura spesse da 20 cm fino a 2,5 metri. La torre di avvistamento è del 1600, su progetto del fiorentino Camilliani.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Il caldo-freddo",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Dolce simbolo di San Vito: una coppa di gelato con biscotti o pan di Spagna inzuppati di liquore (di solito rum), panna e una colata di cioccolato caldo. Il contrasto tra il gelato freddo e il cioccolato bollente gli dà il nome.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Il Cous Cous Fest",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Dal 1998, nell'ultima settimana di settembre, San Vito ospita un festival internazionale della cultura e della gastronomia mediterranea, con concerti e una gara internazionale tra cuochi di vari Paesi, il «Campionato del mondo di cous cous». Il piatto, di origine nordafricana, qui è un simbolo di incontro tra popoli.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "La torre Roccazzo, scomparsa",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Tra le torri costiere erette a difesa del territorio c'era anche la torre Roccazzo, sul piano Soprano a ovest del paese: il punto fu scelto perché permetteva il contatto visivo con le altre due torri. Fu demolita nel 1935 per far posto al semaforo militare.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "Il faro dei Borbone",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Il faro di Capo San Vito fu costruito nel 1859, in epoca borbonica, per rendere sicura la navigazione lungo questa costa. Vicino sorge il Torrazzo, una torre circolare più bassa, probabile resto dell'antico sistema di difesa contro le incursioni dei pirati.",
+    "url": null
   }
 ]
