@@ -1004,7 +1004,7 @@ async function eLoadPhotos(c, my){
 
 /* ---------- scelta della città ---------- */
 function askCityClaude(c){
-  shareToClaude('Città: '+c.n+' ('+c.lat.toFixed(5)+', '+c.lon.toFixed(5)+'). Cerca monumenti, punti di interesse artistici e storici e curiosità del posto non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
+  shareToClaude('Città: '+c.n+' (centro: '+c.lat.toFixed(5)+', '+c.lon.toFixed(5)+'). Non sono necessariamente lì: non serve la mia posizione. Cerca monumenti, punti di interesse artistici e storici e curiosità del posto non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'. Per i monumenti prendi le coordinate di ogni luogo dalla ricerca luoghi di Google Maps, da Wikipedia o da OpenStreetMap.');
 }
 function eRenderHero(){
   if (!eCity){ $('eHero').hidden = true; $('eAskCity').hidden = true; return; }
