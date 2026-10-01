@@ -523,5 +523,73 @@
     "lon": 12.87921,
     "extract": "Piccolo museo privato in via Mascagni dedicato alla vita sul mare e alla storia marinara di Castellammare. Gli orari sono poco affidabili: meglio chiedere in zona prima di andare.",
     "url": null
+  },
+  {
+    "title": "Chiesa Madre – Santuario di Maria SS. del Soccorso",
+    "lat": 38.02894,
+    "lon": 12.88261,
+    "extract": "Santuario della patrona della città, su uno sperone di tufo a picco sul mare per circa 25 metri. L'edificio barocco a tre navate fu iniziato nel 1726 sulle fondamenta di una chiesa più antica; all'interno spicca la volta affrescata da Giuseppe Tresca. Nella cappella a sinistra dell'altare maggiore si venera l'effigie in maiolica della Madonna del Soccorso.",
+    "url": null
+  },
+  {
+    "title": "Palazzo Crociferi",
+    "lat": 38.02627,
+    "lon": 12.88043,
+    "extract": "Fondato nel 1659 per volontà della principessa Francesca Balsamo di Roccafiorita come convento dei Padri Crociferi, è uno degli edifici civili antichi meglio conservati del borgo. Oggi è la sede del municipio; l'attuale Sala Consiliare era in origine la chiesa annessa di Santa Maria degli Agonizzanti.",
+    "url": null
+  },
+  {
+    "title": "Chiesa di Maria SS. delle Grazie",
+    "lat": 38.02627,
+    "lon": 12.87932,
+    "extract": "Piccola chiesa che si affaccia sulla piazzetta che porta il suo nome, a due passi dalla villa comunale. Si inserisce facilmente in una passeggiata tra le chiese del centro.",
+    "url": null
+  },
+  {
+    "title": "Chiesa della Madonna della Scala",
+    "lat": 38.02762,
+    "lon": 12.87505,
+    "extract": "Piccolo luogo di culto su una parete rocciosa affacciata sul porto, poco più a valle del Belvedere. Secondo la tradizione sorge dove c'era la grotta in cui trovò riparo la pastorella nel 1641. Ci si arriva dal sentiero Madonna della Scala e si gode un bel colpo d'occhio sul paese.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "La Madonna Nera «di l'Agnuni»",
+    "lat": 38.026,
+    "lon": 12.8804,
+    "extract": "La chiesetta della Madonna del Rosario, dentro l'antica cinta del castello, è detta in dialetto «di l'agnuni», cioè «dell'angolo». Custodisce una particolare Madonna Nera, e la tradizione la fa risalire a epoca normanna, intorno al 1100.",
+    "url": null
+  },
+  {
+    "kind": "curiosita",
+    "title": "La scala a chiocciola del castello",
+    "lat": 38.026,
+    "lon": 12.8804,
+    "extract": "Il castello a mare colpisce per la torre dell'artiglieria e per il portale tardo-gotico. All'interno ha una scala a chiocciola medievale che molte guide indicano come uno dei suoi dettagli più belli.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Passeggiata nel centro storico",
+    "lat": 38.026,
+    "lon": 12.8804,
+    "extract": "Percorso classico a piedi: Corso Garibaldi fino alla piccola Chiesa del Purgatorio, poi Piazza Matrice con la Chiesa Madre e, da via Ponte Castello, le mura del castello con la Madonna del Rosario. Per tornare in basso prendi la scalinata che da Porta Marina sale a Piazza Castello, con scorci sul mare. Calcola 2-3 ore con le soste.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Festa della patrona e rievocazione",
+    "lat": 38.026,
+    "lon": 12.8804,
+    "extract": "Il 13 luglio si rievoca il miracolo che nel 1718 mise in fuga le navi inglesi; a fine agosto (la patrona si festeggia intorno al 21) ci sono la processione a mare e quella di terra dalla Chiesa Madre a Cala Marina. Sono i momenti più suggestivi per essere qui, ma i programmi cambiano: controlla le date con la Pro Loco.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Dove mangiare vicino al porto",
+    "lat": 38.026,
+    "lon": 12.8804,
+    "extract": "Tra gli indirizzi segnalati dalle guide c'è La Cambusa in via Don Leonardo Zangara, la strada del castello a mare, e la pizzeria La Campana in via del Macello. Non ho verificato orari e qualità: guarda le recensioni aggiornate. Per un aperitivo al tramonto sali alle terrazze del castello o al Belvedere.",
+    "url": null
   }
 ]
