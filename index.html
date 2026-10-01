@@ -929,7 +929,7 @@ function eShowItem(i, fly){
   showCard('<div class="ch"><span class="meta">'+(it.source==='custom'?'<span class="tag-cu">Aggiunto da Claude</span> · ':'')+'a '+formatDist(it.dist)+' dal centro</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     '<h3>'+esc(it.title)+'</h3><div class="cb">'+(it.thumb?'<img src="'+esc(it.thumb)+'" alt="">':'')+'<p id="eCardTx">'+(esc(it.extract)||'Nessuna descrizione disponibile.')+'</p></div>'+
     '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button>'+((it.url && lbl) ? '<a href="'+esc(it.url)+'" target="_blank" rel="noopener">'+lbl+'</a>' : '')+'</div>');
-  $('eAsk').onclick = () => shareToClaude('Raccontami la storia e qualche curiosità su "'+it.title+'"'+(eCity?' a '+eCity.n:'')+' ('+it.lat.toFixed(5)+', '+it.lon.toFixed(5)+').');
+  $('eAsk').onclick = () => shareToClaude(msgPlace(it));
   /* per Wikipedia carico l'introduzione completa, non solo le prime righe */
   if (it.source === 'wikipedia' && it.lang) wikiSummary(it.lang, it.title).then(s => {
     if (eSel === i && s && s.extract && $('eCardTx')) $('eCardTx').textContent = s.extract; });
@@ -1006,7 +1006,7 @@ async function eLoadPhotos(c, my){
 
 /* ---------- scelta della città ---------- */
 function askCityClaude(c){
-  shareToClaude('Città: '+c.n+' (centro: '+c.lat.toFixed(5)+', '+c.lon.toFixed(5)+'). Non sono necessariamente lì: non serve la mia posizione. Cerca monumenti, punti di interesse artistici e storici e curiosità del posto non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'. Per i monumenti prendi le coordinate di ogni luogo dalla ricerca luoghi di Google Maps, da Wikipedia o da OpenStreetMap.');
+  shareToClaude(msgCity(c));
 }
 function renderAskBtn(){
   const cityMode = eCity && (eCitySrc === 'search' || eCitySrc === 'tap');
@@ -1020,9 +1020,7 @@ async function askHereClaude(){
   let p = userPos;
   if (!p){ const b = $('eAskCity'); b.classList.add('busy'); p = await freshPos(); b.classList.remove('busy'); }
   if (!p){ alert('Non riesco a leggere la posizione. Attiva la localizzazione oppure cerca una città.'); return; }
-  const nc = nearestComune(p.lat, p.lon);
-  shareToClaude('Sono a queste coordinate: '+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+(nc ? ' (vicino a '+nc.n+')' : '')+
-    '. Cerca monumenti, punti di interesse artistici e storici e curiosità qui intorno non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
+  shareToClaude(msgHere(p));
 }
 function eRenderHero(){
   renderAskBtn();
@@ -1081,6 +1079,31 @@ $('eFull').onclick = () => {
 };
 
 /* ---------- condividi con Claude (come Cicerone) ---------- */
+/* ---------- messaggi per Claude: completi, così agisce subito senza fare domande ---------- */
+const MSG_ADD = 'Aggiungi i luoghi non ancora presenti in custom-points.json (repo GitHub '+POINTS_REPO+'), con coordinate di ogni luogo da Google Maps, Wikipedia o OpenStreetMap, e le curiosità come voci "kind": "curiosita".';
+const MSG_REPLY = 'Poi rispondimi con: cosa vedere (i luoghi più interessanti, con distanza a piedi), le curiosità più belle e cosa fare (un consiglio pratico: percorso, orari, dove mangiare o il momento migliore).';
+const near = p => { const nc = nearestComune(p.lat, p.lon); return nc ? ' (vicino a '+nc.n+')' : ''; };
+const coords = p => p.lat.toFixed(5)+', '+p.lon.toFixed(5);
+function msgCity(c){
+  return '[Meteo e viaggio: città] '+c.n+' (centro '+coords(c)+'). Non sono necessariamente lì: non serve la mia posizione.\nFai tutto subito, senza chiedermi conferma.\n'+
+    '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità di '+c.n+'. '+MSG_ADD+'\n2. '+MSG_REPLY;
+}
+function msgHere(p){
+  return '[Meteo e viaggio: posizione] Sono a '+coords(p)+near(p)+'.\nFai tutto subito, senza chiedermi conferma.\n'+
+    '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità entro circa 1 km da qui. '+MSG_ADD+'\n2. '+MSG_REPLY;
+}
+function msgPhoto(p){
+  return '[Meteo e viaggio: foto] Sono a '+coords(p)+near(p)+'. Ti mando la foto di quello che sto guardando.\nFai tutto subito.\n'+
+    '1. Riconosci cosa c\'è nella foto e raccontamelo: storia, arte e curiosità.\n'+
+    '2. Se non è già in custom-points.json aggiungilo (repo GitHub '+POINTS_REPO+'). Se non sei sicuro di cosa sia, dimmi l\'ipotesi più probabile e chiedimi conferma prima di aggiungerlo.\n'+
+    '3. Dimmi cosa vedere qui vicino e un consiglio su cosa fare.';
+}
+function msgPlace(it){
+  return '[Meteo e viaggio: luogo] '+it.title+(eCity?' a '+eCity.n:'')+' ('+coords(it)+').\nFai tutto subito.\n'+
+    '1. Raccontami storia, arte e curiosità di questo luogo e cosa guardare quando sono lì.\n'+
+    '2. Se trovi curiosità interessanti non ancora presenti, aggiungile a custom-points.json (repo GitHub '+POINTS_REPO+') come voci "kind": "curiosita".\n'+
+    '3. Suggeriscimi cosa vedere vicino.';
+}
 async function shareToClaude(text, file){
   try {
     if (file && navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({title:'Meteo e viaggio', text, files:[file]}); return; }
@@ -1169,7 +1192,7 @@ $('eMark').onclick = async () => {
   showCard('<div class="ch"><span class="meta">'+(pos ? 'La tua posizione' : 'Centro della mappa (GPS non disponibile)')+'</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     '<h3>'+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+'</h3><p>Chiedi a Claude cosa c\'è qui: se non è catalogato, lo aggiunge alla mappa.</p>'+
     '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button></div>');
-  $('eAsk').onclick = () => shareToClaude('Sono a queste coordinate: '+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+'. Cosa c\'è qui che vale la pena scoprire? Se non è già catalogato, aggiungilo a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
+  $('eAsk').onclick = () => shareToClaude(msgHere(p));
 };
 let photoPos = null;
 $('ePhoto').onclick = () => { photoPos = null; freshPos().then(p => photoPos = p); $('eCam').click(); };
@@ -1181,7 +1204,7 @@ $('eCam').onchange = () => {
     '<div class="acts"><button class="ai" id="eAsk">Condividi con Claude</button><a href="'+url+'" download="foto.jpg">Scarica foto</a></div>');
   $('eAsk').onclick = () => {
     const p = photoPos || userPos || (c => ({lat:c.lat, lon:c.lng}))(emap.getCenter());
-    shareToClaude('Sono a queste coordinate: '+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+'. Cosa mi sai dire su questo dettaglio nella foto? Se non è già catalogato, aggiungilo a custom-points.json nel repo GitHub '+POINTS_REPO+'.', file);
+    shareToClaude(msgPhoto(p), file);
   };
   $('eCam').value = '';
 };
