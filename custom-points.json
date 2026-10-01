@@ -414,5 +414,29 @@
     "lon": 12.76857,
     "extract": "Antico impianto per la pesca e la lavorazione del tonno, in funzione dal 1412 e acquistata nel 1872 dal cavaliere Vito Foderà. Si trova a circa 3 km dal paese, ai piedi di Monte Monaco, e prende il nome dal fondale basso davanti alla costa. Oggi è abbandonata e non visitabile, ma è celebre come set del Commissario Montalbano e della fiction «Cefalonia».",
     "url": null
+  },
+  {
+    "title": "Il mulino che pompa il mare",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "Nelle saline dello Stagnone i mulini a vento non macinavano solo il sale: azionavano anche viti di Archimede che spostavano l'acqua da una vasca all'altra. Il Mulino d'Infersa, del Cinquecento, è uno degli ultimi ancora funzionanti in provincia di Trapani.",
+    "url": null,
+    "kind": "curiosita"
+  },
+  {
+    "title": "Le tegole sul sale",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "Una volta raccolto, il sale veniva ammucchiato in grandi cumuli bianchi lungo le vasche. Per proteggerli dalla pioggia invernale i salinari li coprivano con file di tegole di terracotta, un'immagine che ancora oggi caratterizza il paesaggio delle saline.",
+    "url": null,
+    "kind": "curiosita"
+  },
+  {
+    "title": "L'isola comprata da un inglese",
+    "lat": 37.7978,
+    "lon": 12.4341,
+    "extract": "Mozia, l'isola fenicia nello Stagnone, fu acquistata all'inizio del Novecento dall'inglese Joseph Whitaker, appassionato di archeologia, e dalla sua famiglia legata al vino Marsala. Gli scavi portarono alla luce il celebre Giovinetto di Mozia, oggi conservato nel museo che porta il suo nome.",
+    "url": null,
+    "kind": "curiosita"
   }
 ]
