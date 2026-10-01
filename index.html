@@ -132,6 +132,10 @@ h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 .day.on{border-color:var(--acc);background:var(--card)}
 .day .d{font-size:12px;color:var(--tx2);font-weight:500}.day .i{font-size:23px;margin:4px 0}
 .day .t{font-size:14px;font-weight:600}.day .t small{font-weight:400;color:var(--tx2)}
+.wxsum{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.wxsum .i{font-size:34px;line-height:1}
+.wxsum b{font-size:15.5px}
+.wxsum .muted{margin-top:2px}
 .day .r{font-size:11px;color:var(--acc);margin-top:2px}.day .w{font-size:11px;color:var(--tx2)}
 .verdict{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14px;line-height:1.45}
 .verdict.sun{background:#fbf1d8;color:#523800}.verdict.rain{background:#e1ecf8;color:#0f3565}.verdict.mix{background:#ecefe3;color:#3a4210}
@@ -263,7 +267,9 @@ footer a{color:var(--tx2)}
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
     <div class="legend" id="eLegend"></div>
-    <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi foto, monumenti e curiosità.</div></div></div>
+    <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi meteo, mare, foto, monumenti e curiosità.</div></div></div>
+    <details class="sec" id="eWxS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st" id="eWxT">Meteo</span><span class="sn">tocca un giorno</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eWxSum"></div><div class="days" id="eDays"></div></div></details>
+    <details class="sec" id="eSeaS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="eSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eSea"></div></div></details>
     <details class="sec" id="ePhotoS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 16-5-5-9 8"/></svg></span><span class="st" id="ePhotoT">Foto</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="ePhotos"></div></div></details>
     <details class="sec heritage" id="eMonS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
     <details class="sec" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="guide" id="eCur"></div></div></details>
@@ -585,7 +591,7 @@ async function loadMarine(){
     try{ const r=await fetch(u); if(!r.ok) continue; const j=await r.json(); marine=Array.isArray(j)?j:[j]; break; }catch(e){}
   }
   if (!marine) marineErr=true;
-  drawSea(); if (city) { renderSea(); renderTodo(); }
+  drawSea(); if (city) { renderSea(); renderTodo(); } eRenderSea();
 }
 async function loadJelly(){
   const d1=new Date(Date.now()-21*864e5).toISOString().slice(0,10);
@@ -597,7 +603,7 @@ async function loadJelly(){
       return {lat:ll[0],lon:ll[1],date:o.observed_on,name:(o.taxon&&(o.taxon.preferred_common_name||o.taxon.name))||'Medusa',sci:o.taxon?o.taxon.name:'',place:o.place_guess||'',url:o.uri};})
       .filter(o=>o&&SEA_PTS.some(p=>km(o.lat,o.lon,p.lat,p.lon)<=25));
   }catch(e){ jelly=[]; jellyErr=true; }
-  drawSea(); if (city) renderSea();
+  drawSea(); if (city) renderSea(); eRenderSea();
 }
 
 $('meBtn').onclick = async () => {
@@ -656,11 +662,13 @@ let city=null, cw=null, selDay=0, reqId=0;
 
 function wikiSummary(lang,title){const k=lang+':'+title; if(!wikiCache[k]) wikiCache[k]=fetch('https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title.replace(/ /g,'_'))).then(r=>r.ok?r.json():null).catch(()=>null); return wikiCache[k];}
 
-function nearSea(){
+function nearSeaFor(c, w, day){
   if (!SEA_PTS.length) return {i:-1, pt:null, dist:1e9, w:null};
-  let bi=-1,bd=1e9; SEA_PTS.forEach((p,i)=>{const d=km(city.lat,city.lon,p.lat,p.lon); if(d<bd){bd=d;bi=i;}});
-  return {i:bi, pt:SEA_PTS[bi], dist:bd, w: cw ? seaFor(bi, cw.time[selDay]) : null};
+  let bi=-1,bd=1e9; SEA_PTS.forEach((p,i)=>{const d=km(c.lat,c.lon,p.lat,p.lon); if(d<bd){bd=d;bi=i;}});
+  return {i:bi, pt:SEA_PTS[bi], dist:bd, w: w ? seaFor(bi, w.time[day]) : null};
 }
+function nearSea(){ return nearSeaFor(city, cw, selDay); }
+const dayName = (w, i) => i===0?'oggi':i===1?'domani':new Date(w.time[i]+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric'});
 
 function openCity(name){
   const c = byName[name]; if (!c) return;
@@ -682,11 +690,17 @@ function showMeteoCity(name){
 }
 function closeCity(){ city=null; cw=null; $('mCity').style.display='none'; refreshMarkers(); }
 $('closeCity').onclick = closeCity;
+/* previsione completa di una città, scaricata una volta sola e usata da entrambe le pagine */
+const fcPending = {};
+function cityForecast(c){
+  if (cityCache[c.n]) return Promise.resolve(cityCache[c.n]);
+  if (!fcPending[c.n]) fcPending[c.n] = openMeteo('latitude='+c.lat+'&longitude='+c.lon+'&current='+CITY_CV.join(',')+'&daily='+CITY_DV.join(',')+'&hourly='+CITY_HV.join(',')+'&forecast_days=15')
+    .then(j => cityCache[c.n] = normalize(j, CITY_DV, CITY_CV, CITY_HV)).finally(() => delete fcPending[c.n]);
+  return fcPending[c.n];
+}
 async function loadCityWeather(c,my){
   try{
-    let w = cityCache[c.n];
-    if (!w){ const j = await openMeteo('latitude='+c.lat+'&longitude='+c.lon+'&current='+CITY_CV.join(',')+'&daily='+CITY_DV.join(',')+'&hourly='+CITY_HV.join(',')+'&forecast_days=15');
-      w = cityCache[c.n] = normalize(j, CITY_DV, CITY_CV, CITY_HV); }
+    const w = await cityForecast(c);
     if (my!==reqId) return;
     cw = w; renderNow(); renderDays(); renderSea(); renderTodo();
   }catch(e){ if(my===reqId) $('cNow').innerHTML='<div class="err">Meteo non raggiungibile ora. Riprova tra poco.</div>'; }
@@ -713,29 +727,31 @@ function judge(i){
   const maybe = !wet && (rain>=0.5||prob>=40||code===3||code===45||code===48);
   return {kind:wet?'rain':maybe?'mix':'sun', rain, prob, wind, tmax};
 }
+function seaHtml(c, w, day){
+  const ns = nearSeaFor(c, w, day); let h='';
+  if (marineErr) h+='<div class="err">Stato del mare non disponibile ora.</div>';
+  else if (!marine||!w) h+='<span class="muted"><span class="spin"></span>Scarico lo stato del mare…</span>';
+  else if (!ns.w) h+='<div class="muted">Previsione del mare disponibile solo per i primi '+marine[0].daily.time.length+' giorni.</div>';
+  else { const w=ns.w;
+    h+='<div class="sea-row"><div class="badge" style="background:'+w.lv[2]+'">'+w.lv[1]+'<small>onde fino a '+w.h.toFixed(1)+' m</small></div><div style="font-size:13px;line-height:1.5">'+
+      (ns.dist<=20?'Mare a <b>'+esc(ns.pt.n)+'</b>':'<b>'+esc(c.n)+'</b> è nell\'entroterra: mare più vicino a <b>'+esc(ns.pt.n)+'</b> ('+Math.round(ns.dist)+' km)')+
+      (w.dir!=null?'<br>Onda da '+dir(w.dir):'')+(w.sst!=null?' · acqua <b>'+Math.round(w.sst)+'°</b>':'')+'</div></div>'; }
+  h+='<div class="sub">🪼 Meduse segnalate nelle ultime 3 settimane</div>';
+  if (jelly===null) h+='<span class="muted"><span class="spin"></span>Controllo le segnalazioni…</span>';
+  else if (jellyErr) h+='<div class="err">Segnalazioni non disponibili ora.</div>';
+  else { const near=jelly.map(o=>({...o,d:km(c.lat,c.lon,o.lat,o.lon)})).filter(o=>o.d<=30).sort((a,b)=>a.d-b.d);
+    h+= near.length ? near.slice(0,5).map(o=>'<div class="item"><div class="e">🪼</div><div><div class="n">'+esc(o.name)+'</div><div class="m">'+new Date(o.date+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' · '+esc(o.place)+' · '+o.d.toFixed(0)+' km</div><div class="l"><a href="'+esc(o.url)+'" target="_blank" rel="noopener">Vedi segnalazione</a></div></div></div>').join('')
+      : '<div class="muted">Nessuna segnalazione entro 30 km ('+jelly.length+' in tutta la regione). Le segnalazioni sono volontarie: nessuna segnalazione non garantisce mare libero.</div>'; }
+  h+='<div class="muted" style="margin-top:8px;font-size:12px">Altre segnalazioni su <a href="https://www.meteomeduse.it/" target="_blank" rel="noopener">MeteoMeduse</a> e nell\'app MedusApp.</div>';
+  return h;
+}
 function renderSea(){
   if (!city) return;
   const senzaMare = !REG.mare || !SEA_PTS.length;
   $('cSeaS').hidden = senzaMare;
   if (senzaMare) return;
-  const lab = cw ? (selDay===0?'oggi':selDay===1?'domani':new Date(cw.time[selDay]+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric'})) : '';
-  $('cSeaT').textContent = 'Mare e meduse'+(lab?', '+lab:'');
-  const ns = nearSea(); let h='';
-  if (marineErr) h+='<div class="err">Stato del mare non disponibile ora.</div>';
-  else if (!marine||!cw) h+='<span class="muted"><span class="spin"></span>Scarico lo stato del mare…</span>';
-  else if (!ns.w) h+='<div class="muted">Previsione del mare disponibile solo per i primi '+marine[0].daily.time.length+' giorni.</div>';
-  else { const w=ns.w;
-    h+='<div class="sea-row"><div class="badge" style="background:'+w.lv[2]+'">'+w.lv[1]+'<small>onde fino a '+w.h.toFixed(1)+' m</small></div><div style="font-size:13px;line-height:1.5">'+
-      (ns.dist<=20?'Mare a <b>'+esc(ns.pt.n)+'</b>':'<b>'+esc(city.n)+'</b> è nell\'entroterra: mare più vicino a <b>'+esc(ns.pt.n)+'</b> ('+Math.round(ns.dist)+' km)')+
-      (w.dir!=null?'<br>Onda da '+dir(w.dir):'')+(w.sst!=null?' · acqua <b>'+Math.round(w.sst)+'°</b>':'')+'</div></div>'; }
-  h+='<div class="sub">🪼 Meduse segnalate nelle ultime 3 settimane</div>';
-  if (jelly===null) h+='<span class="muted"><span class="spin"></span>Controllo le segnalazioni…</span>';
-  else if (jellyErr) h+='<div class="err">Segnalazioni non disponibili ora.</div>';
-  else { const near=jelly.map(o=>({...o,d:km(city.lat,city.lon,o.lat,o.lon)})).filter(o=>o.d<=30).sort((a,b)=>a.d-b.d);
-    h+= near.length ? near.slice(0,5).map(o=>'<div class="item"><div class="e">🪼</div><div><div class="n">'+esc(o.name)+'</div><div class="m">'+new Date(o.date+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' · '+esc(o.place)+' · '+o.d.toFixed(0)+' km</div><div class="l"><a href="'+esc(o.url)+'" target="_blank" rel="noopener">Vedi segnalazione</a></div></div></div>').join('')
-      : '<div class="muted">Nessuna segnalazione entro 30 km ('+jelly.length+' in tutta la regione). Le segnalazioni sono volontarie: nessuna segnalazione non garantisce mare libero.</div>'; }
-  h+='<div class="muted" style="margin-top:8px;font-size:12px">Altre segnalazioni su <a href="https://www.meteomeduse.it/" target="_blank" rel="noopener">MeteoMeduse</a> e nell\'app MedusApp.</div>';
-  $('cSea').innerHTML=h;
+  $('cSeaT').textContent = 'Mare e meduse'+(cw?', '+dayName(cw,selDay):'');
+  $('cSea').innerHTML = seaHtml(city, cw, selDay);
 }
 
 /* ---------- collegamento all'app Cicerone ---------- */
@@ -1133,11 +1149,38 @@ function eRenderHero(){
   const d = mapData[eCity.n];
   $('eHW').innerHTML = d ? wmo(d.daily.weather_code[mapDay])[1]+' <b>'+Math.round(d.daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(d.daily.temperature_2m_min[mapDay])+'°' : esc(PROV[eCity.p]||'');
 }
+let eW = null, eDay = 0;
+async function eLoadWx(c, my){
+  $('eWxS').hidden = false; $('eWxT').textContent = 'Meteo a '+c.n;
+  $('eWxSum').innerHTML = '<span class="muted"><span class="spin"></span>Scarico le previsioni…</span>'; $('eDays').innerHTML = '';
+  eW = null; eDay = 0; eRenderSea();
+  try { const w = await cityForecast(c); if (my !== eCityReq) return; eW = w; eRenderWx(); eRenderSea(); }
+  catch(e){ if (my === eCityReq) $('eWxSum').innerHTML = '<div class="err">Previsioni non raggiungibili ora. Riprova tra poco.</div>'; }
+}
+function eRenderWx(){
+  if (!eW) return;
+  const d = eW.daily, i = eDay, wx = wmo(d.weather_code[i]), r = d.precipitation_sum[i]||0, pp = d.precipitation_probability_max ? d.precipitation_probability_max[i] : null;
+  $('eWxSum').innerHTML = '<div class="wxsum"><div class="i">'+wx[1]+'</div><div><b>'+dayName(eW,i).replace(/^./, x=>x.toUpperCase())+': '+wx[0].toLowerCase()+'</b>'+
+    '<div class="muted">Massima '+Math.round(d.temperature_2m_max[i])+'°, minima '+Math.round(d.temperature_2m_min[i])+'°'+
+    (r>=0.1 ? ', pioggia '+r.toFixed(1)+' mm' : (pp!=null && pp>=30 ? ', pioggia al '+pp+'%' : ''))+', vento '+Math.round(d.wind_speed_10m_max[i]||0)+' km/h</div></div></div>';
+  $('eDays').innerHTML = eW.time.map((t,k) => { const rr = d.precipitation_sum[k]||0;
+    return '<div class="day'+(k===i?' on':'')+'" data-i="'+k+'"><div class="d">'+dayLabel(t,k)+'</div><div class="i">'+wmo(d.weather_code[k])[1]+'</div>'+
+      '<div class="t">'+Math.round(d.temperature_2m_max[k])+'° <small>'+Math.round(d.temperature_2m_min[k])+'°</small></div>'+
+      '<div class="r">'+(rr>=0.1?'💧'+rr.toFixed(1):'&nbsp;')+'</div><div class="w">💨 '+Math.round(d.wind_speed_10m_max[k]||0)+'</div></div>'; }).join('');
+  $('eDays').querySelectorAll('.day').forEach(el => el.onclick = () => { eDay = +el.dataset.i; eRenderWx(); eRenderSea(); });
+}
+function eRenderSea(){
+  if (!eCity || !REG){ $('eSeaS').hidden = true; return; }
+  const senzaMare = !REG.mare || !SEA_PTS.length;
+  $('eSeaS').hidden = senzaMare; if (senzaMare) return;
+  $('eSeaT').textContent = 'Mare e meduse'+(eW ? ', '+dayName(eW, eDay) : '');
+  $('eSea').innerHTML = seaHtml(eCity, eW, eDay);
+}
 function eSelectCity(c, opts){
   opts = opts || {};
   const same = eCity && eCity.n === c.n;
   eCity = c; $('eStart').style.display = 'none';
-  if (!same){ const my = ++eCityReq; eLoadPhotos(c, my); eLoadCur(c, my); }
+  if (!same){ const my = ++eCityReq; eLoadWx(c, my); eLoadPhotos(c, my); eLoadCur(c, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
   eRefreshWx(); eRenderHero();
@@ -1232,7 +1275,7 @@ $('eCam').onchange = () => {
 function eOnRegion(j, dentro){
   emap.setMaxBounds(L.latLngBounds(j.bounds).pad(0.4));
   eWx.clearLayers(); for (const k in eMk) delete eMk[k];
-  if (eCity && !byName[eCity.n]) eCity = null;
+  if (eCity && !byName[eCity.n]){ eCity = null; eW = null; $('eWxS').hidden = true; $('eSeaS').hidden = true; eRenderHero(); }
   if (dentro) emap.setView([userPos.lat, userPos.lon], 10); else emap.fitBounds(j.bounds);
   if (!j.mare){ eLayerMode = 'wx'; $('eSeg').querySelectorAll('button').forEach((b,i) => b.classList.toggle('on', i===0)); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
   $('eSeg').style.display = (j.mare && !eNear) ? '' : 'none';
