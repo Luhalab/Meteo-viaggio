@@ -34,6 +34,7 @@
   --tx:#e6edf1; --tx2:#93a5b2; --sea:#0f3550; --sea2:#0a2639; --acc:#5aa2e6; --acc-soft:rgba(90,162,230,.15);
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;
   padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -216,6 +217,7 @@ body.e-near .ectl .nr{display:flex}
 .mon .ex{font-size:13.5px;line-height:1.5;color:var(--tx2);margin-top:3px}
 .tag-cu{font-size:11.5px;color:#a3452f;font-weight:600}
 .askcity{width:100%;min-height:46px;margin:0 0 12px;border:none;border-radius:14px;background:var(--acc-soft);color:var(--acc);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;text-align:left}
+.askcity.busy{opacity:.6}
 .askbtn{width:100%;height:46px;margin-top:14px;border:1.5px solid var(--acc);border-radius:12px;background:transparent;color:var(--acc);font-size:14px;font-weight:600;cursor:pointer}
 .empty{display:flex;gap:12px;align-items:flex-start;color:var(--tx2);font-size:14px;line-height:1.5}
 .empty svg{color:var(--acc);margin-top:2px}
@@ -240,7 +242,7 @@ footer a{color:var(--tx2)}
   <!-- ======== ESPLORA ======== -->
   <section class="view on" id="vEsp">
     <div class="ehero" id="eHero" hidden><h2 id="eHName"></h2><div class="ew" id="eHW"></div></div>
-    <button class="askcity" id="eAskCity" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span id="eAskCityT">Chiedi a Claude di aggiungere punti e curiosità</span></button>
+    <button class="askcity" id="eAskCity"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span id="eAskCityT">Chiedi a Claude di aggiungere punti e curiosità</span></button>
     <div class="seg" id="eSeg"><button data-l="wx" class="on">Meteo</button><button data-l="sea">Mare e meduse</button></div>
     <div class="ewrap" id="eWrap">
       <div id="emap"></div>
@@ -503,7 +505,7 @@ $('meBtn').onclick = async () => {
   const pos = (watchId != null && userPos) ? userPos : await freshPos(); b.classList.remove('busy');
   if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
   tracking = true; startTracking(); drawEMe(); setFollow(true);
-  const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true});
+  const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true, src:'gps'});
   emap.setView([pos.lat,pos.lon], Math.max(emap.getZoom(), 16));
 };
 
@@ -521,7 +523,7 @@ q.addEventListener('input', () => {
   sugg.innerHTML = hits.length ? hits.map(c=>'<div data-n="'+esc(c.n)+'">'+esc(c.n)+'<small>'+esc(PROV[c.p]||c.p)+'</small></div>').join('') : '<div class="muted">Nessuna località trovata</div>';
   sugg.style.display='block';
   sugg.querySelectorAll('[data-n]').forEach(d => d.onclick = () => { q.value=''; sugg.style.display='none'; q.blur();
-    const c=byName[d.dataset.n]; if (c) eSelectCity(c,{zoom:true}); });
+    const c=byName[d.dataset.n]; if (c) eSelectCity(c,{zoom:true, src:'search'}); });
 });
 q.addEventListener('keydown', e => { if (e.key==='Enter'){ const f=sugg.querySelector('[data-n]'); if(f) f.click(); } });
 document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg.style.display='none'; });
@@ -744,7 +746,7 @@ function eRefreshWx(){
     const icon = L.divIcon({ className:'', html: eMarkerHtml(c), iconSize:[0,0] });
     if (eMk[c.n]) eMk[c.n].setIcon(icon);
     else eMk[c.n] = L.marker([c.lat,c.lon], {icon, riseOnHover:true, zIndexOffset: 1000-minZoom(c)*100})
-      .bindPopup(() => ePopupHtml(c)).on('click', () => eSelectCity(c)).addTo(eWx);
+      .bindPopup(() => ePopupHtml(c)).on('click', () => eSelectCity(c,{src:'tap'})).addTo(eWx);
   });
   fetchMissing(want.filter(c => !mapData[c.n] && !pending.has(c.n)));
 }
@@ -1006,17 +1008,34 @@ async function eLoadPhotos(c, my){
 function askCityClaude(c){
   shareToClaude('Città: '+c.n+' (centro: '+c.lat.toFixed(5)+', '+c.lon.toFixed(5)+'). Non sono necessariamente lì: non serve la mia posizione. Cerca monumenti, punti di interesse artistici e storici e curiosità del posto non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'. Per i monumenti prendi le coordinate di ogni luogo dalla ricerca luoghi di Google Maps, da Wikipedia o da OpenStreetMap.');
 }
+function renderAskBtn(){
+  const cityMode = eCity && (eCitySrc === 'search' || eCitySrc === 'tap');
+  $('eAskCityT').textContent = cityMode ? 'Chiedi a Claude di aggiungere punti e curiosità di '+eCity.n
+                                        : 'Chiedi a Claude di aggiungere punti e curiosità qui intorno';
+  const c0 = eCity;
+  $('eAskCity').onclick = cityMode ? () => askCityClaude(c0) : askHereClaude;
+}
+/* senza città cercata: usa la posizione GPS */
+async function askHereClaude(){
+  let p = userPos;
+  if (!p){ const b = $('eAskCity'); b.classList.add('busy'); p = await freshPos(); b.classList.remove('busy'); }
+  if (!p){ alert('Non riesco a leggere la posizione. Attiva la localizzazione oppure cerca una città.'); return; }
+  const nc = nearestComune(p.lat, p.lon);
+  shareToClaude('Sono a queste coordinate: '+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+(nc ? ' (vicino a '+nc.n+')' : '')+
+    '. Cerca monumenti, punti di interesse artistici e storici e curiosità qui intorno non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
+}
 function eRenderHero(){
-  if (!eCity){ $('eHero').hidden = true; $('eAskCity').hidden = true; return; }
+  renderAskBtn();
+  if (!eCity){ $('eHero').hidden = true; return; }
   $('eHero').hidden = false; $('eHName').textContent = eCity.n;
-  $('eAskCity').hidden = false; $('eAskCityT').textContent = 'Chiedi a Claude di aggiungere punti e curiosità di '+eCity.n;
-  const c0 = eCity; $('eAskCity').onclick = () => askCityClaude(c0);
   const d = mapData[eCity.n];
   $('eHW').innerHTML = d ? wmo(d.daily.weather_code[mapDay])[1]+' <b>'+Math.round(d.daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(d.daily.temperature_2m_min[mapDay])+'°' : esc(PROV[eCity.p]||'');
 }
+let eCitySrc = '';   /* 'search' o 'tap' = città scelta da te; altrimenti vale la posizione GPS */
 function eSelectCity(c, opts){
   opts = opts || {};
   const same = eCity && eCity.n === c.n;
+  if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c; $('eStart').style.display = 'none';
   if (!same){ const my = ++eCityReq; openCity(c.n); eLoadPhotos(c, my); eLoadCur(c, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
@@ -1028,7 +1047,7 @@ function nearestComune(lat, lon){
   let best = null, bd = 1e9; COMUNI.forEach(c => { const d = km(lat,lon,c.lat,c.lon); if (d < bd){ bd = d; best = c; } });
   return bd <= 12 ? best : null;
 }
-window.eGoCity = k => { const c = byName[decodeURIComponent(k)]; if (!c) return; emap.closePopup(); eSelectCity(c, {zoom:true}); };
+window.eGoCity = k => { const c = byName[decodeURIComponent(k)]; if (!c) return; emap.closePopup(); eSelectCity(c, {zoom:true, src:'tap'}); };
 window.eZoomTo = (la, lo) => { emap.closePopup(); emap.flyTo([la, lo], 16); };
 
 /* ---------- passaggio lontano ↔ vicino ---------- */
@@ -1179,7 +1198,7 @@ function eOnRegion(j, dentro){
 }
 
 /* ================= NAVIGAZIONE ================= */
-function route(){ setTimeout(() => { emap.invalidateSize(); eRefreshWx(); }, 50); }
+function route(){ renderAskBtn(); setTimeout(() => { emap.invalidateSize(); eRefreshWx(); }, 50); }
 
 /* ================= AVVIO ================= */
 (async function start(){
