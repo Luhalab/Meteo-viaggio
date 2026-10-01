@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Viaggio">
-<meta name="description" content="Meteo, stato del mare, meduse, cosa vedere ed eventi in Sicilia.">
+<meta name="description" content="Meteo, mare, meduse, monumenti e curiosità per chi viaggia in Italia e Svizzera.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{--bg:#eef1f4;--card:#fff;--soft:#f4f6f8;--tx:#13161a;--tx2:#667079;--bd:rgba(0,0,0,.1);--acc:#1f6fd1;--hd:#1f5fae;
@@ -282,12 +282,7 @@ function getPos(){
   });
   return posChiesta;
 }
-const _ISLANDS_UNUSED = ['Lipari','Pantelleria','Lampedusa e Linosa','Favignana','Ustica','Santa Marina Salina','Leni','Malfa'];
-const _TOURIST_UNUSED = ['Cefalù','Taormina','Noto','San Vito Lo Capo','Castellammare del Golfo','Scicli','Erice','Piazza Armerina','Sciacca','Giardini-Naxos','Milazzo','Castelbuono','Marzamemi','Modica'];
 const MODELS = 'italia_meteo_arpae_icon_2i,best_match';
-/* Indirizzo della tua app Cicerone: incollalo qui fra gli apici e il collegamento compare da solo.
-   L'app riceve città e coordinate, così può aprirsi già sulla mappa del posto. */
-const CICERONE_URL = 'https://cicerone-rho.vercel.app/';
 
 /* ---------- utilità ---------- */
 const $ = id => document.getElementById(id);
@@ -709,16 +704,14 @@ function renderSea(){
   else if (jellyErr) h+='<div class="err">Segnalazioni non disponibili ora.</div>';
   else { const near=jelly.map(o=>({...o,d:km(city.lat,city.lon,o.lat,o.lon)})).filter(o=>o.d<=30).sort((a,b)=>a.d-b.d);
     h+= near.length ? near.slice(0,5).map(o=>'<div class="item"><div class="e">🪼</div><div><div class="n">'+esc(o.name)+'</div><div class="m">'+new Date(o.date+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' · '+esc(o.place)+' · '+o.d.toFixed(0)+' km</div><div class="l"><a href="'+esc(o.url)+'" target="_blank" rel="noopener">Vedi segnalazione</a></div></div></div>').join('')
-      : '<div class="muted">Nessuna segnalazione entro 30 km ('+jelly.length+' in tutta la Sicilia). Le segnalazioni sono volontarie: nessuna segnalazione non garantisce mare libero.</div>'; }
+      : '<div class="muted">Nessuna segnalazione entro 30 km ('+jelly.length+' in tutta la regione). Le segnalazioni sono volontarie: nessuna segnalazione non garantisce mare libero.</div>'; }
   h+='<div class="muted" style="margin-top:8px;font-size:12px">Altre segnalazioni su <a href="https://www.meteomeduse.it/" target="_blank" rel="noopener">MeteoMeduse</a> e nell\'app MedusApp.</div>';
   $('cSea').innerHTML=h;
 }
 
 /* ---------- collegamento all'app Cicerone ---------- */
 function renderArt(){
-  if (!CICERONE_URL || !city){ $('cArt').style.display='none'; $('cArtT').style.display='none'; return; }
-  const u = CICERONE_URL + (CICERONE_URL.includes('?')?'&':'?') + 'city=' + encodeURIComponent(city.n) +
-    '&lat=' + city.lat + '&lon=' + city.lon + '&zoom=14&view=map';
+  if (!city){ $('cArt').style.display='none'; $('cArtT').style.display='none'; return; }
   $('cArtT').style.display=''; $('cArt').style.display='';
   $('cArt').innerHTML = '<div class="links"><a href="#" id="toEsp">🏛️<div>Monumenti di '+esc(city.n)+' in Esplora'+
     '<span>Mappa delle opere, chiese e monumenti · foto e curiosità</span></div></a></div>';
@@ -850,8 +843,7 @@ function renderEvents(){
   $('cEvents').innerHTML='<div class="links">'+
     '<a href="'+g('eventi '+city.n+' '+per)+'" target="_blank" rel="noopener">🎉<div>Eventi a '+esc(city.n)+'<span>'+per.charAt(0).toUpperCase()+per.slice(1)+'</span></div></a>'+
     '<a href="'+g('sagra festa patronale '+city.n+' '+per)+'" target="_blank" rel="noopener">🍋<div>Sagre e feste<span>Nello stesso periodo</span></div></a>'+
-    '<a href="https://sicilendar.it/" target="_blank" rel="noopener">📆<div>Sicilendar<span>Calendario eventi di tutta la Sicilia</span></div></a>'+
-    '<a href="https://www.tripadvisor.it/Search?q='+encodeURIComponent(city.n+' Sicilia')+'" target="_blank" rel="noopener">🦉<div>Tripadvisor<span>Ristoranti e attrazioni con recensioni</span></div></a></div>';
+    '<a href="https://www.tripadvisor.it/Search?q='+encodeURIComponent(city.n+' '+(REG?REG.nome:''))+'" target="_blank" rel="noopener">🦉<div>Tripadvisor<span>Ristoranti e attrazioni con recensioni</span></div></a></div>';
 }
 
 /* =====================================================================
