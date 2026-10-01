@@ -282,6 +282,7 @@ footer a{color:var(--tx2)}
     <details class="sec" id="ePhotoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 16-5-5-9 8"/></svg></span><span class="st" id="ePhotoT">Foto</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="ePhotos"></div></div></details>
     <details class="sec heritage" id="eMonS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
     <details class="sec" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="guide" id="eCur"></div></div></details>
+    <details class="sec" id="eDoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span><span class="st" id="eDoT">Cosa vedere e fare</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="guide" id="eDo"></div></div></details>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa Esri e © OpenStreetMap · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
@@ -801,7 +802,7 @@ function eRenderWeek(){
 function eClearCity(){
   if (!eCity) return;
   eCity = null; eCitySrc = ''; city = null; cw = null; eCityReq++; reqId++;
-  ['wxS','cSeaS','ePhotoS','eMonS','eCurS'].forEach(id => $(id).hidden = true);
+  ['wxS','cSeaS','ePhotoS','eMonS','eCurS','eDoS'].forEach(id => $(id).hidden = true);
   $('eCard').classList.remove('show'); eSel = -1;
   eRenderHero();
   if (emap.getZoom() > 10) emap.setView(emap.getCenter(), 10); else eRefreshWx();
@@ -1039,6 +1040,28 @@ async function eLoadCur(c, my){
     '<div class="muted" style="margin-top:8px;font-size:11.5px">Testi da Wikipedia (CC BY-SA) e da Claude</div>';
 }
 
+/* ---------- sezione: cosa vedere e fare ----------
+   consigli aggiunti da Claude ("kind": "da-fare") + le sezioni di Wikivoyage */
+const DO_SEC = [
+  {re:/cosa vedere|da vedere|sehensw|^see$/i, t:'Cosa vedere'},
+  {re:/cosa fare|attivit|aktivit|^do$/i, t:'Cosa fare'},
+  {re:/eventi|feste|veranstalt/i, t:'Eventi e feste'},
+  {re:/dove mangiare|essen|^eat$/i, t:'Dove mangiare'}
+];
+const eWvCache = {};
+async function eLoadDo(c, my){
+  const LG = (REG&&REG.wikiLang)||'it';
+  const mine = (await customAll()).filter(p => p.kind === 'da-fare' && p.lat != null && km(c.lat,c.lon,p.lat,p.lon) <= 8);
+  if (eWvCache[c.n] === undefined) eWvCache[c.n] = await extracts(LG+'.wikivoyage.org', c.n);
+  if (my !== eCityReq) return;
+  const base = 'https://'+LG+'.wikivoyage.org/wiki/'+encodeURIComponent(c.n.replace(/ /g,'_'));
+  const blocks = mine.map(p => '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p><span class="tag-cu">Consiglio di Claude</span></details>')
+    .concat(eWvCache[c.n] ? guideBlocks(eWvCache[c.n], DO_SEC, base, 'Wikivoyage', 1200) : []);
+  $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n;
+  $('eDo').innerHTML = blocks.length ? blocks.join('')+'<div class="muted" style="margin-top:8px;font-size:11.5px">Testi di Wikivoyage (CC BY-SA) e consigli di Claude</div>'
+    : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>';
+}
+
 /* ---------- sezione 2: foto della città ---------- */
 async function photoList(c){
   if (photoCache[c.n]) return photoCache[c.n];
@@ -1096,7 +1119,7 @@ function eSelectCity(c, opts){
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c;
   if (!same) $('eStart').hidden = true;
-  if (!same){ const my = ++eCityReq; openCity(c.n); eLoadPhotos(c, my); eLoadCur(c, my); }
+  if (!same){ const my = ++eCityReq; openCity(c.n); eLoadPhotos(c, my); eLoadCur(c, my); eLoadDo(c, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
   eRefreshWx(); eRenderHero();
@@ -1141,7 +1164,7 @@ $('eFull').onclick = () => {
 
 /* ---------- condividi con Claude (come Cicerone) ---------- */
 /* ---------- messaggi per Claude: completi, così agisce subito senza fare domande ---------- */
-const MSG_ADD = 'Aggiungi i luoghi non ancora presenti in custom-points.json (repo GitHub '+POINTS_REPO+'), con coordinate di ogni luogo da Google Maps, Wikipedia o OpenStreetMap, e le curiosità come voci "kind": "curiosita".';
+const MSG_ADD = 'Aggiungi i luoghi non ancora presenti in custom-points.json (repo GitHub '+POINTS_REPO+'), con coordinate di ogni luogo da Google Maps, Wikipedia o OpenStreetMap (Nominatim), le curiosità come voci "kind": "curiosita" e i consigli su cosa vedere e fare come voci "kind": "da-fare" (titolo breve, 2-4 frasi, coordinate del centro).';
 const MSG_REPLY = 'Poi rispondimi con: cosa vedere (i luoghi più interessanti, con distanza a piedi), le curiosità più belle e cosa fare (un consiglio pratico: percorso, orari, dove mangiare o il momento migliore).';
 const near = p => { const nc = nearestComune(p.lat, p.lon); return nc ? ' (vicino a '+nc.n+')' : ''; };
 const coords = p => p.lat.toFixed(5)+', '+p.lon.toFixed(5);
