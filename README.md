@@ -7,7 +7,10 @@ App web per turisti, Italia e Svizzera, in due pagine.
   da zoom 14 in su diventa la mappa di Cicerone con chiese, monumenti, castelli e opere,
   la scheda di ogni punto e "Chiedi a Claude". Schermo intero, "Segna questo punto", "Fotografa un dettaglio".
   Sotto la mappa: foto della città e monumenti e curiosità.
-- **Meteo**: l'app di sempre (mappa meteo, scheda città ora per ora e 15 giorni, mare, eventi).
+- **Meteo**: mappa meteo con giorni, mare e meduse. Toccando una città, sotto la mappa compaiono
+  meteo attuale, 15 giorni, ora per ora e mare, nella stessa pagina.
+
+Le due mappe sono sincronizzate: passando da una pagina all'altra trovi la stessa zona e la stessa città.
 
 ## Struttura
 - `index.html` — l'app (il "motore", uguale per tutte le regioni)

@@ -69,14 +69,7 @@ h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 .back{background:var(--card);border:.5px solid var(--bd);color:var(--tx);border-radius:10px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
 .ctop{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .ctop h2{flex:1;margin:0;font-size:21px}
-.intro{display:flex;gap:12px}
-.intro img{width:96px;height:96px;object-fit:cover;border-radius:10px;flex:0 0 96px;background:var(--soft)}
-.intro p{margin:0 0 6px;font-size:13.5px;line-height:1.45}
 a{color:var(--acc);text-decoration:none}
-.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
-.fact{background:var(--soft);border-radius:9px;padding:8px 6px;text-align:center}
-.fact b{display:block;font-size:14px}
-.fact span{font-size:11px;color:var(--tx2)}
 .now{display:flex;align-items:center;gap:14px}
 .now .ic{font-size:44px;line-height:1}
 .now .big{font-size:42px;font-weight:600;line-height:1}
@@ -105,9 +98,6 @@ a{color:var(--acc);text-decoration:none}
 .item .e{font-size:20px;width:26px;text-align:center}
 .item .n{font-weight:500}.item .m{font-size:12px;color:var(--tx2);margin-top:2px}
 .item .l{font-size:12px;margin-top:3px}
-.wiki{display:flex;gap:9px;margin-top:7px;background:var(--soft);border-radius:9px;padding:7px}
-.wiki img{width:58px;height:58px;object-fit:cover;border-radius:7px;flex:0 0 58px}
-.wiki p{margin:0;font-size:12.5px;line-height:1.4}
 .gal{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -14px;padding-left:14px;padding-right:14px}
 .gal a{flex:0 0 auto;display:block}
 .gal img{height:120px;width:auto;max-width:190px;object-fit:cover;border-radius:10px;background:var(--soft)}
@@ -122,9 +112,6 @@ a{color:var(--acc);text-decoration:none}
 .badge{flex:0 0 auto;border-radius:10px;padding:8px 10px;color:#fff;font-weight:600;font-size:14px;text-align:center;min-width:94px}
 .badge small{display:block;font-weight:400;font-size:11px;opacity:.9}
 .sub{font-weight:600;font-size:13px;color:var(--tx2);margin:12px 0 2px}
-.links{display:flex;flex-direction:column;gap:8px}
-.links a{display:flex;gap:10px;align-items:center;color:var(--tx);background:var(--soft);border-radius:10px;padding:10px 12px;font-size:14px}
-.links a span{display:block;color:var(--tx2);font-size:12px}
 
 /* ---------- barra delle pagine ---------- */
 body{padding-bottom:calc(74px + env(safe-area-inset-bottom,0px))}
@@ -222,35 +209,25 @@ footer a{color:var(--tx2)}
     <div class="bar" id="mapDays"></div>
     <div id="map"></div>
     <div class="legend" id="legend"></div>
+    <div id="mCity" style="display:none">
+      <div class="ctop"><h2 id="cName"></h2><button class="back" id="favBtn" aria-label="Preferita">☆</button><button class="back" id="closeCity" aria-label="Chiudi">✕</button></div>
+      <div class="card" id="cNow"></div>
+      <h2>Prossimi 15 giorni <span class="muted" style="font-weight:400">· tocca un giorno</span></h2>
+      <div class="days" id="cDays"></div>
+      <h2 id="cTodoT">Ora per ora</h2>
+      <div id="cVerdict"></div>
+      <div class="card" id="cTodo"></div>
+      <h2 id="cSeaT">Mare e meduse</h2>
+      <div class="card" id="cSea"></div>
+    </div>
     <div id="favBox"></div>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap, © CARTO · Luoghi © OpenStreetMap ·
-      Testi: Wikipedia (CC BY-SA) · Comuni e abitanti: ISTAT
+      Comuni e abitanti: ISTAT
     </footer>
   </section>
 
-  <!-- ======== SCHEDA CITTÀ ======== -->
-  <section class="view" id="vCity">
-    <div class="ctop"><button class="back" id="backBtn">← Mappa</button><h2 id="cName"></h2><button class="back" id="favBtn" aria-label="Preferita">☆</button></div>
-    <div class="card" id="cIntro"></div>
-    <div class="card" id="cNow"></div>
-    <h2 id="cPhotoT" style="display:none">Foto</h2>
-    <div id="cPhotos"></div>
-    <h2 id="cArtT" style="display:none">Arte e monumenti</h2>
-    <div class="card" id="cArt" style="display:none"></div>
-    <h2 id="cGuideT" style="display:none">Mini guida</h2>
-    <div class="card guide" id="cGuide" style="display:none"></div>
-    <h2>Prossimi 15 giorni <span class="muted" style="font-weight:400">· tocca un giorno</span></h2>
-    <div class="days" id="cDays"></div>
-    <h2 id="cSeaT">Mare e meduse</h2>
-    <div class="card" id="cSea"></div>
-    <h2 id="cTodoT">Ora per ora</h2>
-    <div id="cVerdict"></div>
-    <div class="card" id="cTodo"></div>
-    <h2>Eventi · prossime 3 settimane</h2>
-    <div class="card" id="cEvents"></div>
-  </section>
 </main>
 <nav class="tabs" aria-label="Pagine">
   <button id="tabE" class="on"><span class="ti">🗺️</span>Esplora</button>
@@ -443,7 +420,7 @@ function drawMe(){
 const markers = {};
 
 function markerHtml(c){
-  const d = mapData[c.n], big = (minZoom(c)===7 ? ' big' : '') + (map.getZoom()<8 ? ' cp' : '') + (c.n===hereName ? ' here' : '');
+  const d = mapData[c.n], big = (minZoom(c)===7 ? ' big' : '') + (map.getZoom()<8 ? ' cp' : '') + ((city ? c.n===city.n : c.n===hereName) ? ' here' : '');
   if (!d) return '<div class="mk'+big+'"><div class="b"><span class="i">⏳</span></div><div class="n">'+esc(c.n)+'</div></div>';
   const i = mapDay, code = d.daily.weather_code[i], tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i];
   return '<div class="mk'+big+'"><div class="b"><span class="i">'+wmo(code)[1]+'</span><span style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</span>'+
@@ -454,7 +431,7 @@ function popupHtml(c){
   if (d){ const i=mapDay, w=wmo(d.daily.weather_code[i]);
     s += '<div class="row">'+w[1]+' '+w[0]+' · '+Math.round(d.daily.temperature_2m_max[i])+'° / '+Math.round(d.daily.temperature_2m_min[i])+'°</div>'+
          '<div class="row">💧 '+(d.daily.precipitation_sum[i]||0).toFixed(1)+' mm</div>'; }
-  return s + '<button onclick="location.hash=\'#c=\'+encodeURIComponent(\''+c.n.replace(/'/g,"\\'")+'\')">Meteo, cosa vedere ed eventi →</button></div>';
+  return s + '</div>';
 }
 function refreshMarkers(){
   if (layer!=='wx') { wxLayer.clearLayers(); for (const k in markers) delete markers[k]; return; }
@@ -472,7 +449,7 @@ function refreshMarkers(){
   want.forEach(c => {
     const icon = L.divIcon({ className:'', html: markerHtml(c), iconSize:[0,0] });
     if (markers[c.n]) markers[c.n].setIcon(icon);
-    else { markers[c.n] = L.marker([c.lat,c.lon], {icon, riseOnHover:true, zIndexOffset: 1000-minZoom(c)*100}).bindPopup(() => popupHtml(c)).addTo(wxLayer); }
+    else { markers[c.n] = L.marker([c.lat,c.lon], {icon, riseOnHover:true, zIndexOffset: 1000-minZoom(c)*100}).bindPopup(() => popupHtml(c)).on('click', () => openCity(c.n)).addTo(wxLayer); }
   });
   fetchMissing(want.filter(c => !mapData[c.n] && !pending.has(c.n)));
 }
@@ -572,13 +549,13 @@ $('meBtn').onclick = async () => {
   const dentro = pos.lat>=j.bounds[0][0] && pos.lat<=j.bounds[1][0] && pos.lon>=j.bounds[0][1] && pos.lon<=j.bounds[1][1];
   if (!dentro){ alert('Ti trovi fuori da '+j.nome+'. Cambia regione con il tasto accanto.'); return; }
   hereName = COMUNI.reduce((x,c)=> km(pos.lat,pos.lon,c.lat,c.lon) < km(pos.lat,pos.lon,x.lat,x.lon) ? c : x, COMUNI[0]).n;
-  location.hash=''; map.setView([pos.lat,pos.lon], 10); drawMe(); refreshMarkers();
+  map.setView([pos.lat,pos.lon], 10); drawMe(); openCity(hereName); refreshMarkers();
 };
 
 $('regBtn').onclick = () => {
   const i = REGIONI.findIndex(r => REG && r.id===REG.id);
   const next = REGIONI[(i+1) % REGIONI.length];
-  location.hash = ''; loadRegion(next.id).catch(()=>{});
+  closeCity(); loadRegion(next.id).catch(()=>{});
 };
 
 /* ================= RICERCA ================= */
@@ -590,7 +567,7 @@ q.addEventListener('input', () => {
   sugg.style.display='block';
   sugg.querySelectorAll('[data-n]').forEach(d => d.onclick = () => { q.value=''; sugg.style.display='none'; q.blur();
     if (page==='esplora'){ const c=byName[d.dataset.n]; if (c) eSelectCity(c,{zoom:true}); }
-    else location.hash='#c='+encodeURIComponent(d.dataset.n); });
+    else showMeteoCity(d.dataset.n); });
 });
 q.addEventListener('keydown', e => { if (e.key==='Enter'){ const f=sugg.querySelector('[data-n]'); if(f) f.click(); } });
 document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg.style.display='none'; });
@@ -599,7 +576,7 @@ document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg
 let favs = [];
 function renderFavs(){
   $('favBox').innerHTML = favs.length ? '<h2>Le tue città</h2><div class="favs">'+favs.map(n=>'<button class="pill" data-n="'+esc(n)+'">'+esc(n)+'</button>').join('')+'</div>' : '';
-  $('favBox').querySelectorAll('[data-n]').forEach(b => b.onclick = () => location.hash='#c='+encodeURIComponent(b.dataset.n));
+  $('favBox').querySelectorAll('[data-n]').forEach(b => b.onclick = () => showMeteoCity(b.dataset.n));
   if (city) $('favBtn').textContent = favs.includes(city.n)?'⭐':'☆';
 }
 $('favBtn').onclick = () => { if(!city)return; const i=favs.indexOf(city.n); if(i>-1)favs.splice(i,1); else favs.push(city.n); store.set('ss_favs_'+REG.id,favs); renderFavs(); };
@@ -620,38 +597,25 @@ function nearSea(){
 }
 
 function openCity(name){
-  const c = byName[name]; if (!c) { location.hash=''; return; }
+  const c = byName[name]; if (!c) return;
+  if (city && city.n===c.n) return;
   city=c; selDay=0; cw=null; const my=++reqId;
-  $('vMap').classList.remove('on'); $('vCity').classList.add('on'); window.scrollTo(0,0);
+  $('mCity').style.display='';
   $('cName').textContent = c.n; renderFavs();
-  $('cIntro').innerHTML = factsHtml(null);
   $('cNow').innerHTML = '<span class="muted"><span class="spin"></span>Scarico il meteo…</span>';
   $('cDays').innerHTML=''; $('cVerdict').innerHTML='';
   $('cTodo').innerHTML = '<span class="muted"><span class="spin"></span>Carico il dettaglio orario…</span>';
-  $('cPhotos').innerHTML=''; $('cPhotoT').style.display='none';
-  renderArt();
-  $('cGuide').style.display='none'; $('cGuideT').style.display='none';
-  renderSea(); renderEvents();
-  loadCityWeather(c,my); loadIntro(c,my); loadPhotos(c,my); loadGuide(c,my);
+  renderSea(); refreshMarkers();
+  loadCityWeather(c,my);
 }
-function factsHtml(elev){
-  const s = SEA_PTS.length ? SEA_PTS.reduce((m,p)=>Math.min(m,km(city.lat,city.lon,p.lat,p.lon)),1e9) : null;
-  return '<div class="facts">'+
-    '<div class="fact"><b>'+esc(PROV[city.p]||city.p)+'</b><span>'+esc((REG&&REG.etichettaArea)||'area')+'</span></div>'+
-    '<div class="fact"><b>'+(city.pop?city.pop.toLocaleString('it-IT'):'–')+'</b><span>abitanti</span></div>'+
-    '<div class="fact"><b>'+(elev!=null?Math.round(elev)+' m':'…')+'</b><span>altitudine</span></div>'+
-    (s!=null ? '<div class="fact"><b>'+(s<=6?'sul mare':Math.round(s)+' km')+'</b><span>dal mare</span></div>' : '')+'</div>';
+/* da ricerca e preferiti: centra la mappa sulla città e scorre fino alle previsioni */
+function showMeteoCity(name){
+  const c = byName[name]; if (!c) return;
+  map.setView([c.lat,c.lon], Math.max(map.getZoom(), 11)); openCity(name);
+  setTimeout(() => $('mCity').scrollIntoView({behavior:'smooth', block:'start'}), 120);
 }
-async function loadIntro(c,my){
-  const L1=(REG&&REG.wikiLang)||'it';
-  let s = await wikiSummary(L1, c.n);
-  if (s && s.type==='disambiguation') s = await wikiSummary(L1, c.n+' ('+REG.nome+')');
-  if (my!==reqId) return;
-  const facts = $('cIntro').querySelector('.facts') ? $('cIntro').querySelector('.facts').outerHTML : factsHtml(cw?cw.elevation:null);
-  $('cIntro').innerHTML = (s && s.extract && s.type!=='disambiguation' ?
-    '<div class="intro">'+(s.thumbnail?'<img src="'+esc(s.thumbnail.source)+'" alt="'+esc(c.n)+'" loading="lazy">':'')+
-    '<div><p>'+esc(short(s.extract,300))+'</p><a href="'+esc(s.content_urls.desktop.page)+'" target="_blank" rel="noopener">Leggi su Wikipedia</a></div></div>' : '') + facts;
-}
+function closeCity(){ city=null; cw=null; $('mCity').style.display='none'; refreshMarkers(); }
+$('closeCity').onclick = closeCity;
 async function loadCityWeather(c,my){
   try{
     let w = cityCache[c.n];
@@ -659,7 +623,6 @@ async function loadCityWeather(c,my){
       w = cityCache[c.n] = normalize(j, CITY_DV, CITY_CV, CITY_HV); }
     if (my!==reqId) return;
     cw = w; renderNow(); renderDays(); renderSea(); renderTodo();
-    const f=$('cIntro').querySelector('.facts'); if (f) f.outerHTML = factsHtml(w.elevation);
   }catch(e){ if(my===reqId) $('cNow').innerHTML='<div class="err">Meteo non raggiungibile ora. Riprova tra poco.</div>'; }
 }
 function renderNow(){
@@ -710,54 +673,9 @@ function renderSea(){
 }
 
 /* ---------- collegamento all'app Cicerone ---------- */
-function renderArt(){
-  if (!city){ $('cArt').style.display='none'; $('cArtT').style.display='none'; return; }
-  $('cArtT').style.display=''; $('cArt').style.display='';
-  $('cArt').innerHTML = '<div class="links"><a href="#" id="toEsp">🏛️<div>Monumenti di '+esc(city.n)+' in Esplora'+
-    '<span>Mappa delle opere, chiese e monumenti · foto e curiosità</span></div></a></div>';
-  const cc = city; $('toEsp').onclick = e => { e.preventDefault(); page='esplora'; history.replaceState(null,'',location.pathname); route(); window.scrollTo(0,0); eSelectCity(cc,{zoom:true}); };
-}
-
 /* ---------- foto da Wikimedia Commons ---------- */
 const photoCache={}, guideCache={};
-async function loadPhotos(c,my){
-  try{
-    let list = photoCache[c.n];
-    if (!list){
-      const u='https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&generator=geosearch&ggsnamespace=6&ggscoord='+c.lat+'%7C'+c.lon+
-        '&ggsradius=6000&ggslimit=30&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=420';
-      const r=await fetch(u); if(!r.ok) throw 0; const j=await r.json();
-      const pages=(j.query&&j.query.pages)?Object.values(j.query.pages):[];
-      list = photoCache[c.n] = pages.map(p=>{
-        const ii=p.imageinfo&&p.imageinfo[0]; if(!ii||!ii.thumburl) return null;
-        if(/\.svg$|\.pdf$|\.tif/i.test(p.title)) return null;
-        if(ii.thumbwidth && ii.thumbwidth<300) return null;
-        const t=p.title.replace(/^File:/,'').replace(/\.[a-z]+$/i,'').replace(/_/g,' ');
-        return {thumb:ii.thumburl, page:ii.descriptionurl, title:t};
-      }).filter(Boolean).slice(0,12);
-    }
-    if (my!==reqId || !list.length) return;
-    $('cPhotoT').style.display=''; 
-    $('cPhotos').innerHTML='<div class="card"><div class="gal">'+list.map(p=>'<a href="'+esc(p.page)+'" target="_blank" rel="noopener" title="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="'+esc(p.title)+'" loading="lazy"></a>').join('')+
-      '</div><div class="muted" style="margin-top:6px;font-size:11.5px">Foto geolocalizzate da Wikimedia Commons · tocca per autore e licenza</div></div>';
-  }catch(e){}
-}
-
 /* ---------- mini guida dall'articolo di Wikipedia ---------- */
-const WV_SEC=[
-  {re:/^(cosa vedere|da vedere|cosa vedere e fare)/i, t:'👀 Cosa vedere'},
-  {re:/^(cosa fare|da fare|come divertirsi|eventi e feste)/i, t:'🎯 Cosa fare'},
-  {re:/^(a tavola|cosa mangiare|dove mangiare)/i, t:'🍝 Dove mangiare'},
-  {re:/^(come arrivare|come spostarsi)/i, t:'🚗 Come arrivare e muoversi'},
-  {re:/^(nei dintorni|dintorni)/i, t:'🧭 Nei dintorni'}
-];
-const GUIDE_SEC=[
-  {re:/leggend|mito/i, t:'🧙 Leggende'},
-  {re:/tradizion|folclor|festivit|feste/i, t:'🎉 Tradizioni e feste'},
-  {re:/curiosit|cultura di massa|nella cultura/i, t:'💡 Curiosità'},
-  {re:/gastronom|cucina|prodotti tipici/i, t:'🍽️ Cucina e prodotti tipici'},
-  {re:/^storia$/i, t:'📜 Storia'}
-];
 function splitSections(txt){
   const out=[]; let cur={title:'Introduzione',body:''};
   txt.split('\n').forEach(line=>{
@@ -787,25 +705,6 @@ function guideBlocks(secs, rules, base, fonte, maxLen){
   });
   return out;
 }
-async function loadGuide(c,my){
-  let cached = guideCache[c.n];
-  if (!cached){
-    const LG=(REG&&REG.wikiLang)||'it';
-    const [wv, wp] = await Promise.all([extracts(LG+'.wikivoyage.org', c.n), extracts(LG+'.wikipedia.org', c.n)]);
-    cached = guideCache[c.n] = {wv, wp};
-  }
-  if (my!==reqId) return;
-  const t = encodeURIComponent(c.n.replace(/ /g,'_'));
-  let blocks = [];
-  /* prima la guida di viaggio di Wikivoyage, poi storia, leggende e monumenti da Wikipedia */
-  if (cached.wv) blocks = blocks.concat(guideBlocks(cached.wv, WV_SEC, 'https://'+((REG&&REG.wikiLang)||'it')+'.wikivoyage.org/wiki/'+t, 'Wikivoyage', 1100));
-  if (cached.wp) blocks = blocks.concat(guideBlocks(cached.wp, GUIDE_SEC, 'https://'+((REG&&REG.wikiLang)||'it')+'.wikipedia.org/wiki/'+t, 'Wikipedia', 900));
-  if (!blocks.length) return;
-  const fonti = (cached.wv?'Wikivoyage':'') + (cached.wv&&cached.wp?' e ':'') + (cached.wp?'Wikipedia':'');
-  $('cGuideT').style.display=''; $('cGuide').style.display='';
-  $('cGuide').innerHTML = blocks.join('') + '<div class="muted" style="margin-top:8px;font-size:11.5px">Testi da '+fonti+' in italiano (CC BY-SA)</div>';
-}
-
 function renderTodo(){
   if (!city||!cw) return;
   const j=judge(selDay), d=cw.daily, lab=selDay===0?'oggi':selDay===1?'domani':new Date(cw.time[selDay]+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric'});
@@ -837,15 +736,6 @@ function renderTodo(){
   }).join('')+'</div><div class="muted" style="margin-top:6px;font-size:11.5px">Scorri per vedere tutte le ore · 💧 pioggia prevista, altrimenti probabilità</div>';
   if (oggi) setTimeout(function(){ const n=$('cTodo').querySelector('.hr.now'); if(n) n.scrollIntoView({inline:'center',block:'nearest'}); },50);
 }
-function renderEvents(){
-  const o=new Date(), f=new Date(Date.now()+21*864e5), fmt=d=>d.toLocaleDateString('it-IT',{day:'numeric',month:'long'});
-  const per='dal '+fmt(o)+' al '+fmt(f)+' '+f.getFullYear(), g=s=>'https://www.google.com/search?q='+encodeURIComponent(s);
-  $('cEvents').innerHTML='<div class="links">'+
-    '<a href="'+g('eventi '+city.n+' '+per)+'" target="_blank" rel="noopener">🎉<div>Eventi a '+esc(city.n)+'<span>'+per.charAt(0).toUpperCase()+per.slice(1)+'</span></div></a>'+
-    '<a href="'+g('sagra festa patronale '+city.n+' '+per)+'" target="_blank" rel="noopener">🍋<div>Sagre e feste<span>Nello stesso periodo</span></div></a>'+
-    '<a href="https://www.tripadvisor.it/Search?q='+encodeURIComponent(city.n+' '+(REG?REG.nome:''))+'" target="_blank" rel="noopener">🦉<div>Tripadvisor<span>Ristoranti e attrazioni con recensioni</span></div></a></div>';
-}
-
 /* =====================================================================
    ESPLORA — una sola mappa: da lontano il meteo delle città,
    da vicino (zoom 14+) la mappa di Cicerone con monumenti e opere.
@@ -892,8 +782,7 @@ function ePopupHtml(c){
   let s = '<div class="pop"><b>'+esc(c.n)+'</b><div class="row">'+esc(PROV[c.p]||c.p)+(c.pop?' · '+c.pop.toLocaleString('it-IT')+' ab.':'')+'</div>';
   if (d){ const i=mapDay, w=wmo(d.daily.weather_code[i]);
     s += '<div class="row">'+w[1]+' '+w[0]+' · '+Math.round(d.daily.temperature_2m_max[i])+'° / '+Math.round(d.daily.temperature_2m_min[i])+'°</div>'; }
-  return s + '<button onclick="eGoCity(\''+k+'\')">🏛️ Monumenti da vicino</button>'+
-             '<button class="sec" onclick="eToMeteo(\''+k+'\')">Meteo completo →</button></div>';
+  return s + '<button onclick="eGoCity(\''+k+'\')">🏛️ Monumenti da vicino</button></div>';
 }
 function eRefreshWx(){
   if (eNear || eLayerMode !== 'wx' || !COMUNI.length){ eWx.clearLayers(); for (const k in eMk) delete eMk[k]; return; }
@@ -1185,7 +1074,6 @@ function nearestComune(lat, lon){
   return bd <= 12 ? best : null;
 }
 window.eGoCity = k => { const c = byName[decodeURIComponent(k)]; if (!c) return; emap.closePopup(); eSelectCity(c, {zoom:true}); };
-window.eToMeteo = k => { page = 'meteo'; const h = '#c='+k; if (location.hash === h) route(); else location.hash = h; };
 window.eZoomTo = (la, lo) => { emap.closePopup(); emap.flyTo([la, lo], 16); };
 
 /* ---------- passaggio lontano ↔ vicino ---------- */
@@ -1283,23 +1171,33 @@ $('tabE').onclick = () => setPage('esplora');
 $('tabM').onclick = () => setPage('meteo');
 
 /* ================= NAVIGAZIONE ================= */
+/* Le due mappe restano allineate: passando da una pagina all'altra, la mappa che trovi
+   si sposta dove hai lasciato l'altra (stesso centro e zoom) e mostra la stessa città. */
+let syncing=false, movedE=false, movedM=false;
+emap.on('moveend', () => { if (!syncing) movedE = true; });
+map.on('moveend', () => { if (!syncing) movedM = true; });
+function syncInto(target){
+  syncing = true;
+  try {
+    if (target==='meteo' && movedE) map.setView(emap.getCenter(), Math.min(emap.getZoom(), map.getMaxZoom()), {animate:false});
+    if (target==='esplora' && movedM) emap.setView(map.getCenter(), map.getZoom(), {animate:false});
+  } finally { syncing = false; }
+  movedE = movedM = false;
+  if (target==='meteo' && eCity && (!city || city.n!==eCity.n)) openCity(eCity.n);
+  if (target==='esplora' && city && (!eCity || eCity.n!==city.n)) eSelectCity(city);
+}
 function route(){
   $('tabE').classList.toggle('on', page==='esplora'); $('tabM').classList.toggle('on', page==='meteo');
-  if (page==='esplora'){
-    $('vMap').classList.remove('on'); $('vCity').classList.remove('on'); $('vEsp').classList.add('on');
-    setTimeout(()=>{ emap.invalidateSize(); eRefreshWx(); }, 50); return;
-  }
-  $('vEsp').classList.remove('on');
-  const m = location.hash.match(/^#c=(.+)$/);
-  if (m) openCity(decodeURIComponent(m[1]));
-  else { city=null; $('vCity').classList.remove('on'); $('vMap').classList.add('on'); setTimeout(()=>{map.invalidateSize(); refreshMarkers();},50); }
+  const esp = page==='esplora';
+  $('vEsp').classList.toggle('on', esp); $('vMap').classList.toggle('on', !esp);
+  setTimeout(() => {
+    if (esp){ emap.invalidateSize(); syncInto('esplora'); eRefreshWx(); }
+    else { map.invalidateSize(); syncInto('meteo'); refreshMarkers(); }
+  }, 50);
 }
-$('backBtn').onclick = () => { location.hash=''; };
-window.addEventListener('hashchange', () => { if (/^#c=/.test(location.hash)) page='meteo'; route(); });
 
 /* ================= AVVIO ================= */
 (async function start(){
-  if (/^#c=/.test(location.hash)) page='meteo';
   try{ await loadRegion(await pickRegion()); }
   catch(e){
     document.querySelector('main').insertAdjacentHTML('afterbegin','<div class="card err">Non riesco a caricare i dati della regione. Ricarica la pagina e riprova.</div>');
