@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#12304f">
+<meta name="theme-color" content="#164b6e">
 <title>Meteo e viaggio</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -12,213 +12,277 @@
 <meta name="apple-mobile-web-app-title" content="Viaggio">
 <meta name="description" content="Meteo, mare, meduse, monumenti e curiosità per chi viaggia in Italia e Svizzera.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef1f4;--card:#fff;--soft:#f4f6f8;--tx:#13161a;--tx2:#667079;--bd:rgba(0,0,0,.1);--acc:#1f6fd1;--hd:#1f5fae;
+/* ===== Atlante mediterraneo: blu mare profondo, pietra chiara, oro solo per i monumenti ===== */
+:root{
+  --bg:#edf1f0; --card:#ffffff; --soft:#f3f6f5; --line:rgba(20,36,48,.10);
+  --tx:#142430; --tx2:#5a6b77; --sea:#164b6e; --sea2:#0f3a57; --acc:#2470b8; --acc-soft:rgba(36,112,184,.11);
+  --gold:#b98f3e; --brick:#b4553f; --shadow:0 1px 2px rgba(20,36,48,.06),0 6px 18px rgba(20,36,48,.06);
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --bd:var(--line);
   box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111417;--card:#1c2025;--soft:#252a30;--tx:#eef1f4;--tx2:#98a2ab;--bd:rgba(255,255,255,.12);--hd:#123a6b}}
-:root[data-theme="dark"]{--bg:#111417;--card:#1c2025;--soft:#252a30;--tx:#eef1f4;--tx2:#98a2ab;--bd:rgba(255,255,255,.12);--hd:#123a6b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e161c; --card:#16212a; --soft:#1d2a34; --line:rgba(255,255,255,.09);
+  --tx:#e6edf1; --tx2:#93a5b2; --sea:#0f3550; --sea2:#0a2639; --acc:#5aa2e6; --acc-soft:rgba(90,162,230,.15);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}}
+:root[data-theme="dark"]{
+  --bg:#0e161c; --card:#16212a; --soft:#1d2a34; --line:rgba(255,255,255,.09);
+  --tx:#e6edf1; --tx2:#93a5b2; --sea:#0f3550; --sea2:#0a2639; --acc:#5aa2e6; --acc-soft:rgba(90,162,230,.15);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:15px}
-header{background:var(--hd);color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 12px;position:sticky;top:0;z-index:1000}
-.hrow{display:flex;align-items:center;gap:10px;max-width:760px;margin:0 auto}
-.hrow h1{font-size:18px;margin:0;font-weight:600;flex:1;white-space:nowrap}
-.hbtn{background:rgba(255,255,255,.16);border:none;color:#fff;border-radius:10px;min-width:38px;height:38px;font-size:16px;cursor:pointer;padding:0 10px;font-family:inherit}
-.search{position:relative;max-width:760px;margin:10px auto 0}
-.search input{width:100%;font:inherit;font-size:16px;border:none;border-radius:11px;padding:11px 12px 11px 38px;background:#fff;color:#13161a}
-.search .ico{position:absolute;left:12px;top:10px;font-size:16px;opacity:.6}
-.sugg{position:absolute;left:0;right:0;top:48px;background:var(--card);color:var(--tx);border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden;display:none;z-index:1100}
-.sugg div{padding:11px 14px;border-bottom:.5px solid var(--bd);cursor:pointer}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+a{color:var(--acc);text-decoration:none}
+button{font-family:inherit}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+svg.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+
+/* ---------- intestazione ---------- */
+header{background:var(--sea);color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 14px;position:sticky;top:0;z-index:1000}
+.hrow{display:flex;align-items:center;gap:8px;max-width:760px;margin:0 auto}
+.brand{flex:1;min-width:0;display:flex;flex-direction:column}
+.brand h1{font-family:var(--serif);font-size:21px;font-weight:600;margin:0;letter-spacing:-.01em;line-height:1.1;white-space:nowrap}
+.brand span{font-size:12.5px;opacity:.75;margin-top:2px}
+.hbtn{background:rgba(255,255,255,.12);border:none;color:#fff;border-radius:12px;min-width:42px;height:42px;font-size:17px;cursor:pointer;padding:0 10px;display:flex;align-items:center;justify-content:center}
+.hbtn.busy svg{animation:s 1s linear infinite}
+.search{position:relative;max-width:760px;margin:12px auto 0}
+.search input{width:100%;font:inherit;font-size:16px;border:none;border-radius:14px;padding:12px 14px 12px 42px;background:#fff;color:#142430}
+.search .ico{position:absolute;left:13px;top:12px;color:#5a6b77;width:20px;height:20px}
+.sugg{position:absolute;left:0;right:0;top:52px;background:var(--card);color:var(--tx);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.2);overflow:hidden;display:none;z-index:1100}
+.sugg div{padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer}
 .sugg div:last-child{border-bottom:none}
-.sugg small{color:var(--tx2);margin-left:6px}
-main{max-width:760px;margin:0 auto;padding:12px 12px 36px}
+.sugg small{color:var(--tx2);margin-left:8px}
+
+main{max-width:760px;margin:0 auto;padding:14px 12px 28px}
 .view{display:none}.view.on{display:block}
-.card{background:var(--card);border:.5px solid var(--bd);border-radius:13px;padding:14px;margin-bottom:12px}
-.bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px}
-.pill{flex:0 0 auto;background:var(--card);border:.5px solid var(--bd);color:var(--tx);border-radius:20px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
-.pill.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.seg{display:flex;background:var(--card);border:.5px solid var(--bd);border-radius:11px;padding:3px;margin-bottom:8px}
-.seg button{flex:1;border:none;background:transparent;color:var(--tx2);padding:8px;border-radius:8px;font:inherit;font-size:14px;cursor:pointer}
-.seg button.on{background:var(--acc);color:#fff}
-#map{height:62vh;min-height:380px;border-radius:13px;border:.5px solid var(--bd);overflow:hidden;background:var(--soft)}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--tx2);margin:8px 2px 12px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
-.mk{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;width:max-content}
-.mk .b{display:flex;align-items:center;gap:3px;background:#fff;border-radius:18px;padding:2px 8px 2px 4px;box-shadow:0 1px 4px rgba(0,0,0,.35);font:600 13px -apple-system,sans-serif;color:#13161a;line-height:22px}
-.mk .b .i{font-size:17px}
-.mk .b .mn{font-weight:400;color:#6a737c;font-size:11.5px}
-.mk .n{font:600 11.5px -apple-system,sans-serif;color:#13161a;margin-top:1px;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;white-space:nowrap}
-.mk.big .b{font-size:14.5px}
-.mk.here .b{box-shadow:0 0 0 3px #1f6fd1, 0 1px 5px rgba(0,0,0,.4)}
-.me-dot{width:16px;height:16px;border-radius:50%;background:#1f6fd1;border:3px solid #fff;box-shadow:0 0 0 2px rgba(31,111,209,.35),0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%)}
-.me-dot::after{content:'';position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(31,111,209,.18);animation:pulse 2.4s ease-out infinite}
-@keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.25);opacity:0}}
-.mk.cp .mn{display:none}.mk.cp .b{padding:1px 6px 1px 3px;font-size:13px}.mk.cp .n{font-size:10.5px}
-.leaflet-div-icon{background:none;border:none}
-.jl-mk{font-size:22px;transform:translate(-50%,-50%);width:max-content}
-.leaflet-popup-content{margin:12px 14px;font:14px -apple-system,sans-serif}
-.pop b{font-size:15px}
-.pop .row{margin-top:4px;color:#555}
-.pop button{margin-top:9px;width:100%;background:#1f6fd1;color:#fff;border:none;border-radius:8px;padding:8px;font:inherit;cursor:pointer}
-.favs{display:flex;gap:6px;flex-wrap:wrap}
-h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
+.card{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
 .muted{color:var(--tx2);font-size:13px}
 .err{color:#b3261e;font-size:13px}
-.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--bd);border-top-color:var(--acc);border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px;margin-right:6px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes s{to{transform:rotate(360deg)}}
-.back{background:var(--card);border:.5px solid var(--bd);color:var(--tx);border-radius:10px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
-.ctop{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.ctop h2{flex:1;margin:0;font-size:21px}
-a{color:var(--acc);text-decoration:none}
-.now{display:flex;align-items:center;gap:14px}
-.now .ic{font-size:44px;line-height:1}
-.now .big{font-size:42px;font-weight:600;line-height:1}
-.src{font-size:11px;color:var(--tx2);margin-top:8px}
-.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
-.day{flex:0 0 72px;background:var(--card);border:.5px solid var(--bd);border-radius:11px;padding:9px 5px;text-align:center;cursor:pointer}
-.day.on{border:2px solid var(--acc);padding:8px 4px}
-.day .d{font-size:12px;color:var(--tx2)}.day .i{font-size:23px;margin:3px 0}
+h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
+
+/* ---------- controlli sopra la mappa ---------- */
+.bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
+.pill{flex:0 0 auto;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:999px;padding:7px 13px;font-size:13px;cursor:pointer;white-space:nowrap}
+.pill.on{background:var(--sea);border-color:var(--sea);color:#fff}
+.seg{display:flex;background:var(--card);border-radius:14px;padding:4px;margin-bottom:10px;box-shadow:var(--shadow)}
+.seg button{flex:1;border:none;background:transparent;color:var(--tx2);padding:9px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer}
+.seg button.on{background:var(--acc-soft);color:var(--acc);font-weight:600}
+#map{height:58vh;min-height:360px;border-radius:18px;overflow:hidden;background:var(--soft);box-shadow:var(--shadow);position:relative;z-index:0;isolation:isolate}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--tx2);margin:10px 4px 14px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+
+/* ---------- segnaposto mappa meteo ---------- */
+.mk{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;width:max-content}
+.mk .b{display:flex;align-items:center;gap:3px;background:#fff;border-radius:999px;padding:2px 9px 2px 5px;box-shadow:0 1px 3px rgba(20,36,48,.25),0 3px 10px rgba(20,36,48,.12);font:600 13px var(--sans);color:#142430;line-height:22px}
+.mk .b .i{font-size:16px}
+.mk .b .mn{font-weight:400;color:#6a7882;font-size:11.5px}
+.mk .n{font:600 11.5px var(--sans);color:#142430;margin-top:2px;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;white-space:nowrap}
+.mk.big .b{font-size:14.5px}
+.mk.here .b{box-shadow:0 0 0 2.5px var(--sea),0 3px 10px rgba(20,36,48,.25)}
+.mk.cp .mn{display:none}.mk.cp .b{padding:1px 6px 1px 3px;font-size:13px}.mk.cp .n{font-size:10.5px}
+.me-dot{width:16px;height:16px;border-radius:50%;background:#2470b8;border:3px solid #fff;box-shadow:0 0 0 2px rgba(36,112,184,.35),0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%)}
+.me-dot::after{content:'';position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(36,112,184,.18);animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+.leaflet-div-icon{background:none;border:none}
+.jl-mk{font-size:22px;transform:translate(-50%,-50%);width:max-content}
+.leaflet-container{font-family:var(--sans)}
+.leaflet-popup-content-wrapper{border-radius:14px}
+.leaflet-popup-content{margin:12px 14px;font:14px var(--sans)}
+.pop b{font-size:15px}
+.pop .row{margin-top:4px;color:#4f5f6a}
+.pop button{margin-top:10px;width:100%;background:var(--sea);color:#fff;border:none;border-radius:10px;padding:9px;font:inherit;font-weight:600;cursor:pointer}
+
+/* ---------- sezioni a scomparsa ---------- */
+.sec{background:var(--card);border-radius:16px;margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden}
+.sec>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;min-height:56px;user-select:none}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary .si{width:34px;height:34px;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.sec>summary .si svg{width:18px;height:18px}
+.sec.heritage>summary .si{background:rgba(185,143,62,.14);color:#94702a}
+.sec>summary .st{flex:1;min-width:0;font-weight:600;font-size:15.5px}
+.sec>summary .sn{font-size:12.5px;color:var(--tx2);font-weight:500}
+.sec>summary .chev{color:var(--tx2);transition:transform .2s ease}
+.sec[open]>summary .chev{transform:rotate(180deg)}
+.sec>.sb{padding:0 16px 16px}
+.sec .card{background:none;box-shadow:none;border:none;padding:0;margin:0;border-radius:0}
+@media (prefers-reduced-motion:reduce){.sec>summary .chev{transition:none}}
+
+/* ---------- città selezionata (pagina Meteo) ---------- */
+.hero{background:var(--sea);color:#fff;border-radius:20px;padding:18px 18px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.ctop{display:flex;align-items:center;gap:8px}
+.ctop h2{flex:1;margin:0;font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.015em;line-height:1.05}
+.back{background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:12px;width:42px;height:42px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hero .card{background:none;box-shadow:none;padding:0;margin:14px 0 0;border-radius:0;color:#fff}
+.hero .muted,.hero .src{color:rgba(255,255,255,.74)}
+.now:not(.hr){display:flex;align-items:center;gap:14px}
+.now .ic{font-size:46px;line-height:1}
+.now .big{font-family:var(--serif);font-size:52px;font-weight:500;line-height:1;letter-spacing:-.02em}
+.hero .now .big{color:#fff!important}
+.src{font-size:11px;color:var(--tx2);margin-top:10px}
+
+.days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.day{flex:0 0 74px;background:var(--soft);border:2px solid transparent;border-radius:14px;padding:9px 4px;text-align:center;cursor:pointer}
+.day.on{border-color:var(--acc);background:var(--card)}
+.day .d{font-size:12px;color:var(--tx2);font-weight:500}.day .i{font-size:23px;margin:4px 0}
 .day .t{font-size:14px;font-weight:600}.day .t small{font-weight:400;color:var(--tx2)}
-.day .r{font-size:11px;color:#1f6fd1;margin-top:2px}.day .w{font-size:11px;color:var(--tx2)}
-.verdict{border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:14px;line-height:1.45}
-.verdict.sun{background:#fff3d6;color:#573900}.verdict.rain{background:#dfeafa;color:#0f3565}.verdict.mix{background:#eceee2;color:#3a4210}
+.day .r{font-size:11px;color:var(--acc);margin-top:2px}.day .w{font-size:11px;color:var(--tx2)}
+.verdict{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14px;line-height:1.45}
+.verdict.sun{background:#fbf1d8;color:#523800}.verdict.rain{background:#e1ecf8;color:#0f3565}.verdict.mix{background:#ecefe3;color:#3a4210}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .verdict.sun{background:#3a2d10;color:#f7dca0}:root:not([data-theme="light"]) .verdict.rain{background:#132740;color:#b9d4f5}:root:not([data-theme="light"]) .verdict.mix{background:#2b2f1d;color:#dfe6b8}}
 :root[data-theme="dark"] .verdict.sun{background:#3a2d10;color:#f7dca0}:root[data-theme="dark"] .verdict.rain{background:#132740;color:#b9d4f5}:root[data-theme="dark"] .verdict.mix{background:#2b2f1d;color:#dfe6b8}
-.hours{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px}
-.hr{flex:0 0 62px;background:var(--soft);border-radius:10px;padding:8px 4px;text-align:center}
-.hr.now{background:var(--acc);color:#fff}
-.hr.now .m,.hr.now .p{color:#dbe8f8}
+.hours{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.hr{flex:0 0 62px;background:var(--soft);border-radius:12px;padding:8px 4px;text-align:center}
+.hr.now{background:var(--sea);color:#fff}
+.hr.now .m,.hr.now .p{color:#d2e3f3}
 .hr .h{font-size:12px;font-weight:600}
-.hr .i{font-size:20px;margin:2px 0}
+.hr .i{font-size:20px;margin:3px 0}
 .hr .t{font-size:15px;font-weight:600}
-.hr .p{font-size:11px;color:#1f6fd1;margin-top:2px}
+.hr .p{font-size:11px;color:var(--acc);margin-top:2px}
 .hr .m{font-size:11px;color:var(--tx2)}
-.item{display:flex;gap:11px;padding:10px 0;border-bottom:.5px solid var(--bd)}
+.item{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
 .item:last-child{border-bottom:none}
 .item .e{font-size:20px;width:26px;text-align:center}
 .item .n{font-weight:500}.item .m{font-size:12px;color:var(--tx2);margin-top:2px}
 .item .l{font-size:12px;margin-top:3px}
-.gal{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -14px;padding-left:14px;padding-right:14px}
-.gal a{flex:0 0 auto;display:block}
-.gal img{height:120px;width:auto;max-width:190px;object-fit:cover;border-radius:10px;background:var(--soft)}
-.guide details{border-bottom:.5px solid var(--bd);padding:9px 0}
-.guide details:last-child{border-bottom:none}
-.guide summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none}
-.guide summary::-webkit-details-marker{display:none}
-.guide summary::before{content:'▸ ';color:var(--tx2)}
-.guide details[open] summary::before{content:'▾ '}
-.guide p{font-size:13.5px;line-height:1.5;margin:8px 0 4px;white-space:pre-wrap}
 .sea-row{display:flex;align-items:center;gap:12px}
-.badge{flex:0 0 auto;border-radius:10px;padding:8px 10px;color:#fff;font-weight:600;font-size:14px;text-align:center;min-width:94px}
+.badge{flex:0 0 auto;border-radius:12px;padding:8px 10px;color:#fff;font-weight:600;font-size:14px;text-align:center;min-width:96px}
 .badge small{display:block;font-weight:400;font-size:11px;opacity:.9}
-.sub{font-weight:600;font-size:13px;color:var(--tx2);margin:12px 0 2px}
+.sub{font-weight:600;font-size:13px;color:var(--tx2);margin:14px 0 2px}
+.favs{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- testi lunghi (curiosità, leggende) ---------- */
+.guide details{border-bottom:1px solid var(--line);padding:11px 0}
+.guide details:last-of-type{border-bottom:none}
+.guide summary{cursor:pointer;font-weight:600;font-size:14.5px;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.guide summary::-webkit-details-marker{display:none}
+.guide summary::after{content:'+';color:var(--tx2);font-weight:400;font-size:18px;line-height:1}
+.guide details[open] summary::after{content:'–'}
+.guide p{font-size:14px;line-height:1.55;margin:8px 0 6px;white-space:pre-wrap}
+
+/* ---------- foto ---------- */
+.gal{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+.gal a{flex:0 0 auto;display:block}
+.gal img{height:150px;width:auto;max-width:230px;object-fit:cover;border-radius:12px;background:var(--soft);display:block}
 
 /* ---------- barra delle pagine ---------- */
-body{padding-bottom:calc(74px + env(safe-area-inset-bottom,0px))}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;gap:8px;background:var(--card);border-top:.5px solid var(--bd);padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px))}
-.tabs button{flex:1;max-width:380px;margin:0 auto;height:52px;border:none;border-radius:12px;background:transparent;color:var(--tx2);font:600 12.5px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
-.tabs button .ti{font-size:19px;line-height:1}
-.tabs button.on{background:rgba(31,111,209,.13);color:var(--acc)}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;gap:8px;background:var(--card);border-top:1px solid var(--line);padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 18px rgba(20,36,48,.06)}
+.tabs button{flex:1;max-width:380px;margin:0 auto;height:54px;border:none;border-radius:14px;background:transparent;color:var(--tx2);font-size:12.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+.tabs button.on{background:var(--acc-soft);color:var(--acc)}
+
 /* ---------- Esplora ---------- */
-.ewrap{position:relative;z-index:0;isolation:isolate;scroll-margin-top:130px;border-radius:13px;overflow:hidden;border:.5px solid var(--bd);background:var(--soft)}
+.ehero{display:flex;align-items:flex-end;gap:12px;margin:2px 2px 12px}
+.ehero h2{flex:1;margin:0;font-family:var(--serif);font-size:28px;font-weight:600;letter-spacing:-.015em;line-height:1.05}
+.ehero .ew{font-size:14px;color:var(--tx2);text-align:right;white-space:nowrap}
+.ehero .ew b{font-family:var(--serif);font-size:22px;font-weight:500;color:var(--tx)}
+.ewrap{position:relative;z-index:0;isolation:isolate;scroll-margin-top:140px;border-radius:18px;overflow:hidden;background:var(--soft);box-shadow:var(--shadow)}
 #emap{height:56vh;min-height:360px}
-.ewrap.full{position:fixed;inset:0;z-index:1300;border-radius:0;border:none}
+.ewrap.full{position:fixed;inset:0;z-index:1300;border-radius:0}
 .ewrap.full #emap{height:100%;min-height:0}
 body.e-full{overflow:hidden}
-.ectl{position:absolute;right:10px;top:10px;z-index:900;display:flex;flex-direction:column;gap:6px}
+.ectl{position:absolute;right:10px;top:10px;z-index:900;display:flex;flex-direction:column;gap:8px}
 .ewrap.full .ectl{top:calc(10px + env(safe-area-inset-top,0px))}
-.ectl button{width:44px;height:44px;border:none;border-radius:10px;background:#fff;color:#13161a;box-shadow:0 1px 4px rgba(0,0,0,.3);font-size:18px;cursor:pointer}
+.ectl button{width:44px;height:44px;border:none;border-radius:12px;background:#fff;color:#142430;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ectl button.busy svg{animation:s 1s linear infinite}
 .ectl .nr{display:none}
-body.e-near .ectl .nr{display:block}
-.erefetch{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:900;background:#16211C;color:#F4EFDE;border:1px solid #B98F3E;padding:10px 14px;font:13px -apple-system,sans-serif;cursor:pointer;display:none;white-space:nowrap}
+body.e-near .ectl .nr{display:flex}
+.erefetch{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:900;background:#16211c;color:#f4efde;border:1px solid var(--gold);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .ewrap.full .erefetch{top:calc(10px + env(safe-area-inset-top,0px))}
 .erefetch.show{display:block}
-.ehint{position:absolute;left:10px;bottom:24px;z-index:900;max-width:calc(100% - 20px);background:rgba(255,255,255,.95);color:#3d454d;border-radius:18px;padding:6px 11px;font-size:12px;pointer-events:none}
-.ecard{position:absolute;left:10px;right:10px;bottom:24px;z-index:950;background:var(--card);color:var(--tx);border-radius:13px;box-shadow:0 6px 20px rgba(0,0,0,.28);padding:12px 14px;max-height:58%;overflow:auto;display:none}
+.ehint{position:absolute;left:10px;bottom:24px;z-index:900;max-width:calc(100% - 20px);background:rgba(255,255,255,.96);color:#3b4a55;border-radius:999px;padding:7px 12px;font-size:12.5px;pointer-events:none;box-shadow:0 2px 8px rgba(20,36,48,.12)}
+.ecard{position:absolute;left:10px;right:10px;bottom:24px;z-index:950;background:var(--card);color:var(--tx);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:14px 16px;max-height:60%;overflow:auto;display:none}
 .ewrap.full .ecard{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 .ecard.show{display:block}
 .ecard .ch{display:flex;align-items:center;gap:8px}
 .ecard .meta{flex:1;font-size:12px;color:var(--tx2)}
-.ecard .x{width:34px;height:34px;border:none;border-radius:8px;background:var(--soft);color:var(--tx);cursor:pointer;font-size:14px}
-.ecard h3{margin:4px 0 6px;font-size:16px}
-.ecard .cb{display:flex;gap:10px;align-items:flex-start}
-.ecard .cb img{width:84px;height:84px;object-fit:cover;border-radius:9px;flex:0 0 auto;background:var(--soft)}
-.ecard p{margin:0;font-size:13.5px;line-height:1.45}
-.ecard .acts{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
-.ecard .ai{background:var(--acc);color:#fff;border:none;border-radius:9px;height:40px;padding:0 14px;font:inherit;font-size:14px;cursor:pointer}
-.ecard .acts a{font-size:13.5px}
-.c-dot{width:16px;height:16px;border-radius:50%;background:#B98F3E;border:2px solid #F4EFDE;box-shadow:0 0 0 2px #0F1712;transform:translate(-50%,-50%);cursor:pointer}
-.c-dot.cu{background:#B4553F}
+.ecard .x{width:36px;height:36px;border:none;border-radius:10px;background:var(--soft);color:var(--tx);cursor:pointer;font-size:14px}
+.ecard h3{margin:4px 0 8px;font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.ecard .cb{display:flex;gap:12px;align-items:flex-start}
+.ecard .cb img{width:88px;height:88px;object-fit:cover;border-radius:12px;flex:0 0 auto;background:var(--soft)}
+.ecard p{margin:0;font-size:14px;line-height:1.5}
+.ecard .acts{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.ecard .ai{background:var(--sea);color:#fff;border:none;border-radius:12px;height:42px;padding:0 16px;font-size:14px;font-weight:600;cursor:pointer}
+.ecard .acts a{font-size:13.5px;font-weight:500}
+.c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
+.c-dot.cu{background:var(--brick)}
 .c-dot.sel{width:22px;height:22px}
-.c-dot.sm{width:10px;height:10px;border-width:1.5px;box-shadow:0 0 0 1.5px rgba(15,23,18,.75)}
+.c-dot.sm{width:10px;height:10px;border-width:1.5px;box-shadow:0 0 0 1.5px rgba(22,33,28,.75)}
 .mark-pin{font-size:24px;transform:translate(-50%,-90%)}
-.pop button.sec{background:#eef1f4;color:#13161a;margin-top:6px}
-.mon{display:flex;gap:11px;padding:11px 0;border-bottom:.5px solid var(--bd);cursor:pointer}
+.mon{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .mon:last-of-type{border-bottom:none}
-.mon.on{background:var(--soft);margin:0 -14px;padding:11px 14px}
-.mon .dt{flex:0 0 auto;width:12px;height:12px;margin-top:4px;border-radius:50%;background:#B98F3E;border:1.5px solid #F4EFDE;box-shadow:0 0 0 1.5px #0F1712}
-.mon .dt.cu{background:#B4553F}
+.mon.on{background:var(--soft);margin:0 -16px;padding:12px 16px}
+.mon .dt{flex:0 0 auto;width:12px;height:12px;margin-top:5px;border-radius:50%;background:var(--gold);border:1.5px solid #f4efde;box-shadow:0 0 0 1.5px #16211c}
+.mon .dt.cu{background:var(--brick)}
 .mon .tx{flex:1;min-width:0}
 .mon .hd{display:flex;gap:8px;align-items:baseline}
-.mon .hd b{flex:1;font-weight:600}
-.mon .hd span{font-size:12px;color:var(--tx2)}
-.mon .ex{font-size:13px;line-height:1.45;color:var(--tx2);margin-top:3px}
+.mon .hd b{flex:1;font-weight:600;font-size:15px}
+.mon .hd span{font-size:12px;color:var(--tx2);white-space:nowrap}
+.mon .ex{font-size:13.5px;line-height:1.5;color:var(--tx2);margin-top:3px}
 .tag-cu{font-size:11.5px;color:#a3452f;font-weight:600}
-.askbtn{width:100%;height:44px;margin-top:12px;border:1px solid var(--acc);border-radius:10px;background:transparent;color:var(--acc);font:inherit;font-size:14px;cursor:pointer}
+.askbtn{width:100%;height:46px;margin-top:14px;border:1.5px solid var(--acc);border-radius:12px;background:transparent;color:var(--acc);font-size:14px;font-weight:600;cursor:pointer}
+.empty{display:flex;gap:12px;align-items:flex-start;color:var(--tx2);font-size:14px;line-height:1.5}
+.empty svg{color:var(--acc);margin-top:2px}
 footer{font-size:11px;color:var(--tx2);text-align:center;margin-top:20px;line-height:1.6}
 footer a{color:var(--tx2)}
 </style>
 </head>
 <body>
 <header>
-  <div class="hrow"><h1>🧭 Meteo e viaggio</h1><button class="hbtn" id="meBtn" aria-label="Dove sono">📍</button><button class="hbtn" id="regBtn" aria-label="Cambia regione">🌍</button><button class="hbtn" id="themeBtn" aria-label="Tema">🌓</button></div>
-  <div class="search"><span class="ico">🔍</span>
-    <input id="q" type="search" placeholder="Cerca una città: Taormina, Noto, Lipari…" autocomplete="off" aria-label="Cerca una città">
+  <div class="hrow">
+    <div class="brand"><h1>Meteo e viaggio</h1><span id="hReg">Italia</span></div>
+    <button class="hbtn" id="meBtn" aria-label="Usa la mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+    <button class="hbtn" id="regBtn" aria-label="Cambia regione">🌍</button>
+    <button class="hbtn" id="themeBtn" aria-label="Cambia tema"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+  </div>
+  <div class="search"><svg class="ic ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+    <input id="q" type="search" placeholder="Cerca una città" autocomplete="off" aria-label="Cerca una città">
     <div class="sugg" id="sugg"></div></div>
 </header>
 
 <main>
   <!-- ======== ESPLORA ======== -->
   <section class="view on" id="vEsp">
-    <div class="seg" id="eSeg"><button data-l="wx" class="on">🌡️ Meteo</button><button data-l="sea">🌊 Mare e meduse</button></div>
+    <div class="ehero" id="eHero" hidden><h2 id="eHName"></h2><div class="ew" id="eHW"></div></div>
+    <div class="seg" id="eSeg"><button data-l="wx" class="on">Meteo</button><button data-l="sea">Mare e meduse</button></div>
     <div class="ewrap" id="eWrap">
       <div id="emap"></div>
       <button class="erefetch" id="eRefetch">Cerca opere in questa zona</button>
       <div class="ectl">
-        <button id="eFull" aria-label="Schermo intero">⛶</button>
-        <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude">📍</button>
-        <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio">📷</button>
+        <button id="eFull" aria-label="Schermo intero"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
+        <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
       <div class="ehint" id="eHint"></div>
       <div class="ecard" id="eCard"></div>
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
     <div class="legend" id="eLegend"></div>
-    <div class="card muted" id="eStart">Cerca una città, tocca 📍 per la tua posizione oppure tocca una città sulla mappa: qui sotto compaiono foto, monumenti e curiosità.</div>
-    <h2 id="ePhotoT" style="display:none"></h2>
-    <div id="ePhotos"></div>
-    <h2 id="eMonT" style="display:none">Monumenti</h2>
-    <div class="card" id="eMon" style="display:none"></div>
-    <h2 id="eCurT" style="display:none">Curiosità e leggende</h2>
-    <div class="card guide" id="eCur" style="display:none"></div>
+    <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi foto, monumenti e curiosità.</div></div></div>
+    <details class="sec" id="ePhotoS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 16-5-5-9 8"/></svg></span><span class="st" id="ePhotoT">Foto</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="ePhotos"></div></div></details>
+    <details class="sec heritage" id="eMonS" open hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
+    <details class="sec" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="guide" id="eCur"></div></div></details>
   </section>
 
   <!-- ======== MAPPA ======== -->
   <section class="view" id="vMap">
-    <div class="seg" id="layerSeg"><button data-l="wx" class="on">🌡️ Meteo</button><button data-l="sea">🌊 Mare e meduse</button></div>
+    <div class="seg" id="layerSeg"><button data-l="wx" class="on">Meteo</button><button data-l="sea">Mare e meduse</button></div>
     <div class="bar" id="mapDays"></div>
     <div id="map"></div>
     <div class="legend" id="legend"></div>
     <div id="mCity" style="display:none">
-      <div class="ctop"><h2 id="cName"></h2><button class="back" id="favBtn" aria-label="Preferita">☆</button><button class="back" id="closeCity" aria-label="Chiudi">✕</button></div>
-      <div class="card" id="cNow"></div>
-      <h2>Prossimi 15 giorni <span class="muted" style="font-weight:400">· tocca un giorno</span></h2>
-      <div class="days" id="cDays"></div>
-      <h2 id="cTodoT">Ora per ora</h2>
-      <div id="cVerdict"></div>
-      <div class="card" id="cTodo"></div>
-      <h2 id="cSeaT">Mare e meduse</h2>
-      <div class="card" id="cSea"></div>
+      <div class="hero">
+        <div class="ctop"><h2 id="cName"></h2><button class="back" id="favBtn" aria-label="Aggiungi ai preferiti"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button><button class="back" id="closeCity" aria-label="Chiudi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+        <div class="card" id="cNow"></div>
+      </div>
+      <details class="sec" open><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st">Prossimi 15 giorni</span><span class="sn">tocca un giorno</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="days" id="cDays"></div></div></details>
+      <details class="sec" open><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="st" id="cTodoT">Ora per ora</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cVerdict"></div><div id="cTodo"></div></div></details>
+      <details class="sec" id="cSeaS" open><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="cSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cSea"></div></div></details>
     </div>
     <div id="favBox"></div>
     <footer>
@@ -230,8 +294,8 @@ footer a{color:var(--tx2)}
 
 </main>
 <nav class="tabs" aria-label="Pagine">
-  <button id="tabE" class="on"><span class="ti">🗺️</span>Esplora</button>
-  <button id="tabM"><span class="ti">🌤️</span>Meteo</button>
+  <button id="tabE" class="on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Esplora</button>
+  <button id="tabM"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Meteo</button>
 </nav>
 
 <script>
@@ -240,6 +304,8 @@ if ('serviceWorker' in navigator) window.addEventListener('load', () => navigato
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onerror="document.getElementById('map').innerHTML='<div style=\'padding:20px;font-size:14px\'>Mappa non caricata: manca la connessione alla libreria Leaflet. Ricarica la pagina.</div>'"></script>
 <script>
+const ICON = {"full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "star": "<path d=\"m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>"};
+const svgIc = (n, fill) => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"'+(fill?' style="fill:currentColor"':'')+'>'+ICON[n]+'</svg>';
 const REGIONI = [
   {id:'italia',   nome:'Italia',   emoji:'🇮🇹'},
   {id:'svizzera', nome:'Svizzera', emoji:'🇨🇭'}
@@ -299,9 +365,9 @@ async function loadRegion(id){
   pending.clear(); wxLayer.clearLayers(); for (const k in markers) delete markers[k];
   store.set('ss_reg', id);
   $('regBtn').textContent = (REGIONI.find(x=>x.id===id)||{emoji:'🌍'}).emoji;
-  $('q').placeholder = 'Cerca in '+j.nome+': '+(COMUNI[2]?COMUNI[2].n:'')+', '+(COMUNI[6]?COMUNI[6].n:'')+'…';
+  $('q').placeholder = 'Cerca una città in '+j.nome;
   document.title = j.nome+' · Meteo e viaggio';
-  document.querySelector('header h1').textContent = '🧭 '+j.nome+' · Meteo e viaggio';
+  $('hReg').textContent = j.nome;
   $('layerSeg').style.display = j.mare ? '' : 'none';
   if (!j.mare){ layer='wx'; $('layerSeg').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on', i===0)); map.removeLayer(seaLayer); map.removeLayer(jellyLayer); }
   map.setMaxBounds(L.latLngBounds(j.bounds).pad(0.4));
@@ -467,7 +533,7 @@ function fetchMissing(list){
         arr.forEach((r,i) => { mapData[chunk[i].n] = normalize(r, MAP_DV); });
         if (!mapDays) { mapDays = mapData[chunk[0].n].time; renderMapDays(); }
       } catch(e) { chunk.forEach(c => pending.delete(c.n)); showMapError(); }
-      refreshMarkers(); eRefreshWx();
+      refreshMarkers(); eRefreshWx(); eRenderHero();
     }
   }, 250);
 }
@@ -535,15 +601,15 @@ async function loadJelly(){
 }
 
 $('meBtn').onclick = async () => {
-  const b=$('meBtn'); b.textContent='…';
+  const b=$('meBtn'); b.classList.add('busy');
   if (page==='esplora'){
-    const pos = await freshPos(); b.textContent='📍';
+    const pos = await freshPos(); b.classList.remove('busy');
     if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
     drawEMe(); const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true});
     emap.setView([pos.lat,pos.lon], 16); return;
   }
   const pos = await (userPos ? Promise.resolve(userPos) : (posChiesta=null, getPos()));
-  b.textContent='📍';
+  b.classList.remove('busy');
   if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
   const j=REG;
   const dentro = pos.lat>=j.bounds[0][0] && pos.lat<=j.bounds[1][0] && pos.lon>=j.bounds[0][1] && pos.lon<=j.bounds[1][1];
@@ -577,7 +643,7 @@ let favs = [];
 function renderFavs(){
   $('favBox').innerHTML = favs.length ? '<h2>Le tue città</h2><div class="favs">'+favs.map(n=>'<button class="pill" data-n="'+esc(n)+'">'+esc(n)+'</button>').join('')+'</div>' : '';
   $('favBox').querySelectorAll('[data-n]').forEach(b => b.onclick = () => showMeteoCity(b.dataset.n));
-  if (city) $('favBtn').textContent = favs.includes(city.n)?'⭐':'☆';
+  if (city){ const on = favs.includes(city.n); $('favBtn').innerHTML = svgIc('star', on); $('favBtn').setAttribute('aria-label', on ? 'Togli dai preferiti' : 'Aggiungi ai preferiti'); }
 }
 $('favBtn').onclick = () => { if(!city)return; const i=favs.indexOf(city.n); if(i>-1)favs.splice(i,1); else favs.push(city.n); store.set('ss_favs_'+REG.id,favs); renderFavs(); };
 
@@ -650,10 +716,10 @@ function judge(i){
 function renderSea(){
   if (!city) return;
   const senzaMare = !REG.mare || !SEA_PTS.length;
-  $('cSea').style.display = senzaMare?'none':''; $('cSeaT').style.display = senzaMare?'none':'';
+  $('cSeaS').hidden = senzaMare;
   if (senzaMare) return;
   const lab = cw ? (selDay===0?'oggi':selDay===1?'domani':new Date(cw.time[selDay]+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric'})) : '';
-  $('cSeaT').textContent = 'Mare e meduse'+(lab?' · '+lab:'');
+  $('cSeaT').textContent = 'Mare e meduse'+(lab?', '+lab:'');
   const ns = nearSea(); let h='';
   if (marineErr) h+='<div class="err">Stato del mare non disponibile ora.</div>';
   else if (!marine||!cw) h+='<span class="muted"><span class="spin"></span>Scarico lo stato del mare…</span>';
@@ -708,7 +774,7 @@ function guideBlocks(secs, rules, base, fonte, maxLen){
 function renderTodo(){
   if (!city||!cw) return;
   const j=judge(selDay), d=cw.daily, lab=selDay===0?'oggi':selDay===1?'domani':new Date(cw.time[selDay]+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric'});
-  $('cTodoT').textContent='Ora per ora · '+lab;
+  $('cTodoT').textContent='Ora per ora, '+lab;
   /* la probabilità arriva dal modello globale: la mostro solo se concorda con la pioggia prevista */
   let msg = j.kind==='rain' ? '<b>🌧️ Giornata da dentro.</b> Previsti '+j.rain.toFixed(1)+' mm'+(j.prob>=40?' (probabilità '+j.prob+'%)':'')+'. Musei, chiese e centri storici.'
           : j.kind==='mix' ? '<b>⛅ Tempo incerto.</b> Probabilità di pioggia '+j.prob+'%. Mattina all\'aperto, piano B al coperto a portata di mano.'
@@ -744,7 +810,7 @@ const NEAR_Z = 14, DOT_Z = 11;
 const PROJECT_CHAT_URL = 'https://claude.ai/project/01a0de7f-b1b3-75ca-930e-ca4232eed112';
 const POINTS_REPO = 'Luhalab/Meteo-viaggio';
 let page = 'esplora';
-let eCity = null, eItems = [], eArea = null, eNear = false, eSel = -1, eLayerMode = 'wx', eReq = 0, eCityReq = 0;
+let eLoading = false, eCity = null, eItems = [], eArea = null, eNear = false, eSel = -1, eLayerMode = 'wx', eReq = 0, eCityReq = 0;
 
 const emap = L.map('emap', { minZoom:5, maxZoom:19, zoomSnap:0.5, zoomDelta:1 });
 emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
@@ -782,7 +848,7 @@ function ePopupHtml(c){
   let s = '<div class="pop"><b>'+esc(c.n)+'</b><div class="row">'+esc(PROV[c.p]||c.p)+(c.pop?' · '+c.pop.toLocaleString('it-IT')+' ab.':'')+'</div>';
   if (d){ const i=mapDay, w=wmo(d.daily.weather_code[i]);
     s += '<div class="row">'+w[1]+' '+w[0]+' · '+Math.round(d.daily.temperature_2m_max[i])+'° / '+Math.round(d.daily.temperature_2m_min[i])+'°</div>'; }
-  return s + '<button onclick="eGoCity(\''+k+'\')">🏛️ Monumenti da vicino</button></div>';
+  return s + '<button onclick="eGoCity(\''+k+'\')">Vedi i monumenti</button></div>';
 }
 function eRefreshWx(){
   if (eNear || eLayerMode !== 'wx' || !COMUNI.length){ eWx.clearLayers(); for (const k in eMk) delete eMk[k]; return; }
@@ -951,13 +1017,14 @@ async function fetchCustomPoints(lat, lon, radius){
 
 /* ---------- carica i monumenti di un'area (come Cicerone) ---------- */
 async function loadArea(lat, lon, radius){
-  radius = radius || 2000; const my = ++eReq; eArea = {lat, lon, radius};
+  radius = radius || 2000; const my = ++eReq; eArea = {lat, lon, radius}; eLoading = true;
   $('eRefetch').classList.remove('show');
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
   const r = await Promise.allSettled([ fetchWikiItems(lat, lon, radius), fetchOverpassItems(lat, lon, radius),
     fetchSwissHeritageItems(lat, lon, radius), fetchWfsItems(lat, lon, radius, WFS_ER),
     fetchWfsItems(lat, lon, radius, WFS_LIG), fetchCustomPoints(lat, lon, radius) ]);
   if (my !== eReq) return;
+  eLoading = false;
   const v = r.map(x => x.status === 'fulfilled' ? x.value : []);
   /* scarto i doppioni (stesso luogo da più fonti); i punti scritti a mano restano sempre */
   let found = v[0].slice();
@@ -981,7 +1048,7 @@ function eShowItem(i, fly){
   const lbl = SRC_LABEL[it.source];
   showCard('<div class="ch"><span class="meta">'+(it.source==='custom'?'<span class="tag-cu">Aggiunto da Claude</span> · ':'')+'a '+formatDist(it.dist)+' dal centro</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     '<h3>'+esc(it.title)+'</h3><div class="cb">'+(it.thumb?'<img src="'+esc(it.thumb)+'" alt="">':'')+'<p id="eCardTx">'+(esc(it.extract)||'Nessuna descrizione disponibile.')+'</p></div>'+
-    '<div class="acts"><button class="ai" id="eAsk">✨ Chiedi a Claude</button>'+((it.url && lbl) ? '<a href="'+esc(it.url)+'" target="_blank" rel="noopener">'+lbl+'</a>' : '')+'</div>');
+    '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button>'+((it.url && lbl) ? '<a href="'+esc(it.url)+'" target="_blank" rel="noopener">'+lbl+'</a>' : '')+'</div>');
   $('eAsk').onclick = () => shareToClaude('Raccontami la storia e qualche curiosità su "'+it.title+'"'+(eCity?' a '+eCity.n:'')+' ('+it.lat.toFixed(5)+', '+it.lon.toFixed(5)+').');
   /* per Wikipedia carico l'introduzione completa, non solo le prime righe */
   if (it.source === 'wikipedia' && it.lang) wikiSummary(it.lang, it.title).then(s => {
@@ -999,9 +1066,9 @@ function setHint(html){
 
 /* ---------- sezione 3: monumenti e curiosità ---------- */
 function renderMon(){
-  if (!eItems.length && !eCity){ $('eMonT').style.display='none'; $('eMon').style.display='none'; return; }
-  $('eMonT').style.display=''; $('eMon').style.display='';
-  $('eMonT').textContent = 'Monumenti' + (eCity ? ' · '+eCity.n : '') + (eItems.length ? ' ('+eItems.length+')' : '');
+  if (!eItems.length && !eCity){ $('eMonS').hidden=true; return; }
+  $('eMonS').hidden=false;
+  $('eMonT').textContent = eCity ? 'Monumenti di '+eCity.n : 'Monumenti in zona'; $('eMonN').textContent = eItems.length || '';
   if (!eItems.length){ $('eMon').innerHTML = '<span class="muted">'+(eReq && eArea ? 'Nessun monumento catalogato qui.' : '<span class="spin"></span>Cerco…')+'</span>'; return; }
   $('eMon').innerHTML = eItems.slice(0,40).map((it,i) =>
     '<div class="mon'+(i===eSel?' on':'')+'" data-i="'+i+'"><span class="dt'+(it.source==='custom'?' cu':'')+'"></span><div class="tx">'+
@@ -1013,10 +1080,10 @@ function renderMon(){
     eShowItem(+d.dataset.i, true); $('eWrap').scrollIntoView({behavior:'smooth', block:'start'}); });
 }
 const CUR_SEC = [
-  {re:/curiosit|cultura di massa|nella cultura/i, t:'💡 Curiosità'},
-  {re:/leggend|mito/i, t:'🧙 Leggende'},
-  {re:/tradizion|folclor|festivit|feste/i, t:'🎉 Tradizioni e feste'},
-  {re:/^storia$/i, t:'📜 Storia'}
+  {re:/curiosit|cultura di massa|nella cultura/i, t:'Curiosità'},
+  {re:/leggend|mito/i, t:'Leggende'},
+  {re:/tradizion|folclor|festivit|feste/i, t:'Tradizioni e feste'},
+  {re:/^storia$/i, t:'Storia'}
 ];
 const eWpCache = {};
 async function eLoadCur(c, my){
@@ -1025,11 +1092,11 @@ async function eLoadCur(c, my){
   if (eWpCache[c.n] === undefined) eWpCache[c.n] = (guideCache[c.n] && guideCache[c.n].wp !== undefined) ? guideCache[c.n].wp : await extracts(LG+'.wikipedia.org', c.n);
   if (my !== eCityReq) return;
   const base = 'https://'+LG+'.wikipedia.org/wiki/'+encodeURIComponent(c.n.replace(/ /g,'_'));
-  const blocks = custom.map(p => '<details open><summary>✨ '+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p><span class="tag-cu">Aggiunto da Claude</span></details>')
+  const blocks = custom.map(p => '<details open><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p><span class="tag-cu">Aggiunto da Claude</span></details>')
     .concat(eWpCache[c.n] ? guideBlocks(eWpCache[c.n], CUR_SEC, base, 'Wikipedia', 900) : []);
-  $('eCurT').style.display=''; $('eCur').style.display='';
+  $('eCurS').hidden=false;
   $('eCur').innerHTML = (blocks.length ? blocks.join('') : '<span class="muted">Ancora nessuna curiosità per '+esc(c.n)+'.</span>')+
-    '<button class="askbtn" id="eAskMore">✨ Chiedi a Claude di aggiungere punti e curiosità</button>'+
+    '<button class="askbtn" id="eAskMore">Chiedi a Claude di aggiungere punti e curiosità</button>'+
     '<div class="muted" style="margin-top:8px;font-size:11.5px">Testi da Wikipedia (CC BY-SA) e da Claude</div>';
   $('eAskMore').onclick = () => shareToClaude('Sono a '+c.n+' ('+c.lat.toFixed(5)+', '+c.lon.toFixed(5)+'). Cerca monumenti, punti di interesse artistici e storici e curiosità del posto non ancora catalogati e aggiungili a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
 }
@@ -1049,7 +1116,7 @@ async function photoList(c){
   }).filter(Boolean).slice(0,12);
 }
 async function eLoadPhotos(c, my){
-  $('ePhotoT').style.display=''; $('ePhotoT').textContent = 'Foto · '+c.n;
+  $('ePhotoS').hidden=false; $('ePhotoT').textContent = 'Foto di '+c.n;
   $('ePhotos').innerHTML = '<div class="card"><span class="muted"><span class="spin"></span>Cerco le foto…</span></div>';
   let list = [];
   try { list = await photoList(c); } catch(e){}
@@ -1060,6 +1127,12 @@ async function eLoadPhotos(c, my){
 }
 
 /* ---------- scelta della città ---------- */
+function eRenderHero(){
+  if (!eCity){ $('eHero').hidden = true; return; }
+  $('eHero').hidden = false; $('eHName').textContent = eCity.n;
+  const d = mapData[eCity.n];
+  $('eHW').innerHTML = d ? wmo(d.daily.weather_code[mapDay])[1]+' <b>'+Math.round(d.daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(d.daily.temperature_2m_min[mapDay])+'°' : esc(PROV[eCity.p]||'');
+}
 function eSelectCity(c, opts){
   opts = opts || {};
   const same = eCity && eCity.n === c.n;
@@ -1067,7 +1140,8 @@ function eSelectCity(c, opts){
   if (!same){ const my = ++eCityReq; eLoadPhotos(c, my); eLoadCur(c, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
-  eRefreshWx();
+  eRefreshWx(); eRenderHero();
+  if (!mapData[c.n]) fetchMissing([c]);
 }
 function nearestComune(lat, lon){
   let best = null, bd = 1e9; COMUNI.forEach(c => { const d = km(lat,lon,c.lat,c.lon); if (d < bd){ bd = d; best = c; } });
@@ -1094,7 +1168,7 @@ emap.on('zoomend moveend', () => {
       loadArea(c.lat, c.lng, 1800);
     } else if (haversine(c.lat, c.lng, eArea.lat, eArea.lon) > 300) $('eRefetch').classList.add('show');
   }
-  eRefreshWx(); eRefreshDots(); if (!eReq || !eNear) setHint();
+  eRefreshWx(); eRefreshDots(); if (!eLoading) setHint();
 });
 $('eRefetch').onclick = () => { const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); };
 
@@ -1102,7 +1176,7 @@ $('eRefetch').onclick = () => { const c = emap.getCenter(); loadArea(c.lat, c.ln
 $('eFull').onclick = () => {
   const f = !$('eWrap').classList.contains('full');
   $('eWrap').classList.toggle('full', f); document.body.classList.toggle('e-full', f);
-  $('eFull').textContent = f ? '✕' : '⛶'; $('eFull').setAttribute('aria-label', f ? 'Esci da schermo intero' : 'Schermo intero');
+  $('eFull').innerHTML = svgIc(f ? 'x' : 'full'); $('eFull').setAttribute('aria-label', f ? 'Esci da schermo intero' : 'Schermo intero');
   setTimeout(() => emap.invalidateSize(), 80);
 };
 
@@ -1128,15 +1202,15 @@ function drawEMe(){
   L.marker([userPos.lat, userPos.lon], { icon: L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[0,0]}), zIndexOffset:-500 }).addTo(eMe);
 }
 $('eMark').onclick = async () => {
-  const b = $('eMark'); b.textContent = '…';
-  const pos = await freshPos(); b.textContent = '📍';
+  const b = $('eMark'); b.classList.add('busy');
+  const pos = await freshPos(); b.classList.remove('busy');
   const p = pos || (c => ({lat:c.lat, lon:c.lng}))(emap.getCenter());
   eMarks.clearLayers();
   L.marker([p.lat, p.lon], { icon: L.divIcon({className:'', html:'<div class="mark-pin">📍</div>', iconSize:[0,0]}) }).addTo(eMarks);
   drawEMe(); emap.panTo([p.lat, p.lon]);
   showCard('<div class="ch"><span class="meta">'+(pos ? 'La tua posizione' : 'Centro della mappa (GPS non disponibile)')+'</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     '<h3>'+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+'</h3><p>Chiedi a Claude cosa c\'è qui: se non è catalogato, lo aggiunge alla mappa.</p>'+
-    '<div class="acts"><button class="ai" id="eAsk">✨ Chiedi a Claude</button></div>');
+    '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button></div>');
   $('eAsk').onclick = () => shareToClaude('Sono a queste coordinate: '+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+'. Cosa c\'è qui che vale la pena scoprire? Se non è già catalogato, aggiungilo a custom-points.json nel repo GitHub '+POINTS_REPO+'.');
 };
 let photoPos = null;
@@ -1146,7 +1220,7 @@ $('eCam').onchange = () => {
   const url = URL.createObjectURL(file);
   showCard('<div class="ch"><span class="meta">Foto scattata</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     '<div class="cb"><img src="'+url+'" alt="Foto scattata" style="width:96px;height:96px"><p>Mandala a Claude: ti racconta cosa stai guardando e, se manca, aggiunge il punto alla mappa.</p></div>'+
-    '<div class="acts"><button class="ai" id="eAsk">✨ Condividi con Claude</button><a href="'+url+'" download="foto.jpg">Scarica foto</a></div>');
+    '<div class="acts"><button class="ai" id="eAsk">Condividi con Claude</button><a href="'+url+'" download="foto.jpg">Scarica foto</a></div>');
   $('eAsk').onclick = () => {
     const p = photoPos || userPos || (c => ({lat:c.lat, lon:c.lng}))(emap.getCenter());
     shareToClaude('Sono a queste coordinate: '+p.lat.toFixed(5)+', '+p.lon.toFixed(5)+'. Cosa mi sai dire su questo dettaglio nella foto? Se non è già catalogato, aggiungilo a custom-points.json nel repo GitHub '+POINTS_REPO+'.', file);
