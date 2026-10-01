@@ -218,6 +218,21 @@ body.e-near .ectl .nr{display:flex}
 .tag-cu{font-size:11.5px;color:#a3452f;font-weight:600}
 .askcity{width:100%;min-height:46px;margin:0 0 12px;border:none;border-radius:14px;background:var(--acc-soft);color:var(--acc);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;text-align:left}
 .askcity.busy{opacity:.6}
+.wk{padding:14px 0 6px}
+.wkh{display:flex;flex-direction:column;gap:3px;padding:0 16px 10px}
+.wkh b{font-size:15.5px}
+.wkt{overflow-x:auto;scrollbar-width:none}
+.wkt table{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:100%}
+.wkt th{font-weight:500;color:var(--tx2);font-size:11.5px;padding:2px 3px 8px;text-align:center;white-space:nowrap}
+.wkt td{padding:8px 3px;text-align:center;border-top:1px solid var(--line);min-width:44px;line-height:1.25}
+.wkt .cn{position:sticky;left:0;z-index:1;background:var(--card);text-align:left;padding-left:16px;padding-right:8px;font-weight:600;font-size:13.5px;min-width:100px;max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkt th.cn{font-weight:500;font-size:11.5px}
+.wkt tr.r{cursor:pointer}
+.wkt tr.r:active td{background:var(--soft)}
+.wkt .wi{font-size:18px}
+.wkt .tx{font-weight:600}
+.wkt .tn{color:var(--tx2);font-size:11px}
+.wkt .rr{color:var(--acc);font-size:10.5px}
 .askbtn{width:100%;height:46px;margin-top:14px;border:1.5px solid var(--acc);border-radius:12px;background:transparent;color:var(--acc);font-size:14px;font-weight:600;cursor:pointer}
 .empty{display:flex;gap:12px;align-items:flex-start;color:var(--tx2);font-size:14px;line-height:1.5}
 .empty svg{color:var(--acc);margin-top:2px}
@@ -257,6 +272,10 @@ footer a{color:var(--tx2)}
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
     <div class="legend" id="eLegend"></div>
+    <div class="card wk" id="eWeek" hidden>
+      <div class="wkh"><b>La settimana nelle città sulla mappa</b><span class="muted">Sposta o ingrandisci la mappa per cambiare città. Tocca una città per i dettagli.</span></div>
+      <div class="wkt" id="eWeekT"></div>
+    </div>
     <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi meteo, mare, foto, monumenti e curiosità.</div></div></div>
     <details class="sec" id="wxS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st" id="cTitle">Meteo</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cNow"></div><div class="sub">Prossimi 15 giorni <span style="font-weight:400">(tocca un giorno)</span></div><div class="days" id="cDays"></div><div class="sub" id="cTodoT">Ora per ora</div><div id="cVerdict"></div><div id="cTodo"></div></div></details>
     <details class="sec" id="cSeaS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="cSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cSea"></div></div></details>
@@ -730,8 +749,9 @@ function ePopupHtml(c){
     s += '<div class="row">'+w[1]+' '+w[0]+' · '+Math.round(d.daily.temperature_2m_max[i])+'° / '+Math.round(d.daily.temperature_2m_min[i])+'°</div>'; }
   return s + '<button onclick="eGoCity(\''+k+'\')">Vedi i monumenti</button></div>';
 }
+let eVisible = [];
 function eRefreshWx(){
-  if (eNear || eLayerMode !== 'wx' || !COMUNI.length){ eWx.clearLayers(); for (const k in eMk) delete eMk[k]; return; }
+  if (eNear || eLayerMode !== 'wx' || !COMUNI.length){ eWx.clearLayers(); for (const k in eMk) delete eMk[k]; if (eNear) eVisible = []; eRenderWeek(); return; }
   const z = emap.getZoom(), b = emap.getBounds().pad(0.15);
   const cand = COMUNI.filter(c => minZoom(c) <= Math.floor(z+0.01) && b.contains([c.lat,c.lon]))
     .sort((a,b2) => (minZoom(a)-minZoom(b2)) || (b2.pop-a.pop));
@@ -748,8 +768,48 @@ function eRefreshWx(){
     else eMk[c.n] = L.marker([c.lat,c.lon], {icon, riseOnHover:true, zIndexOffset: 1000-minZoom(c)*100})
       .bindPopup(() => ePopupHtml(c)).on('click', () => eSelectCity(c,{src:'tap'})).addTo(eWx);
   });
+  eVisible = want;
   fetchMissing(want.filter(c => !mapData[c.n] && !pending.has(c.n)));
+  eRenderWeek();
 }
+/* confronto della settimana per le città visibili: serve a decidere dove andare */
+function eRenderWeek(){
+  const box = $('eWeek');
+  const list = eVisible.slice(0, 14);
+  if (eCity || !list.length){ box.hidden = true; $('eStart').hidden = !!eCity; return; }
+  box.hidden = false; $('eStart').hidden = true;
+  const ref = list.map(c => mapData[c.n]).find(Boolean);
+  const days = ref ? ref.time : [];
+  let h = '<table><thead><tr><th class="cn">Città</th>'+days.map((t,i) => '<th>'+dayLabel(t,i).replace('Domani','Dom.')+'</th>').join('')+'</tr></thead><tbody>';
+  list.forEach(c => {
+    const d = mapData[c.n];
+    h += '<tr class="r" data-n="'+esc(c.n)+'"><td class="cn">'+esc(c.n)+'</td>';
+    if (!d){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
+    d.time.forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
+      h += '<td><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
+           '<div class="tn">'+(tn==null?'':Math.round(tn)+'°')+'</div>'+(r>=0.5?'<div class="rr">'+(r<10?r.toFixed(1):Math.round(r))+' mm</div>':'')+'</td>'; });
+    h += '</tr>';
+  });
+  $('eWeekT').innerHTML = h+'</tbody></table>';
+  $('eWeekT').querySelectorAll('tr.r').forEach(tr => tr.onclick = () => {
+    const c = byName[tr.dataset.n]; if (!c) return;
+    eSelectCity(c, {src:'tap'}); emap.flyTo([c.lat, c.lon], Math.max(emap.getZoom(), 11));
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+}
+/* tocco su una zona vuota della mappa (terra o mare): torno alla vista delle città */
+function eClearCity(){
+  if (!eCity) return;
+  eCity = null; eCitySrc = ''; city = null; cw = null; eCityReq++; reqId++;
+  ['wxS','cSeaS','ePhotoS','eMonS','eCurS'].forEach(id => $(id).hidden = true);
+  $('eCard').classList.remove('show'); eSel = -1;
+  eRenderHero();
+  if (emap.getZoom() > 10) emap.setView(emap.getCenter(), 10); else eRefreshWx();
+}
+emap.on('click', () => {
+  if ($('eCard').classList.contains('show')){ $('eCard').classList.remove('show'); eSel = -1; drawArt(); renderMon(); setHint(); return; }
+  if (eCity) eClearCity();
+});
 
 /* ---------- punti d'interesse da lontano (zoom 11–13): piccoli punti dorati da Wikipedia ---------- */
 let eDotKey = '', eDotTimer = null;
@@ -1034,7 +1094,8 @@ function eSelectCity(c, opts){
   opts = opts || {};
   const same = eCity && eCity.n === c.n;
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
-  eCity = c; $('eStart').style.display = 'none';
+  eCity = c;
+  if (!same) $('eStart').hidden = true;
   if (!same){ const my = ++eCityReq; openCity(c.n); eLoadPhotos(c, my); eLoadCur(c, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
