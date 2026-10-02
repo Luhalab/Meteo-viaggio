@@ -1,6 +1,6 @@
 # Meteo e viaggio
 
-App web per turisti, Italia e Svizzera, in due pagine.
+App web per turisti, Italia e Svizzera, in una pagina.
 
 ## Com'è fatta
 Una sola pagina. In alto una mappa: da lontano mostra le città con il meteo (o mare e meduse);
@@ -8,6 +8,12 @@ da zoom 14 in su diventa la mappa di Cicerone con chiese, monumenti, castelli e 
 la scheda di ogni punto e "Chiedi a Claude". Schermo intero, "Segna questo punto", "Fotografa un dettaglio".
 Scelta una città, sotto la mappa compaiono sezioni a scomparsa: meteo (adesso, 15 giorni, ora per ora),
 mare e meduse, foto, monumenti, curiosità e leggende.
+
+Senza città scelta, sotto la mappa c'è la tabella "La settimana a confronto" con tre modi:
+- **Sulla mappa** (predefinito): le città visibili, che cambiano spostando o ingrandendo la mappa.
+- **Cerca**: si aggiungono le città con la ricerca; la mappa mostra solo quelle e le inquadra.
+- **Scegli**: tenendo premuto su una città della mappa la si aggiunge o toglie; la mappa resta libera.
+Le città cercate e scelte restano salvate sul telefono.
 
 ## Struttura
 - `index.html` — l'app (il "motore", uguale per tutte le regioni)

@@ -228,6 +228,23 @@ body.e-near .ectl .nr{display:flex}
 .wkt .cn{position:sticky;left:0;z-index:1;background:var(--card);text-align:left;padding-left:16px;padding-right:8px;font-weight:600;font-size:13.5px;min-width:100px;max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkt th.cn{font-weight:500;font-size:11.5px}
 .wkt tr.r{cursor:pointer}
+.wkt tr.sel td:not(.cn){background:var(--acc-soft)}
+.wkt tr.sel .cn{color:var(--acc)}
+.wkm{display:flex;gap:4px;background:var(--soft);border-radius:12px;padding:3px;margin:8px 0 4px}
+.wkm button{flex:1;border:none;background:transparent;color:var(--tx2);padding:8px 4px;border-radius:9px;font:500 13.5px var(--sans);cursor:pointer}
+.wkm button.on{background:var(--card);color:var(--sea);font-weight:600;box-shadow:0 1px 3px rgba(20,36,48,.14)}
+.wks{position:relative;margin-top:6px}
+.wks input{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:12px;padding:10px 12px;font:15px var(--sans);outline-color:var(--acc)}
+.wks .sugg{top:46px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips:empty{display:none}
+.chip{display:inline-flex;align-items:center;background:var(--acc-soft);color:var(--tx);border-radius:999px;padding:3px 3px 3px 11px;font-size:13px;font-weight:500}
+.chip button{border:none;background:transparent;color:var(--tx2);width:26px;height:26px;border-radius:50%;font-size:17px;line-height:1;cursor:pointer}
+.chip.clr{background:transparent;border:1px dashed var(--line);color:var(--tx2);padding:3px 11px;cursor:pointer;font:500 13px var(--sans)}
+.wke{padding:4px 16px 10px;font-size:13.5px;color:var(--tx2)}
+.mk.pk .b{box-shadow:0 0 0 2.5px var(--gold),0 3px 10px rgba(20,36,48,.25)}
+.mk.pk .n::before{content:'✓ ';color:var(--gold)}
+#emap{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .wkt tr.r:active td{background:var(--soft)}
 .wkt .wi{font-size:18px}
 .wkt .tx{font-weight:600}
@@ -273,7 +290,12 @@ footer a{color:var(--tx2)}
     </div>
     <div class="legend" id="eLegend"></div>
     <div class="card wk" id="eWeek" hidden>
-      <div class="wkh"><b>La settimana nelle città sulla mappa</b><span class="muted">Sposta o ingrandisci la mappa per cambiare città. Tocca una città per i dettagli.</span></div>
+      <div class="wkh"><b id="eWeekH">La settimana nelle città sulla mappa</b>
+        <div class="wkm" id="eWkMode"><button data-m="auto" class="on">Sulla mappa</button><button data-m="search">Cerca</button><button data-m="pick">Scegli</button></div>
+        <span class="muted" id="eWkHint"></span>
+        <div class="wks" id="eWkS" hidden><input id="eWkQ" type="search" placeholder="Aggiungi una città da confrontare" autocomplete="off" aria-label="Aggiungi una città da confrontare"><div class="sugg" id="eWkSugg"></div></div>
+        <div class="chips" id="eWkChips"></div>
+      </div>
       <div class="wkt" id="eWeekT"></div>
     </div>
     <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi meteo, mare, foto, monumenti e curiosità.</div></div></div>
@@ -737,7 +759,7 @@ const keyOf = n => encodeURIComponent(n).replace(/'/g, '%27');
 /* ---------- città col meteo (vista da lontano) ---------- */
 function eMarkerHtml(c){
   const d = mapData[c.n], z = emap.getZoom();
-  const cls = 'mk' + (minZoom(c)===7 ? ' big' : '') + (z<8 ? ' cp' : '') + (eCity && c.n===eCity.n ? ' here' : '');
+  const cls = 'mk' + (minZoom(c)===7 ? ' big' : '') + (z<8 ? ' cp' : '') + (eCity && c.n===eCity.n ? ' here' : '') + (wkMode==='pick' && wkPick.includes(c.n) ? ' pk' : '');
   if (!d) return '<div class="'+cls+'"><div class="b"><span class="i">⏳</span></div><div class="n">'+esc(c.n)+'</div></div>';
   const i = mapDay, tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i];
   return '<div class="'+cls+'"><div class="b"><span class="i">'+wmo(d.daily.weather_code[i])[1]+'</span><span style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</span>'+
@@ -751,12 +773,55 @@ function ePopupHtml(c){
   return s + '<button onclick="eGoCity(\''+k+'\')">Vedi i monumenti</button></div>';
 }
 let eVisible = [];
+/* tabella settimanale, tre modi:
+   'auto'   = le città visibili sulla mappa (cambiano con zoom e spostamento)
+   'search' = le città cercate: la mappa mostra solo quelle e si adatta per inquadrarle
+   'pick'   = le città scelte tenendo premuto sulla mappa (mappa libera) */
+const WK_MAX = 14;
+let wkMode = 'auto', wkSearch = store.get('wkSearch', []), wkPick = store.get('wkPick', []);
+const wkList = () => (wkMode === 'search' ? wkSearch : wkPick).map(n => byName[n]).filter(Boolean);
+const WK_TITLE = { auto:'La settimana nelle città sulla mappa', search:'La settimana nelle città cercate', pick:'La settimana nelle città scelte' };
+const WK_HINT = { auto:'Sposta o ingrandisci la mappa per cambiare città. Tocca una riga per i dettagli.',
+  search:'Cerca le città da confrontare: la mappa mostra solo quelle.',
+  pick:'Tieni premuto su una città della mappa per aggiungerla o toglierla. Puoi spostarti e ingrandire liberamente.' };
+function wkSave(){ store.set('wkSearch', wkSearch); store.set('wkPick', wkPick); }
+function wkToggle(arr, n){
+  const i = arr.indexOf(n);
+  if (i >= 0) arr.splice(i, 1); else { if (arr.length >= WK_MAX) return false; arr.push(n); }
+  wkSave(); return true;
+}
+function setWkMode(m){
+  if (m === wkMode) return;
+  wkMode = m;
+  $('eWkMode').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  $('eWkS').hidden = m !== 'search';
+  for (const k in eMk) eMk[k].setIcon(L.divIcon({ className:'', html: eMarkerHtml(byName[k] || {n:k}), iconSize:[0,0] }));
+  if (m === 'search'){ wkFit(); if (!wkSearch.length) setTimeout(() => $('eWkQ').focus(), 50); }
+  else eRefreshWx();
+}
+/* in modalità Cerca la mappa inquadra le città cercate */
+function wkFit(){
+  if (wkMode !== 'search') return;
+  const l = wkList();
+  if (l.length === 1) emap.flyTo([l[0].lat, l[0].lon], 10);
+  else if (l.length > 1) emap.flyToBounds(L.latLngBounds(l.map(c => [c.lat, c.lon])), { padding:[50,50], maxZoom:11 });
+  eRefreshWx();
+}
+let wkFlashT = null;
+function wkFlash(t){ setHint(esc(t)); clearTimeout(wkFlashT); wkFlashT = setTimeout(() => setHint(), 1800); }
 function eRefreshWx(){
   if (eNear || eLayerMode !== 'wx' || !COMUNI.length){ eWx.clearLayers(); for (const k in eMk) delete eMk[k]; if (eNear) eVisible = []; eRenderWeek(); return; }
   const z = emap.getZoom(), b = emap.getBounds().pad(0.15);
-  const cand = COMUNI.filter(c => minZoom(c) <= Math.floor(z+0.01) && b.contains([c.lat,c.lon]))
-    .sort((a,b2) => (minZoom(a)-minZoom(b2)) || (b2.pop-a.pop));
-  const placed = [], want = [];
+  let cand = [], placed = [], want = [];
+  if (wkMode === 'search') want = wkList();      /* solo le città cercate */
+  else {
+    /* in modalità Scegli le città scelte restano sempre visibili, le altre si diradano come al solito */
+    const fixed = wkMode === 'pick' ? wkList().filter(c => b.contains([c.lat, c.lon])) : [];
+    const fixedSet = new Set(fixed.map(c => c.n));
+    want = fixed.slice(); placed = fixed.map(c => emap.latLngToContainerPoint([c.lat, c.lon]));
+    cand = COMUNI.filter(c => !fixedSet.has(c.n) && minZoom(c) <= Math.floor(z+0.01) && b.contains([c.lat,c.lon]))
+      .sort((a,b2) => (minZoom(a)-minZoom(b2)) || (b2.pop-a.pop));
+  }
   cand.forEach(c => { const pt = emap.latLngToContainerPoint([c.lat,c.lon]);
     const bw = z<8 ? 60 : 84, bh = z<8 ? 36 : 44;
     if (placed.some(q => Math.abs(q.x-pt.x)<bw && Math.abs(q.y-pt.y)<bh)) return;
@@ -767,24 +832,41 @@ function eRefreshWx(){
     const icon = L.divIcon({ className:'', html: eMarkerHtml(c), iconSize:[0,0] });
     if (eMk[c.n]) eMk[c.n].setIcon(icon);
     else eMk[c.n] = L.marker([c.lat,c.lon], {icon, riseOnHover:true, zIndexOffset: 1000-minZoom(c)*100})
-      .bindPopup(() => ePopupHtml(c)).on('click', () => eSelectCity(c,{src:'tap'})).addTo(eWx);
+      .bindPopup(() => ePopupHtml(c)).on('click', () => { if (Date.now()-lpFired < 900){ setTimeout(() => emap.closePopup(), 0); return; } eSelectCity(c,{src:'tap'}); }).addTo(eWx);
   });
   eVisible = want;
-  fetchMissing(want.filter(c => !mapData[c.n] && !pending.has(c.n)));
+  const need = wkMode === 'auto' ? want : want.concat(wkList());
+  fetchMissing(need.filter((c,i,a) => a.indexOf(c) === i && !mapData[c.n] && !pending.has(c.n)));
   eRenderWeek();
 }
 /* confronto della settimana per le città visibili: serve a decidere dove andare */
 function eRenderWeek(){
-  const box = $('eWeek');
-  const list = eVisible.slice(0, 14);
-  if (eCity || !list.length){ box.hidden = true; $('eStart').hidden = !!eCity; return; }
-  box.hidden = false; $('eStart').hidden = true;
+  const box = $('eWeek'), auto = wkMode === 'auto';
+  const list = auto ? eVisible.slice(0, WK_MAX) : wkList();
+  if (auto && eCity){ box.hidden = true; $('eStart').hidden = true; return; }
+  box.hidden = false;
+  $('eStart').hidden = !(auto && !eCity && !list.length);
+  $('eWeekH').textContent = WK_TITLE[wkMode];
+  $('eWkHint').textContent = WK_HINT[wkMode];
+  /* etichette delle città scelte, con la × per toglierle */
+  const arr = wkMode === 'search' ? wkSearch : wkPick;
+  $('eWkChips').innerHTML = auto ? '' : list.map(c => '<span class="chip">'+esc(c.n)+'<button data-n="'+esc(c.n)+'" aria-label="Togli '+esc(c.n)+'">×</button></span>').join('') +
+    (list.length > 1 ? '<button class="chip clr" id="eWkClr">Togli tutte</button>' : '');
+  $('eWkChips').querySelectorAll('button[data-n]').forEach(bt => bt.onclick = () => { wkToggle(arr, bt.dataset.n); wkMode === 'search' ? wkFit() : eRefreshWx(); });
+  const clr = $('eWkClr'); if (clr) clr.onclick = () => { arr.length = 0; wkSave(); eRefreshWx(); };
+  if (!list.length){
+    $('eWeekT').innerHTML = '<div class="wke">'+(
+      wkMode === 'search' ? 'Nessuna città ancora: cercane una qui sopra.' :
+      wkMode === 'pick' ? 'Nessuna città ancora: tieni premuto su una città della mappa.' :
+      eNear ? 'Allontana la mappa per vedere le città.' : eLayerMode === 'sea' ? 'Passa a Meteo per vedere le città.' : 'Carico le città…')+'</div>';
+    return;
+  }
   const ref = list.map(c => mapData[c.n]).find(Boolean);
   const days = ref ? ref.time : [];
   let h = '<table><thead><tr><th class="cn">Città</th>'+days.map((t,i) => '<th>'+dayLabel(t,i).replace('Domani','Dom.')+'</th>').join('')+'</tr></thead><tbody>';
   list.forEach(c => {
     const d = mapData[c.n];
-    h += '<tr class="r" data-n="'+esc(c.n)+'"><td class="cn">'+esc(c.n)+'</td>';
+    h += '<tr class="r'+(eCity && eCity.n === c.n ? ' sel' : '')+'" data-n="'+esc(c.n)+'"><td class="cn">'+esc(c.n)+'</td>';
     if (!d){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
     d.time.forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
       h += '<td><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
@@ -798,6 +880,23 @@ function eRenderWeek(){
     window.scrollTo({top:0, behavior:'smooth'});
   });
 }
+$('eWkMode').querySelectorAll('button').forEach(b => b.onclick = () => setWkMode(b.dataset.m));
+/* ricerca dentro la tabella (modalità Cerca) */
+const wq = $('eWkQ'), wsugg = $('eWkSugg');
+wq.addEventListener('input', () => {
+  const v = norm(wq.value.trim()); if (!v){ wsugg.style.display = 'none'; return; }
+  const hits = COMUNI.filter(c => norm(c.n).includes(v) && !wkSearch.includes(c.n))
+    .sort((a,b) => (norm(a.n).startsWith(v)?0:1)-(norm(b.n).startsWith(v)?0:1) || b.pop-a.pop).slice(0,6);
+  wsugg.innerHTML = hits.length ? hits.map(c => '<div data-n="'+esc(c.n)+'">'+esc(c.n)+'<small>'+esc(PROV[c.p]||c.p)+'</small></div>').join('') : '<div class="muted">Nessuna località trovata</div>';
+  wsugg.style.display = 'block';
+  wsugg.querySelectorAll('[data-n]').forEach(d => d.onclick = () => {
+    wq.value = ''; wsugg.style.display = 'none'; wq.blur();
+    if (!wkToggle(wkSearch, d.dataset.n)){ wkFlash('Puoi confrontare al massimo '+WK_MAX+' città'); return; }
+    wkFit();
+  });
+});
+wq.addEventListener('keydown', e => { if (e.key === 'Enter'){ const f = wsugg.querySelector('[data-n]'); if (f) f.click(); } });
+document.addEventListener('click', e => { if (!e.target.closest('.wks')) wsugg.style.display = 'none'; });
 /* tocco su una zona vuota della mappa (terra o mare): torno alla vista delle città */
 function eClearCity(){
   if (!eCity) return;
@@ -805,12 +904,46 @@ function eClearCity(){
   ['wxS','cSeaS','ePhotoS','eMonS','eCurS','eDoS'].forEach(id => $(id).hidden = true);
   $('eCard').classList.remove('show'); eSel = -1;
   eRenderHero();
-  if (emap.getZoom() > 10) emap.setView(emap.getCenter(), 10); else eRefreshWx();
+  if (wkMode === 'search') wkFit();
+  else if (wkMode === 'pick'){ if (eNear) emap.setView(emap.getCenter(), 10); else eRefreshWx(); }
+  else if (emap.getZoom() > 10) emap.setView(emap.getCenter(), 10); else eRefreshWx();
 }
 emap.on('click', () => {
+  if (Date.now() - lpFired < 900) return;
   if ($('eCard').classList.contains('show')){ $('eCard').classList.remove('show'); eSel = -1; drawArt(); renderMon(); setHint(); return; }
   if (eCity) eClearCity();
 });
+
+/* tenendo premuto su una città la aggiungo (o tolgo) tra quelle scelte per la tabella */
+let lpT = null, lpPt = null, lpFired = 0;
+const emapEl = $('emap');
+function lpCancel(){ clearTimeout(lpT); lpT = null; }
+emapEl.addEventListener('pointerdown', e => {
+  if (!e.isPrimary){ lpCancel(); return; }               /* due dita = zoom, non selezione */
+  if (eNear || wkMode === 'search' || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  lpPt = {x:e.clientX, y:e.clientY}; lpCancel();
+  lpT = setTimeout(() => { lpT = null; eLongPress(lpPt); }, 550);
+}, true);
+emapEl.addEventListener('pointermove', e => { if (lpT && Math.hypot(e.clientX-lpPt.x, e.clientY-lpPt.y) > 10) lpCancel(); }, true);
+['pointerup','pointercancel'].forEach(t => emapEl.addEventListener(t, lpCancel, true));
+emapEl.addEventListener('contextmenu', e => { if (!eNear) e.preventDefault(); });
+function eLongPress(p){
+  if (eNear || wkMode === 'search') return;
+  const r = emapEl.getBoundingClientRect(), cp = L.point(p.x - r.left, p.y - r.top);
+  let best = null, bd = 48;
+  for (const n in eMk){ const c = byName[n]; if (!c) continue;
+    const d = cp.distanceTo(emap.latLngToContainerPoint([c.lat, c.lon])); if (d < bd){ bd = d; best = c; } }
+  if (!best){ const ll = emap.containerPointToLatLng(cp), nc = nearestComune(ll.lat, ll.lng);
+    if (nc && km(ll.lat, ll.lng, nc.lat, nc.lon) <= 6) best = nc; }
+  if (!best) return;
+  lpFired = Date.now();
+  if (wkMode !== 'pick') setWkMode('pick');
+  const had = wkPick.includes(best.n);
+  if (!wkToggle(wkPick, best.n)){ wkFlash('Puoi confrontare al massimo '+WK_MAX+' città'); return; }
+  try { if (navigator.vibrate) navigator.vibrate(20); } catch(e){}
+  wkFlash((had ? 'Tolta: ' : 'Aggiunta: ') + best.n);
+  eRefreshWx();
+}
 
 /* ---------- punti d'interesse da lontano (zoom 11–13): piccoli punti dorati da Wikipedia ---------- */
 let eDotKey = '', eDotTimer = null;
