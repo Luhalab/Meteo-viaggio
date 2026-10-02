@@ -228,6 +228,9 @@ body.e-near .ectl .nr{display:flex}
 .wkt .cn{position:sticky;left:0;z-index:1;background:var(--card);text-align:left;padding-left:16px;padding-right:8px;font-weight:600;font-size:13.5px;min-width:100px;max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkt th.cn{font-weight:500;font-size:11.5px}
 .wkt tr.r{cursor:pointer}
+.wkb{margin:0 16px 12px;padding:10px 12px;border-radius:12px;background:rgba(185,143,62,.13);border-left:3px solid var(--gold);font-size:13.5px;line-height:1.45;cursor:pointer}
+.wkb small{display:block;color:var(--tx2);font-size:11.5px;margin-top:2px}
+.wkt .cn .bst{color:var(--gold);margin-right:3px}
 .wkt tr.sel td:not(.cn){background:var(--acc-soft)}
 .wkt tr.sel .cn{color:var(--acc)}
 .wkm{display:flex;gap:4px;background:var(--soft);border-radius:12px;padding:3px;margin:8px 0 4px}
@@ -296,6 +299,7 @@ footer a{color:var(--tx2)}
         <div class="wks" id="eWkS" hidden><input id="eWkQ" type="search" placeholder="Aggiungi una città da confrontare" autocomplete="off" aria-label="Aggiungi una città da confrontare"><div class="sugg" id="eWkSugg"></div></div>
         <div class="chips" id="eWkChips"></div>
       </div>
+      <div class="wkb" id="eWkBest" hidden></div>
       <div class="wkt" id="eWeekT"></div>
     </div>
     <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi meteo, mare, foto, monumenti e curiosità.</div></div></div>
@@ -840,9 +844,33 @@ function eRefreshWx(){
   eRenderWeek();
 }
 /* confronto della settimana per le città visibili: serve a decidere dove andare */
+/* punteggio di un giorno da 0 a 10: cielo, pioggia e temperature gradevoli */
+function dayScore(code, rain, tx){
+  let sky = code===0?10 : code===1?9 : code===2?7.5 : code===3?5 : code<=48?4 : code<=57?3 : code<=67?1.5 : code<=77?1 : code<=82?1.5 : code<=86?1 : 0;
+  sky -= Math.min(rain||0, 10) * 0.4;
+  if (tx != null) sky -= Math.min(3, 0.3 * Math.max(0, 20 - tx, tx - 29));
+  return sky;
+}
+/* la città con il tempo migliore sull'insieme della settimana (media dei 7 giorni, non giorno per giorno) */
+function weekBest(list){
+  const ok = list.filter(c => mapData[c.n]);
+  if (ok.length < 2 || ok.length < list.length) return null;
+  let best = null;
+  ok.forEach(c => { const d = mapData[c.n].daily, n = Math.min(7, d.weather_code.length);
+    let sc = 0, sun = 0, dry = 0, mm = 0; const tx = [];
+    for (let i = 0; i < n; i++){ const r = d.precipitation_sum[i] || 0, k = d.weather_code[i];
+      sc += dayScore(k, r, d.temperature_2m_max[i]); mm += r;
+      if (k <= 2) sun++; if (r < 0.5 && k < 51) dry++;
+      if (d.temperature_2m_max[i] != null) tx.push(Math.round(d.temperature_2m_max[i])); }
+    sc /= n;
+    if (!best || sc > best.sc) best = { c, sc, sun, dry, mm, n, tmin: Math.min(...tx), tmax: Math.max(...tx) };
+  });
+  return best;
+}
 function eRenderWeek(){
   const box = $('eWeek'), auto = wkMode === 'auto';
   const list = auto ? eVisible.slice(0, WK_MAX) : wkList();
+  $('eWkBest').hidden = true;
   if (auto && eCity){ box.hidden = true; $('eStart').hidden = true; return; }
   box.hidden = false;
   $('eStart').hidden = !(auto && !eCity && !list.length);
@@ -863,10 +891,21 @@ function eRenderWeek(){
   }
   const ref = list.map(c => mapData[c.n]).find(Boolean);
   const days = ref ? ref.time : [];
+  const best = weekBest(list), bb = $('eWkBest');
+  if (best){
+    const g = x => x === 1 ? '1 giorno' : x + ' giorni';
+    bb.innerHTML = 'Settimana migliore: <b>'+esc(best.c.n)+'</b><br>'+
+      (best.sun ? g(best.sun)+' di sole, ' : '')+(best.dry === best.n ? 'nessun giorno di pioggia' : g(best.dry)+' asciutti su '+best.n)+
+      (best.mm >= 0.5 ? ', '+best.mm.toFixed(1).replace('.', ',')+' mm in tutto' : '')+
+      ', massime '+(best.tmin === best.tmax ? best.tmax+'°' : best.tmin+'–'+best.tmax+'°')+
+      '<small>Calcolata sui '+best.n+' giorni insieme: conta sole, pioggia e temperature gradevoli.</small>';
+    bb.hidden = false;
+    bb.onclick = () => { const c = best.c; eSelectCity(c, {src:'tap'}); emap.flyTo([c.lat, c.lon], Math.max(emap.getZoom(), 11)); window.scrollTo({top:0, behavior:'smooth'}); };
+  }
   let h = '<table><thead><tr><th class="cn">Città</th>'+days.map((t,i) => '<th>'+dayLabel(t,i).replace('Domani','Dom.')+'</th>').join('')+'</tr></thead><tbody>';
   list.forEach(c => {
     const d = mapData[c.n];
-    h += '<tr class="r'+(eCity && eCity.n === c.n ? ' sel' : '')+'" data-n="'+esc(c.n)+'"><td class="cn">'+esc(c.n)+'</td>';
+    h += '<tr class="r'+(eCity && eCity.n === c.n ? ' sel' : '')+'" data-n="'+esc(c.n)+'"><td class="cn">'+(best && best.c === c ? '<span class="bst" aria-label="Settimana migliore">★</span>' : '')+esc(c.n)+'</td>';
     if (!d){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
     d.time.forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
       h += '<td><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
