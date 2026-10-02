@@ -591,5 +591,96 @@
     "lon": 12.8804,
     "extract": "Tra gli indirizzi segnalati dalle guide c'è La Cambusa in via Don Leonardo Zangara, la strada del castello a mare, e la pizzeria La Campana in via del Macello. Non ho verificato orari e qualità: guarda le recensioni aggiornate. Per un aperitivo al tramonto sali alle terrazze del castello o al Belvedere.",
     "url": null
+  },
+  {
+    "title": "Kunst Museum Winterthur – Reinhart am Stadtgarten",
+    "lat": 47.50049,
+    "lon": 8.729,
+    "extract": "Museo d'arte in Stadthausstrasse, accanto al Stadthaus di Semper, nato attorno alla collezione del mecenate Oskar Reinhart (1885-1965). Fa parte del Kunst Museum Winterthur, che riunisce più sedi in città. È la tappa più comoda dopo la passeggiata nel centro storico.",
+    "url": null
+  },
+  {
+    "title": "Villa Flora",
+    "lat": 47.49645,
+    "lon": 8.73529,
+    "extract": "Casa dei collezionisti Arthur Hahnloser e Hedy Bühler, che dal 1907 comprarono direttamente negli studi degli artisti (prima Giovanni Giacometti, poi Hodler e le avanguardie di Parigi). La collezione, circa 400 opere della Fondazione Hahnloser/Jaeggli, è tornata nella villa dopo anni di restauro.",
+    "url": null
+  },
+  {
+    "title": "Sammlung Oskar Reinhart «Am Römerholz»",
+    "lat": 47.5116,
+    "lon": 8.73328,
+    "extract": "Villa costruita nel 1915-1918 dall'architetto ginevrino Maurice Turrettini per l'industriale Jakob Heinrich Ziegler-Sulzer. Oskar Reinhart la acquistò nel 1924 e vi aggiunse una galleria di quadri; oggi la collezione, forte soprattutto nella pittura francese dell'Ottocento, appartiene alla Confederazione. Sta in collina, ai margini del bosco.",
+    "url": null
+  },
+  {
+    "title": "Fotomuseum Winterthur",
+    "lat": 47.49625,
+    "lon": 8.73894,
+    "extract": "Museo dedicato alla fotografia, in Grüzenstrasse, nel quartiere di Mattenbach. Si raggiunge in una decina di minuti a piedi dal centro storico, sulla strada verso Villa Flora.",
+    "url": null
+  },
+  {
+    "title": "Kastell Vitudurum (Oberwinterthur)",
+    "lat": 47.50672,
+    "lon": 8.75555,
+    "extract": "Zona archeologica di Oberwinterthur, dove i Romani avevano l'insediamento chiamato Vitudurum, antenato della città. Qui sorgeva il nucleo più antico, prima dello sviluppo dell'attuale centro storico.",
+    "url": null
+  },
+  {
+    "title": "Una rivale di Zurigo",
+    "kind": "curiosita",
+    "lat": 47.5056,
+    "lon": 8.7241,
+    "extract": "Nell'Ottocento Winterthur, città ricca d'industria, voleva rivaleggiare con il capoluogo cantonale. Fu questo orgoglio civico a far costruire il Stadthaus (1865-69) a Gottfried Semper, l'architetto dell'opera di Dresda: la facciata ricorda un tempio corinzio. Le statue del frontone furono tolte nel 1915 perché non reggevano alle intemperie.",
+    "url": null
+  },
+  {
+    "title": "Vitudurum, il nome romano",
+    "kind": "curiosita",
+    "lat": 47.5056,
+    "lon": 8.7241,
+    "extract": "I Romani chiamavano Vitudurum l'insediamento a Oberwinterthur. La Winterthur medievale nacque poco più in là, lungo l'attuale Marktgasse, e per un periodo le due realtà convissero.",
+    "url": null
+  },
+  {
+    "title": "Dai Kyburgo agli Asburgo",
+    "kind": "curiosita",
+    "lat": 47.5056,
+    "lon": 8.7241,
+    "extract": "Nel 1264 Winterthur passò a Rodolfo d'Asburgo e servì agli Asburgo da base d'appoggio contro la Confederazione. Oggi di quell'epoca restano l'impianto del centro storico e la Stadtkirche.",
+    "url": null
+  },
+  {
+    "title": "La città dei collezionisti",
+    "kind": "curiosita",
+    "lat": 47.5056,
+    "lon": 8.7241,
+    "extract": "Winterthur ha una tradizione di mecenati: gli Hahnloser compravano nei laboratori degli artisti, e Oskar Reinhart lasciò le sue raccolte alla città e alla Confederazione. Per questo una cittadina di provincia ha musei d'arte di livello mondiale, e gli artisti parigini d'avanguardia venivano a farle visita.",
+    "url": null
+  },
+  {
+    "title": "La città giardino",
+    "kind": "curiosita",
+    "lat": 47.5056,
+    "lon": 8.7241,
+    "extract": "Winterthur è detta «Gartenstadt», città giardino, perché la pianificazione urbana dell'Ottocento e Novecento le diede molto verde. Si dice abbia anche la più grande zona pedonale continua della Svizzera (dato da guide turistiche, da verificare).",
+    "url": null
+  },
+  {
+    "title": "Atelier aperti",
+    "kind": "curiosita",
+    "lat": 47.5056,
+    "lon": 8.7241,
+    "extract": "L'ultimo fine settimana di settembre circa 60 artisti aprono gli atelier ai visitatori. L'edizione di quest'anno è già passata: segnati la prossima.",
+    "url": null
+  },
+  {
+    "title": "Giro dei musei d'arte",
+    "kind": "da-fare",
+    "lat": 47.5056,
+    "lon": 8.7241,
+    "extract": "Un percorso di mezza giornata: Reinhart am Stadtgarten in centro, Villa Flora a circa 10 minuti a piedi, poi Am Römerholz in collina (circa 15 minuti dal Stadthaus, in salita). Am Römerholz era chiuso il lunedì, aperto 10-17 e il mercoledì fino alle 20: controlla gli orari aggiornati prima di partire.",
+    "url": null
   }
 ]
