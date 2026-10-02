@@ -755,17 +755,24 @@ const PROJECT_CHAT_URL = 'https://claude.ai/project/01a0de7f-b1b3-75ca-930e-ca42
 const POINTS_REPO = 'Luhalab/Meteo-viaggio';
 let eLoading = false, eCity = null, eItems = [], eArea = null, eNear = false, eSel = -1, eLayerMode = 'wx', eReq = 0, eCityReq = 0;
 
-const emap = L.map('emap', { minZoom:5, maxZoom:19, zoomSnap:0.5, zoomDelta:1 });
+const emap = L.map('emap', { minZoom:5, maxZoom:20, zoomSnap:0.5, zoomDelta:1 });
 emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
+/* Sfondo OpenStreetMap a ogni zoom. Le scritte delle tile OSM sono piccole sui telefoni:
+   da zoom 12 in su uso le tile del livello precedente mostrate al doppio (512 px),
+   così nomi di strade e luoghi diventano leggibili. Da lontano restano normali,
+   perché lì contano le etichette del meteo. */
+const BIG_LABELS_Z = 12;
 let eTiles = null, eTileKind = '';
 function setETiles(){
-  const kind = 'osm';   /* sempre la stessa mappa dettagliata, a ogni zoom */
+  const kind = emap.getZoom() >= BIG_LABELS_Z ? 'osm2' : 'osm';
   if (eTiles && kind === eTileKind) return;
-  if (eTiles) emap.removeLayer(eTiles);
-  /* da vicino la stessa mappa di Cicerone (OpenStreetMap con strade e nomi) */
-  eTiles = (true ? L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      { maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' })
-    : tileLayerFor(tileProvider)).addTo(emap);
+  const old = eTiles;
+  const opts = { maxZoom:20, maxNativeZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' };
+  if (kind === 'osm2') Object.assign(opts, { tileSize:512, zoomOffset:-1, maxNativeZoom:20 });
+  eTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', opts).addTo(emap);
+  eTiles.bringToBack();
+  if (old){ let done = false; const rm = () => { if (!done){ done = true; emap.removeLayer(old); } };
+    eTiles.once('load', rm); setTimeout(rm, 2500); }        /* tolgo il vecchio sfondo solo quando il nuovo è pronto */
   eTileKind = kind;
 }
 setETiles();
@@ -1353,8 +1360,9 @@ window.eZoomTo = (la, lo) => { emap.closePopup(); emap.flyTo([la, lo], 16); };
 /* ---------- passaggio lontano ↔ vicino ---------- */
 emap.on('zoomend moveend', () => {
   const near = emap.getZoom() >= NEAR_Z;
+  setETiles();
   if (near !== eNear){
-    eNear = near; document.body.classList.toggle('e-near', near); setETiles();
+    eNear = near; document.body.classList.toggle('e-near', near);
     if (near){ emap.addLayer(eArt); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
     else { emap.removeLayer(eArt); $('eCard').classList.remove('show'); $('eRefetch').classList.remove('show');
            if (eLayerMode==='sea'){ eSea.addTo(emap); eJelly.addTo(emap); } }
