@@ -228,6 +228,18 @@ body.e-near .ectl .nr{display:flex}
 .wkt .cn{position:sticky;left:0;z-index:1;background:var(--card);text-align:left;padding-left:16px;padding-right:8px;font-weight:600;font-size:13.5px;min-width:100px;max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkt th.cn{font-weight:500;font-size:11.5px}
 .wkt tr.r{cursor:pointer}
+.wktog{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:none;padding:0;color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+.wktog b{font-size:15.5px;display:block}
+.wktog .si{width:34px;height:34px;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.wktog .si svg{width:18px;height:18px}
+.wktog{gap:12px}
+.wktog .chev{flex:none;color:var(--tx2);transform:rotate(180deg);transition:transform .2s ease}
+.wkcs{display:none;color:var(--tx2);font-size:12.5px;margin-top:2px}
+.wk.closed{padding-bottom:4px}
+.wk.closed .wkbody{display:none}
+.wk.closed .wktog .chev{transform:none}
+.wk.closed .wkcs{display:block}
+@media (prefers-reduced-motion:reduce){.wktog .chev{transition:none}}
 .wkb{margin:0 16px 12px;padding:10px 12px;border-radius:12px;background:rgba(185,143,62,.13);border-left:3px solid var(--gold);font-size:13.5px;line-height:1.45;cursor:pointer}
 .wkb small{display:block;color:var(--tx2);font-size:11.5px;margin-top:2px}
 .wkt .cn .bst{color:var(--gold);margin-right:3px}
@@ -293,14 +305,16 @@ footer a{color:var(--tx2)}
     </div>
     <div class="legend" id="eLegend"></div>
     <div class="card wk" id="eWeek" hidden>
-      <div class="wkh"><b id="eWeekH">La settimana nelle città sulla mappa</b>
+      <div class="wkh"><button class="wktog" id="eWkTog" aria-expanded="true" aria-controls="eWkB1 eWkB2"><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11M15 9v11"/></svg></span><span style="flex:1"><b id="eWeekH">La settimana nelle città sulla mappa</b><span class="wkcs" id="eWkCS"></span></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="wkbody" id="eWkB1">
         <div class="wkm" id="eWkMode"><button data-m="auto" class="on">Sulla mappa</button><button data-m="search">Cerca</button><button data-m="pick">Scegli</button></div>
         <span class="muted" id="eWkHint"></span>
         <div class="wks" id="eWkS" hidden><input id="eWkQ" type="search" placeholder="Aggiungi una città da confrontare" autocomplete="off" aria-label="Aggiungi una città da confrontare"><div class="sugg" id="eWkSugg"></div></div>
         <div class="chips" id="eWkChips"></div>
+        </div>
       </div>
-      <div class="wkb" id="eWkBest" hidden></div>
-      <div class="wkt" id="eWeekT"></div>
+      <div class="wkbody" id="eWkB2"><div class="wkb" id="eWkBest" hidden></div>
+      <div class="wkt" id="eWeekT"></div></div>
     </div>
     <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi meteo, mare, foto, monumenti e curiosità.</div></div></div>
     <details class="sec" id="wxS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st" id="cTitle">Meteo</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cNow"></div><div class="sub">Prossimi 15 giorni <span style="font-weight:400">(tocca un giorno)</span></div><div class="days" id="cDays"></div><div class="sub" id="cTodoT">Ora per ora</div><div id="cVerdict"></div><div id="cTodo"></div></div></details>
@@ -870,6 +884,13 @@ function weekBest(list){
   });
   return best;
 }
+/* la tabella si chiude toccando il titolo; lo stato resta salvato */
+function wkSetOpen(o){
+  $('eWeek').classList.toggle('closed', !o); $('eWkTog').setAttribute('aria-expanded', o);
+  store.set('wkOpen', o);
+}
+$('eWkTog').onclick = () => wkSetOpen($('eWeek').classList.contains('closed'));
+wkSetOpen(store.get('wkOpen', true));
 function eRenderWeek(){
   const box = $('eWeek'), auto = wkMode === 'auto';
   const list = auto ? eVisible.slice(0, WK_MAX) : wkList();
@@ -885,6 +906,7 @@ function eRenderWeek(){
   $('eWkChips').querySelectorAll('button[data-n]').forEach(bt => bt.onclick = () => { wkToggle(arr, bt.dataset.n); wkMode === 'search' ? wkFit() : eRefreshWx(); });
   const clr = $('eWkClr'); if (clr) clr.onclick = () => { arr.length = 0; wkSave(); eRefreshWx(); };
   if (!list.length){
+    $('eWkCS').textContent = 'Nessuna città in tabella';
     $('eWeekT').innerHTML = '<div class="wke">'+(
       wkMode === 'search' ? 'Nessuna città ancora: cercane una qui sopra.' :
       wkMode === 'pick' ? 'Nessuna città ancora: tieni premuto su una città della mappa.' :
@@ -894,6 +916,7 @@ function eRenderWeek(){
   const ref = list.map(c => mapData[c.n]).find(Boolean);
   const days = ref ? ref.time : [];
   const best = weekBest(list), bb = $('eWkBest');
+  $('eWkCS').textContent = best ? 'Settimana migliore: '+best.c.n : list.length+' città in tabella';
   if (best){
     const g = x => x === 1 ? '1 giorno' : x + ' giorni';
     bb.innerHTML = 'Settimana migliore: <b>'+esc(best.c.n)+'</b><br>'+
