@@ -388,6 +388,7 @@ async function loadRegion(id){
   $('hReg').textContent = j.nome;
   const dentro = userPos && userPos.lat>=j.bounds[0][0] && userPos.lat<=j.bounds[1][0] && userPos.lon>=j.bounds[0][1] && userPos.lon<=j.bounds[1][1];
   eOnRegion(j, dentro);
+  gpsAuto();
   if (j.mare){ loadMarine(); loadJelly(); }
 }
 
@@ -482,11 +483,13 @@ function tileLayerFor(p){
     Object.assign({attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}, TILE_OPTS));
 }
 let fetchTimer = null;
+let fetchQueue = [];
 function fetchMissing(list){
   if (!list.length) return;
+  fetchQueue = fetchQueue.concat(list);          /* accumulo: una chiamata non cancella le città chieste prima */
   clearTimeout(fetchTimer);
   fetchTimer = setTimeout(async () => {
-    list = list.filter(c => !mapData[c.n] && !pending.has(c.n));
+    list = fetchQueue.filter((c,i,a) => a.indexOf(c) === i && !mapData[c.n] && !pending.has(c.n)); fetchQueue = [];
     for (let k=0; k<list.length; k+=80){
       const chunk = list.slice(k,k+80); chunk.forEach(c => pending.add(c.n));
       try {
@@ -551,7 +554,7 @@ $('meBtn').onclick = async () => {
   const pos = (watchId != null && userPos) ? userPos : await freshPos(); b.classList.remove('busy');
   if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
   tracking = true; startTracking(); drawEMe(); setFollow(true);
-  const nc = nearestComune(pos.lat,pos.lon); if (nc) eSelectCity(nc,{noArea:true, src:'gps'});
+  const pl = placeAt(pos.lat,pos.lon); if (pl) eSelectCity(pl,{noArea:true, src:'gps'});
   emap.setView([pos.lat,pos.lon], Math.max(emap.getZoom(), 16));
 };
 
@@ -591,11 +594,11 @@ function nearSeaFor(c, w, day){
 function nearSea(){ return nearSeaFor(city, cw, selDay); }
 const dayName = (w, i) => i===0?'oggi':i===1?'domani':new Date(w.time[i]+'T12:00:00').toLocaleDateString('it-IT',{weekday:'long',day:'numeric'});
 
-function openCity(name){
-  const c = byName[name]; if (!c) return;
-  if (city && city.n===c.n) return;
+function openCity(c){
+  if (typeof c === 'string') c = byName[c]; if (!c) return;
+  if (city && city.n===c.n && city.lat===c.lat) return;
   city=c; selDay=0; cw=null; const my=++reqId;
-  $('wxS').hidden = false; $('cTitle').textContent = 'Meteo a '+c.n;
+  $('wxS').hidden = false; $('cTitle').textContent = 'Meteo '+placeA(c);
   $('cNow').innerHTML = '<span class="muted"><span class="spin"></span>Scarico il meteo…</span>';
   $('cDays').innerHTML=''; $('cVerdict').innerHTML=''; $('cTodo').innerHTML='';
   renderSea(); loadCityWeather(c,my);
@@ -742,11 +745,11 @@ const emap = L.map('emap', { minZoom:5, maxZoom:19, zoomSnap:0.5, zoomDelta:1 })
 emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
 let eTiles = null, eTileKind = '';
 function setETiles(){
-  const kind = eNear ? 'osm' : tileProvider;
+  const kind = 'osm';   /* sempre la stessa mappa dettagliata, a ogni zoom */
   if (eTiles && kind === eTileKind) return;
   if (eTiles) emap.removeLayer(eTiles);
   /* da vicino la stessa mappa di Cicerone (OpenStreetMap con strade e nomi) */
-  eTiles = (eNear ? L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  eTiles = (true ? L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       { maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' })
     : tileLayerFor(tileProvider)).addTo(emap);
   eTileKind = kind;
@@ -871,7 +874,6 @@ function eRenderWeek(){
   const box = $('eWeek'), auto = wkMode === 'auto';
   const list = auto ? eVisible.slice(0, WK_MAX) : wkList();
   $('eWkBest').hidden = true;
-  if (auto && eCity){ box.hidden = true; $('eStart').hidden = true; return; }
   box.hidden = false;
   $('eStart').hidden = !(auto && !eCity && !list.length);
   $('eWeekH').textContent = WK_TITLE[wkMode];
@@ -886,7 +888,7 @@ function eRenderWeek(){
     $('eWeekT').innerHTML = '<div class="wke">'+(
       wkMode === 'search' ? 'Nessuna città ancora: cercane una qui sopra.' :
       wkMode === 'pick' ? 'Nessuna città ancora: tieni premuto su una città della mappa.' :
-      eNear ? 'Allontana la mappa per vedere le città.' : eLayerMode === 'sea' ? 'Passa a Meteo per vedere le città.' : 'Carico le città…')+'</div>';
+      eNear ? 'Allontana la mappa per vedere le città.' : eLayerMode === 'sea' ? 'Passa a Meteo per vedere le città.' : COMUNI.length ? 'Nessuna città in questa parte della mappa: allontana la mappa per vederne altre.' : 'Carico le città…')+'</div>';
     return;
   }
   const ref = list.map(c => mapData[c.n]).find(Boolean);
@@ -1181,7 +1183,7 @@ function setHint(html){
 function renderMon(){
   if (!eItems.length && !eCity){ $('eMonS').hidden=true; return; }
   $('eMonS').hidden=false;
-  $('eMonT').textContent = eCity ? 'Monumenti di '+eCity.n : 'Monumenti in zona'; $('eMonN').textContent = eItems.length || '';
+  $('eMonT').textContent = eCity ? 'Monumenti '+placeDi(eCity) : 'Monumenti in zona'; $('eMonN').textContent = eItems.length || '';
   if (!eItems.length){ $('eMon').innerHTML = '<span class="muted">'+(eReq && eArea ? 'Nessun monumento catalogato qui.' : '<span class="spin"></span>Cerco…')+'</span>'; return; }
   $('eMon').innerHTML = eItems.slice(0,40).map((it,i) =>
     '<div class="mon'+(i===eSel?' on':'')+'" data-i="'+i+'"><span class="dt'+(it.source==='custom'?' cu':'')+'"></span><div class="tx">'+
@@ -1249,14 +1251,14 @@ async function photoList(c){
   }).filter(Boolean).slice(0,12);
 }
 async function eLoadPhotos(c, my){
-  $('ePhotoS').hidden=false; $('ePhotoT').textContent = 'Foto di '+c.n;
+  $('ePhotoS').hidden=false; $('ePhotoT').textContent = 'Foto '+placeDi(c);
   $('ePhotos').innerHTML = '<div class="card"><span class="muted"><span class="spin"></span>Cerco le foto…</span></div>';
   let list = [];
   try { list = await photoList(c); } catch(e){}
   if (my !== eCityReq) return;
   $('ePhotos').innerHTML = list.length ? '<div class="card"><div class="gal">'+list.map(p => '<a href="'+esc(p.page)+'" target="_blank" rel="noopener" title="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="'+esc(p.title)+'" loading="lazy"></a>').join('')+
     '</div><div class="muted" style="margin-top:6px;font-size:11.5px">Foto geolocalizzate da Wikimedia Commons · tocca per autore e licenza</div></div>'
-    : '<div class="card"><span class="muted">Nessuna foto trovata vicino a '+esc(c.n)+'.</span></div>';
+    : '<div class="card"><span class="muted">Nessuna foto trovata '+(c.virt ? 'qui vicino' : 'vicino a '+esc(c.n))+'.</span></div>';
 }
 
 /* ---------- scelta della città ---------- */
@@ -1264,6 +1266,9 @@ function askCityClaude(c){
   shareToClaude(msgCity(c));
 }
 function renderAskBtn(){
+  if (eCity && eCity.virt){ const v = eCity;
+    $('eAskCityT').textContent = 'Chiedi a Claude di aggiungere punti e curiosità qui intorno';
+    $('eAskCity').onclick = () => shareToClaude(msgHere({lat: v.lat, lon: v.lon})); return; }
   const cityMode = eCity && (eCitySrc === 'search' || eCitySrc === 'tap');
   $('eAskCityT').textContent = cityMode ? 'Chiedi a Claude di aggiungere punti e curiosità di '+eCity.n
                                         : 'Chiedi a Claude di aggiungere punti e curiosità qui intorno';
@@ -1281,22 +1286,40 @@ function eRenderHero(){
   renderAskBtn();
   if (!eCity){ $('eHero').hidden = true; return; }
   $('eHero').hidden = false; $('eHName').textContent = eCity.n;
+  if (eCity.virt){ $('eHW').innerHTML = '<span class="muted">'+String(eCity.dist.toFixed(1)).replace('.', ',')+' km dal centro</span>'+
+    (mapData[eCity.n] ? ' '+wmo(mapData[eCity.n].daily.weather_code[mapDay])[1]+' <b>'+Math.round(mapData[eCity.n].daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(mapData[eCity.n].daily.temperature_2m_min[mapDay])+'°' : ''); return; }
   const d = mapData[eCity.n];
   $('eHW').innerHTML = d ? wmo(d.daily.weather_code[mapDay])[1]+' <b>'+Math.round(d.daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(d.daily.temperature_2m_min[mapDay])+'°' : esc(PROV[eCity.p]||'');
 }
 let eCitySrc = '';   /* 'search' o 'tap' = città scelta da te; altrimenti vale la posizione GPS */
 function eSelectCity(c, opts){
   opts = opts || {};
-  const same = eCity && eCity.n === c.n;
+  const same = eCity && eCity.n === c.n && eCity.lat === c.lat;
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c;
   if (!same) $('eStart').hidden = true;
-  if (!same){ const my = ++eCityReq; openCity(c.n); eLoadPhotos(c, my); eLoadCur(c, my); eLoadDo(c, my); }
+  if (!same){ const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
+    openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
   eRefreshWx(); eRenderHero();
   if (!mapData[c.n]) fetchMissing([c]);
 }
+/* Un punto fuori dai centri abitati diventa un luogo a sé ("Vicino a Marsala"):
+   meteo, mare, foto e monumenti di quel punto preciso, curiosità e consigli della città più vicina. */
+let lastVirt = null;
+const townKm = c => Math.min(8, 1.5 + 1.2 * Math.sqrt((c.pop || 0) / 10000));   /* raggio approssimativo dell'abitato */
+function placeAt(lat, lon){
+  let best = null, bd = 1e9; COMUNI.forEach(c => { const d = km(lat,lon,c.lat,c.lon); if (d < bd){ bd = d; best = c; } });
+  if (!best) return null;
+  if (bd <= townKm(best)) return best;
+  const n = 'Vicino a ' + best.n;
+  if (lastVirt && lastVirt.n === n && km(lat, lon, lastVirt.lat, lastVirt.lon) < 1) return lastVirt;
+  [mapData, cityCache, photoCache].forEach(o => delete o[n]);          /* dati del punto precedente: non valgono più */
+  return lastVirt = { n, lat, lon, p: best.p, pop: 0, virt: true, ref: best, dist: bd };
+}
+const placeDi = c => c.virt ? 'di questa zona' : 'di ' + c.n;
+const placeA  = c => c.virt ? 'qui' : 'a ' + c.n;
 function nearestComune(lat, lon){
   let best = null, bd = 1e9; COMUNI.forEach(c => { const d = km(lat,lon,c.lat,c.lon); if (d < bd){ bd = d; best = c; } });
   return bd <= 12 ? best : null;
@@ -1318,7 +1341,7 @@ emap.on('zoomend moveend', () => {
   if (eNear){
     const c = emap.getCenter();
     if (!eArea || haversine(c.lat, c.lng, eArea.lat, eArea.lon) > eArea.radius*0.85){
-      const nc = nearestComune(c.lat, c.lng); if (nc && (!eCity || nc.n !== eCity.n)) eSelectCity(nc, {noArea:true});
+      const pl = placeAt(c.lat, c.lng); if (pl && pl !== eCity) eSelectCity(pl, {noArea:true});
       loadArea(c.lat, c.lng, 1800);
     } else if (haversine(c.lat, c.lng, eArea.lat, eArea.lon) > 300) $('eRefetch').classList.add('show');
   }
@@ -1420,6 +1443,15 @@ function startCompass(){
     DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') add(); }).catch(() => {});
   else add();
 }
+/* all'apertura, con il GPS già consentito: mostro subito le informazioni del posto in cui sei */
+var gpsAutoDone = false;
+function gpsAuto(){
+  if (gpsAutoDone || !userPos || !COMUNI.length) return;
+  gpsAutoDone = true;
+  if (eCity) return;
+  const pl = placeAt(userPos.lat, userPos.lon);
+  if (pl && (!pl.virt || pl.dist <= 30)) eSelectCity(pl, {src:'gps'});
+}
 function startTracking(){
   if (!navigator.geolocation || watchId != null) return;
   watchId = navigator.geolocation.watchPosition(p => {
@@ -1427,6 +1459,7 @@ function startTracking(){
     userPos = { lat: c.latitude, lon: c.longitude, acc: c.accuracy };
     if (c.heading != null && !isNaN(c.heading) && (c.speed || 0) > 1){ gpsHeadAt = Date.now(); setHeading(c.heading); }
     drawEMe();
+    gpsAuto();
     if (follow) emap.panTo([userPos.lat, userPos.lon], { animate: true });
   }, () => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 });
 }
