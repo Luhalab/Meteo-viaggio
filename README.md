@@ -21,7 +21,7 @@ Con il GPS già consentito, all'apertura mostra subito il posto in cui ti trovi.
 
 Sulla mappa c'è il tasto posizione: 1° tocco centra e segue, 2° tocco gira la mappa nella direzione in cui vai,
 3° tocco torna con il nord in alto (la bussola in alto a sinistra fa lo stesso).
-Tutti i tasti della mappa stanno in basso, a portata di pollice: a destra lo zoom a cursore (da zoom 9 al massimo, un livello ogni 26 px di dito, + e − alle estremità),
+Tutti i tasti della mappa stanno in basso, a portata di pollice: a destra lo zoom a cursore (da zoom 9 al massimo, movimento continuo, un livello ogni 26 px di dito, + e − alle estremità),
 in fila a sinistra posizione, opzioni, segna punto e foto; la bussola in alto a sinistra. A schermo intero il tasto opzioni
 offre: rotazione seguendo la direzione, rotazione con due dita, nord in alto,
 blocca la mappa, schermo sempre acceso. La rotazione usa il plugin leaflet-rotate (jsDelivr); se non si carica,

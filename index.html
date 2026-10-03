@@ -206,6 +206,7 @@ body.e-full{overflow:hidden}
 .eopt button.act span{color:var(--acc)}
 .eopt button.dis{display:none}
 .ewrap.locked .ezs{display:none}
+.ewrap.locked #emap,.ewrap.locked #emap *{touch-action:none}
 /* zoom a cursore, in basso a sinistra */
 .ezs{position:absolute;right:10px;bottom:28px;z-index:900;width:44px;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:22px;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);padding:2px 0;touch-action:none;user-select:none}
 .ewrap.full .ezs{bottom:calc(28px + env(safe-area-inset-bottom,0px))}
@@ -1520,18 +1521,25 @@ function pillSync(){
 $('ePill').onclick = () => setLock(false);
 
 /* blocca la mappa: niente trascinamenti, zoom o rotazioni per sbaglio (il GPS continua a centrarla) */
+let lockSaved = null;
+/* a mappa bloccata fermo i gesti con due dita prima che arrivino alla mappa
+   (con il plugin di rotazione esiste un secondo gestore dello zoom che non si può spegnere) */
+['touchstart','touchmove'].forEach(t => $('eWrap').addEventListener(t, e => {
+  if (locked && e.touches && e.touches.length > 1 && e.target.closest('#emap')){ e.stopPropagation(); e.preventDefault(); }
+}, { capture:true, passive:false }));
 function setLock(on){
+  if (on === locked) return;
   locked = on;
-  const H = ['dragging','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard','touchZoom','touchGestures'];
-  H.forEach(h => { if (emap[h]) on ? emap[h].disable() : emap[h].enable(); });
-  if (!on && CAN_ROT && !emap.touchRotate.enabled()) emap.touchGestures.rotate = false;
+  /* spengo tutti i gesti (anche zoom e rotazione con due dita) e li riaccendo come erano */
+  const H = ['touchRotate','touchZoom','touchGestures','dragging','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard'];
+  if (on){ lockSaved = H.filter(h => emap[h] && emap[h].enabled()); lockSaved.forEach(h => emap[h].disable()); }
+  else { (lockSaved || []).slice().reverse().forEach(h => emap[h].enable()); lockSaved = null; }
   $('eWrap').classList.toggle('locked', on);
   optSync(); pillSync();
 }
 
 /* zoom a cursore (in basso a destra): va da zoom 9, i dintorni, al massimo.
-   Il pallino si sposta del movimento del dito (non salta dove tocchi) e si ferma sui livelli interi,
-   così è meno sensibile. + e − ai lati per un passo alla volta. */
+   Il pallino si sposta del movimento del dito (non salta dove tocchi), in modo continuo. + e − ai lati per un passo alla volta. */
 const ZS_MIN = 9, ZS_PX = 26;          /* 26 px di dito per ogni livello di zoom */
 const zt = $('eZt');
 const zsMax = () => emap.getMaxZoom();
@@ -1542,15 +1550,22 @@ function zsSync(){
   zt.setAttribute('aria-valuenow', Math.round(emap.getZoom())); zt.setAttribute('aria-valuemin', ZS_MIN); zt.setAttribute('aria-valuemax', mx);
 }
 emap.on('zoom zoomend', zsSync); zsSync();
-let zsStart = null;
+/* trascinando, lo zoom cambia in modo continuo (niente scatti); al rilascio si assesta sul mezzo livello più vicino */
+let zsStart = null, zsRaf = 0, zsWant = null;
 zt.addEventListener('pointerdown', e => { e.preventDefault(); zt.setPointerCapture(e.pointerId);
-  zsStart = { y: e.clientY, z: Math.max(ZS_MIN, Math.round(emap.getZoom())), last: null }; });
+  zsStart = { y: e.clientY, z: Math.max(ZS_MIN, emap.getZoom()), snap: emap.options.zoomSnap };
+  emap.options.zoomSnap = 0; });
 zt.addEventListener('pointermove', e => {
   if (!zsStart) return;
-  const z = Math.max(ZS_MIN, Math.min(zsMax(), zsStart.z + Math.round((zsStart.y - e.clientY) / ZS_PX)));
-  if (z !== zsStart.last){ zsStart.last = z; emap.setZoom(z, { animate:false }); }
+  zsWant = Math.max(ZS_MIN, Math.min(zsMax(), zsStart.z + (zsStart.y - e.clientY) / ZS_PX));
+  if (!zsRaf) zsRaf = requestAnimationFrame(() => { zsRaf = 0; emap.setZoom(zsWant, { animate:false }); });
 });
-['pointerup','pointercancel'].forEach(t => zt.addEventListener(t, () => { zsStart = null; }));
+function zsEnd(){
+  if (!zsStart) return;
+  emap.options.zoomSnap = zsStart.snap; zsStart = null;
+  const z = Math.round(emap.getZoom() * 2) / 2; if (z !== emap.getZoom()) emap.setZoom(z);
+}
+['pointerup','pointercancel'].forEach(t => zt.addEventListener(t, zsEnd));
 zt.addEventListener('keydown', e => { if (e.key === 'ArrowUp') emap.zoomIn(); else if (e.key === 'ArrowDown' && emap.getZoom() > ZS_MIN) emap.zoomOut(); });
 $('eZp').onclick = () => emap.zoomIn();
 $('eZm').onclick = () => { const z = emap.getZoom(); if (z > ZS_MIN) emap.setZoom(Math.max(ZS_MIN, Math.ceil(z) - 1)); };
