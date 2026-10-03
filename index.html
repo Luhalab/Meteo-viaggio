@@ -204,10 +204,9 @@ body.e-full{overflow:hidden}
 .eopt button.on i::after{transform:translateX(14px)}
 .eopt button.act span{color:var(--acc)}
 .eopt button.dis{display:none}
-/* zoom veloce: quasi al massimo / quasi tutta la regione */
-.ezq a{display:flex!important;align-items:center;justify-content:center;color:#142430}
-.ezq svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-.ewrap.locked .ezq{display:none}
+.ewrap.locked .ezb{display:none}
+.ectl.ezb{top:auto;bottom:28px}
+.ewrap.full .ectl.ezb{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:955;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
 .epill[hidden]{display:none}
 .ewrap.locked .leaflet-control-zoom{display:none}
@@ -330,6 +329,10 @@ footer a{color:var(--tx2)}
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      </div>
+      <div class="ectl ezb">
+        <button class="zq" id="eZin" aria-label="Ingrandisci quasi al massimo sulla tua posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6M10.5 7.5v6"/></svg></button>
+        <button class="zq" id="eZout" aria-label="Allontana la mappa restando sulla tua posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/></svg></button>
       </div>
       <button class="ecomp" id="eComp" aria-label="Riporta il nord in alto" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l4 9h-8z" fill="#c0392b"/><path d="M12 21l-4-9h8z" fill="#8a96a0"/></svg><b>N</b></button>
       <div class="eopt" id="eOptP" hidden>
@@ -1511,22 +1514,14 @@ function setLock(on){
   optSync(); pillSync();
 }
 
-/* due tasti sotto + e −: ingrandisci quasi al massimo, oppure allontana fino a vedere quasi tutto */
-const ZOOM_NEAR = 18, ZOOM_FAR = 6;
-const ZQ = L.Control.extend({ options:{ position:'topleft' }, onAdd(){
-  const d = L.DomUtil.create('div', 'leaflet-bar ezq');
-  const mk = (cls, title, svg, fn) => { const a = L.DomUtil.create('a', cls, d); a.href = '#'; a.title = title; a.setAttribute('role','button'); a.setAttribute('aria-label', title); a.innerHTML = svg;
-    L.DomEvent.on(a, 'click', e => { L.DomEvent.stop(e); fn(); }); };
-  mk('', 'Ingrandisci quasi al massimo', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6M10.5 7.5v6"/></svg>',
-     () => { const c = (follow && userPos) ? [userPos.lat, userPos.lon] : emap.getCenter(); emap.flyTo(c, ZOOM_NEAR); });
-  mk('', 'Allontana per vedere tutta la zona', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/></svg>',
-     () => { setFollow(false); if (headUp) setHeadUp(false); emap.flyTo(emap.getCenter(), ZOOM_FAR); });
-  L.DomEvent.disableClickPropagation(d);
-  return d; } });
-new ZQ().addTo(emap);
+/* due tasti in basso a destra: ingrandisci quasi al massimo o allontana, sempre centrati sulla tua posizione */
+const ZOOM_NEAR = 18, ZOOM_FAR = 9;
+const zqCenter = () => userPos ? [userPos.lat, userPos.lon] : emap.getCenter();
+$('eZin').onclick  = () => emap.flyTo(zqCenter(), ZOOM_NEAR);
+$('eZout').onclick = () => emap.flyTo(zqCenter(), ZOOM_FAR);
 /* la bussola sta sotto i tasti dello zoom, ovunque finiscano */
 function placeComp(){
-  const z = document.querySelector('#emap .ezq'), w = $('eWrap'); if (!z) return;
+  const z = document.querySelector('#emap .leaflet-control-zoom'), w = $('eWrap'); if (!z) return;
   $('eComp').style.top = (z.getBoundingClientRect().bottom - w.getBoundingClientRect().top + 10) + 'px';
 }
 placeComp(); window.addEventListener('resize', placeComp);
