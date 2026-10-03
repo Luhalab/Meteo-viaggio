@@ -206,14 +206,13 @@ body.e-full{overflow:hidden}
 .eopt button.act span{color:var(--acc)}
 .eopt button.dis{display:none}
 .ewrap.locked .ezs{display:none}
-/* filtri e punti utili (ristoranti, bar...) */
+/* filtri della mappa */
 .eflt .fh{padding:8px 10px 4px;font:600 12px var(--sans);color:var(--tx2);text-transform:uppercase;letter-spacing:.04em}
 .eflt b.fd{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid;margin-right:10px}
 .eflt b.fd svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .eflt button>span{flex:1;display:flex;align-items:center}
+.eflt button.bgr>span{display:block}
 .eflt .dt{width:10px;height:10px;border-radius:50%;display:block}
-.poi{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(20,36,48,.3);cursor:pointer}
-.poi svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* percorsi dai consigli */
 .rt-btn{display:inline-flex;align-items:center;gap:6px;margin:4px 0 2px;border:1px solid var(--acc);background:var(--acc-soft);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);cursor:pointer}
 .rt-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1196,39 +1195,15 @@ function osmLabel(t){
   if (t.amenity === 'place_of_worship') return 'Luogo di culto';
   return 'Punto di interesse';
 }
-/* categorie dei filtri della mappa */
-const POI = {
-  rist:  { t:'Ristoranti e pizzerie', one:'Ristorante', c:'#c0662b', ic:'<path d="M7 3v18M4 3v5a3 3 0 0 0 6 0V3M17 21V3c-2 0-3.5 2.5-3.5 6s1.5 4 3.5 4"/>' },
-  bar:   { t:'Bar, caffè e gelaterie', one:'Bar', c:'#8a5a2b', ic:'<path d="M5 8h11v5a5.5 5.5 0 0 1-11 0zM16 9.5h1.5a2.5 2.5 0 0 1 0 5H16M8 3.5v2M12 3.5v2"/>' },
-  musei: { t:'Musei e gallerie', one:'Museo', c:'#6b4fa0', ic:'<path d="M3 9.5 12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>' },
-  pan:   { t:'Panorami e belvedere', one:'Belvedere', c:'#2f7d4f', ic:'<path d="M3 19 9 9l4 6 2.5-3.5L21 19z"/><circle cx="17" cy="6" r="1.8"/>' },
-  spi:   { t:'Spiagge', one:'Spiaggia', c:'#1f8fb5', ic:'<path d="M3.5 11a8.5 8.5 0 0 1 17 0zM12 11v9M7 20h10"/>' },
-  serv:  { t:'Farmacie, bagni e fontanelle', one:'Servizio', c:'#c0392b', ic:'<path d="M12 5v14M5 12h14"/>' }
-};
-function poiCat(t){
-  const a = t.amenity, tu = t.tourism;
-  if (a === 'restaurant' || a === 'fast_food') return 'rist';
-  if (a === 'cafe' || a === 'bar' || a === 'pub' || a === 'ice_cream') return 'bar';
-  if (tu === 'museum' || tu === 'gallery') return 'musei';
-  if (tu === 'viewpoint') return 'pan';
-  if (t.natural === 'beach') return 'spi';
-  if (a === 'pharmacy' || a === 'toilets' || a === 'drinking_water') return 'serv';
-  return null;
-}
 async function fetchOverpassItems(lat, lon, radius){
   const a = '(around:'+radius+','+lat+','+lon+');';
   const query = '[out:json][timeout:25];(node["historic"]'+a+'way["historic"]'+a+'relation["historic"]'+a+
-    'node["tourism"="artwork"]'+a+'node["amenity"="place_of_worship"]'+a+'way["amenity"="place_of_worship"]'+a+
-    'nwr["amenity"~"^(restaurant|fast_food|cafe|bar|pub|ice_cream|pharmacy|toilets|drinking_water)$"]'+a+
-    'nwr["tourism"~"^(museum|gallery|viewpoint)$"]'+a+'nwr["natural"="beach"]'+a+');out center tags;';
+    'node["tourism"="artwork"]'+a+'node["amenity"="place_of_worship"]'+a+'way["amenity"="place_of_worship"]'+a+');out center tags;';
   const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data='+encodeURIComponent(query) });
   const data = await res.json();
   return (data.elements||[]).map(el => {
     const la = el.lat != null ? el.lat : (el.center && el.center.lat), lo = el.lon != null ? el.lon : (el.center && el.center.lon);
     const t = el.tags || {}; if (la == null || lo == null) return null;
-    const cat = poiCat(t);
-    if (cat) return { poi:true, cat, tags:t, title: t.name || t['name:it'] || POI[cat].one, lat: la, lon: lo,
-      dist: haversine(lat, lon, la, lo), url: 'https://www.openstreetmap.org/'+el.type+'/'+el.id };
     const label = osmLabel(t);
     return { title: t.name || t['name:it'] || label, extract: label, thumb: null, lat: la, lon: lo,
       dist: haversine(lat, lon, la, lo), url: 'https://www.openstreetmap.org/'+el.type+'/'+el.id, source: 'osm' };
@@ -1310,44 +1285,18 @@ async function loadArea(lat, lon, radius){
   if (my !== eReq) return;
   eLoading = false;
   const v = r.map(x => x.status === 'fulfilled' ? x.value : []);
-  ePois = v[1].filter(o => o.poi); v[1] = v[1].filter(o => !o.poi);
   /* scarto i doppioni (stesso luogo da più fonti); i punti scritti a mano restano sempre */
   let found = v[0].slice();
   [v[1], v[2], v[3], v[4]].forEach(list => { found = found.concat(list.filter(o => !found.some(w => haversine(o.lat,o.lon,w.lat,w.lon) < 40))); });
   eItems = found.concat(v[5]).sort((a,b) => a.dist - b.dist);
   eSel = -1; $('eCard').classList.remove('show');
-  drawArt(); drawPois(); renderMon();
+  drawArt(); renderMon();
   setHint();
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','claude'].concat(Object.keys(POI));
+const FLT_ALL = ['mon','claude'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
-let ePois = [];
-const ePoiL = L.layerGroup();
-const POI_Z = 15;          /* ristoranti e bar sono tanti: li mostro da zoom 15 */
-const poiIcon = c => '<svg viewBox="0 0 24 24" aria-hidden="true">'+POI[c].ic+'</svg>';
-function drawPois(){
-  ePoiL.clearLayers();
-  if (!eNear || emap.getZoom() < POI_Z){ emap.removeLayer(ePoiL); return; }
-  emap.addLayer(ePoiL);
-  ePois.forEach(o => { if (!fltOn(o.cat)) return;
-    L.marker([o.lat, o.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="poi" style="border-color:'+POI[o.cat].c+';color:'+POI[o.cat].c+'">'+poiIcon(o.cat)+'</div>' }), zIndexOffset:-200 })
-      .on('click', () => showPoi(o)).addTo(ePoiL); });
-}
-const POI_TYPE = { restaurant:'Ristorante', fast_food:'Cibo veloce', cafe:'Caffè', bar:'Bar', pub:'Pub', ice_cream:'Gelateria', pharmacy:'Farmacia',
-  toilets:'Bagni pubblici', drinking_water:'Acqua potabile', museum:'Museo', gallery:'Galleria', viewpoint:'Belvedere' };
-function showPoi(o){
-  const t = o.tags, typ = POI_TYPE[t.amenity] || POI_TYPE[t.tourism] || POI[o.cat].one;
-  const extra = [t.cuisine ? 'Cucina: '+t.cuisine.replace(/;/g, ', ').replace(/_/g,' ') : '', t.opening_hours ? 'Orari: '+t.opening_hours : '',
-    t.phone || t['contact:phone'] ? 'Tel. '+(t.phone || t['contact:phone']) : ''].filter(Boolean);
-  const web = t.website || t['contact:website'];
-  const dir = 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+o.lat+','+o.lon;
-  showCard('<div class="ch"><span class="meta">'+esc(typ)+(userPos ? ' · a '+formatDist(haversine(userPos.lat,userPos.lon,o.lat,o.lon)*1)+' da te' : '')+'</span><button class="x" aria-label="Chiudi">✕</button></div>'+
-    '<h3>'+esc(o.title)+'</h3>'+(extra.length ? '<p>'+extra.map(esc).join('<br>')+'</p>' : '')+
-    '<div class="acts"><a href="'+dir+'" target="_blank" rel="noopener">Indicazioni a piedi</a>'+(web ? '<a href="'+esc(web)+'" target="_blank" rel="noopener">Sito</a>' : '')+
-    '<a href="'+esc(o.url)+'" target="_blank" rel="noopener">OpenStreetMap</a></div>');
-}
 /* pannello dei filtri */
 function fltPanel(){
   const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
@@ -1355,9 +1304,7 @@ function fltPanel(){
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
     row('mon', 'Monumenti e opere', d('#b98f3e', '<span class="dt" style="background:#b98f3e"></span>'))+
     row('claude', 'Aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
-    Object.keys(POI).map(k => row(k, POI[k].t, d(POI[k].c, poiIcon(k)))).join('')+
-    '<div class="fh">Sfondo</div><button data-b="1" class="'+(tileBase === 'clean' ? 'on' : '')+'"><span>Mappa senza icone dei locali<small>senza, ristoranti e bar li mostrano solo i filtri</small></span><i></i></button>'+
-    '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">Ristoranti, bar e servizi compaiono ingrandendo (zoom 15).</div>';
+    '<div class="fh">Sfondo</div><button data-b="1" class="bgr'+(tileBase === 'clean' ? ' on' : '')+'"><span>Mappa senza icone dei locali<small>niente icone di negozi, bar e ristoranti</small></span><i></i></button>';
 }
 function setFltP(o){ if (o){ fltPanel(); setOpt(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
@@ -1366,7 +1313,7 @@ $('eFltP').addEventListener('click', e => {
   if (bb){ tileBase = tileBase === 'clean' ? 'osm' : 'clean'; store.set('mapBase', tileBase); bb.classList.toggle('on', tileBase === 'clean'); setETiles(true); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPois();
+  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt();
 });
 document.addEventListener('click', e => { if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false); });
 function drawArt(){
@@ -1621,7 +1568,7 @@ emap.on('zoomend moveend', () => {
       loadArea(c.lat, c.lng, 1800);
     } else if (haversine(c.lat, c.lng, eArea.lat, eArea.lon) > 300) $('eRefetch').classList.add('show');
   }
-  eRefreshWx(); eRefreshDots(); drawPois(); if (!eLoading) setHint();
+  eRefreshWx(); eRefreshDots(); if (!eLoading) setHint();
 });
 $('eRefetch').onclick = () => { const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); };
 
