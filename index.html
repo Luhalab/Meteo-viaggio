@@ -171,6 +171,13 @@ body.vt-on #emap.leaflet-container{background:#f2efe9}
 /* ---------- barra delle pagine ---------- */
 
 /* ---------- Esplora ---------- */
+/* due modi: da lontano meteo (meteo, settimana, mare e meduse), da vicino i dettagli (monumenti, foto, percorsi, curiosità) */
+body.e-near #wxS, body.e-near #eWeek, body.e-near #eStart{display:none!important}
+body:not(.e-near) #eTabs{display:none!important}
+.egoc{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 10px;padding:11px 14px;border:none;border-radius:14px;background:var(--sea);color:#fff;font:600 14.5px var(--sans);cursor:pointer}
+.egoc[hidden]{display:none}
+.egoc svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+body.e-near .egoc{background:var(--card);color:var(--sea);border:1px solid var(--line)}
 .ehero{display:flex;align-items:flex-end;gap:12px;margin:2px 2px 12px}
 .ehero h2{flex:1;margin:0;font-family:var(--serif);font-size:28px;font-weight:600;letter-spacing:-.015em;line-height:1.05}
 .ehero .ew{font-size:14px;color:var(--tx2);text-align:right;white-space:nowrap}
@@ -370,6 +377,7 @@ footer a{color:var(--tx2)}
   <!-- ======== ESPLORA ======== -->
   <section class="view on" id="vEsp">
     <div class="ehero" id="eHero" hidden><h2 id="eHName"></h2><div class="ew" id="eHW"></div></div>
+    <button class="egoc" id="eGoC" hidden></button>
     <button class="askcity" id="eAskCity"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span id="eAskCityT">Chiedi a Claude di aggiungere punti e curiosità</span></button>
     <div class="seg" id="eSeg"><button data-l="wx" class="on">Meteo</button><button data-l="sea">Mare e meduse</button></div>
     <div class="ewrap" id="eWrap">
@@ -1063,7 +1071,7 @@ function ePopupHtml(c){
   let s = '<div class="pop"><b>'+esc(c.n)+'</b><div class="row">'+esc(PROV[c.p]||c.p)+(c.pop?' · '+c.pop.toLocaleString('it-IT')+' ab.':'')+'</div>';
   if (d){ const i=mapDay, w=wmo(d.daily.weather_code[i]);
     s += '<div class="row">'+w[1]+' '+w[0]+' · '+Math.round(d.daily.temperature_2m_max[i])+'° / '+Math.round(d.daily.temperature_2m_min[i])+'°</div>'; }
-  return s + '<button onclick="eGoCity(\''+k+'\')">Vedi i monumenti</button></div>';
+  return s + '<button onclick="eGoCity(\''+k+'\')">Vai alla città</button></div>';
 }
 let eVisible = [];
 /* tabella settimanale, tre modi:
@@ -1667,7 +1675,7 @@ $('eDo').addEventListener('click', e => { const b = e.target.closest('.rt-btn');
 
 /* Mostra un percorso: cerco i luoghi su OpenStreetMap (Nominatim) vicino alla città e li unisco con un percorso a piedi */
 const eRoute = L.layerGroup().addTo(emap);
-const eRouteStarts = L.layerGroup().addTo(emap);
+const eRouteStarts = L.layerGroup();          /* sulla mappa solo da vicino */
 const eRoutesOn = new Map();          /* id -> livello del percorso disegnato */
 /* percorsi della città scelta: tutti quelli che hanno il tasto nella scheda "Cosa vedere e fare"
    (consigli di Claude con tappe e paragrafi di Wikivoyage con "da X a Y") */
@@ -1796,7 +1804,7 @@ let ePhotoList = [];
 const ePhotoL = L.layerGroup().addTo(emap);
 function drawPhotos(){
   ePhotoL.clearLayers();
-  if (!eCity || !fltOn('foto') || emap.getZoom() < 12) return;
+  if (!eCity || !fltOn('foto') || !eNear) return;
   ePhotoList.forEach(ph => L.marker([ph.lat, ph.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
       html:'<div class="ph-mk" style="background-image:url(\''+ph.thumb.replace(/'/g,'%27')+'\')"></div>' }), zIndexOffset:-100 })
     .on('click', () => showCard('<div class="ch"><span class="meta">Foto da Wikimedia Commons</span><button class="x" aria-label="Chiudi">✕</button></div>'+
@@ -1837,8 +1845,16 @@ async function askHereClaude(){
   if (!p){ alert('Non riesco a leggere la posizione. Attiva la localizzazione oppure cerca una città.'); return; }
   shareToClaude(msgHere(p));
 }
+function renderGoBtn(){
+  const b = $('eGoC'); b.hidden = !eCity;
+  if (!eCity) return;
+  b.innerHTML = eNear ? '<svg viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 1 0-1-8.9A6 6 0 0 0 5 12a3.5 3.5 0 0 0 .5 7z"/></svg>Torna al meteo'
+                      : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Esplora '+esc(eCity.virt ? 'questa zona' : eCity.n);
+  b.onclick = () => { const c = eCity; if (!c) return;
+    if (eNear) emap.flyTo([c.lat, c.lon], 11); else emap.flyTo([c.lat, c.lon], 15); };
+}
 function eRenderHero(){
-  renderAskBtn();
+  renderAskBtn(); renderGoBtn();
   if (!eCity){ $('eHero').hidden = true; return; }
   $('eHero').hidden = false; $('eHName').textContent = eCity.n;
   if (eCity.virt){ $('eHW').innerHTML = '<span class="muted">'+String(eCity.dist.toFixed(1)).replace('.', ',')+' km dal centro</span>'+
@@ -1888,7 +1904,8 @@ emap.on('zoomend moveend', () => {
   const near = emap.getZoom() >= NEAR_Z;
   setETiles();
   if (near !== eNear){
-    eNear = near; document.body.classList.toggle('e-near', near);
+    eNear = near; document.body.classList.toggle('e-near', near); renderGoBtn();
+    near ? emap.addLayer(eRouteStarts) : emap.removeLayer(eRouteStarts);
     if (near){ emap.addLayer(eArt); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
     else { emap.removeLayer(eArt); $('eCard').classList.remove('show'); $('eRefetch').classList.remove('show');
            if (eLayerMode==='sea'){ eSea.addTo(emap); eJelly.addTo(emap); } }

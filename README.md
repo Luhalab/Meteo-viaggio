@@ -73,3 +73,7 @@ la mappa resta in vista), poi meteo (aperto) e tabella settimanale. Mare e medus
 foto e monumenti stanno solo sulla mappa (foto di Wikimedia Commons come miniature tonde, da zoom 12).
 Tasti: "Filtri" (monumenti, luoghi di Claude, curiosità, foto, partenze dei percorsi + elenco dei percorsi in zona,
 ognuno accendibile, anche più insieme e con colori diversi) e "Sfondo" (tipo di mappa, icone dello sfondo, scritte grandi).
+
+Due modi secondo lo zoom: da lontano (sotto zoom 14) meteo, tabella settimanale e livello mare e meduse;
+da vicino (zoom 14+) monumenti, foto, percorsi e le schede curiosità / cose da fare. Il tasto sotto il nome
+della città ("Esplora …" / "Torna al meteo") passa dall'uno all'altro; anche "Vai alla città" nel fumetto.
