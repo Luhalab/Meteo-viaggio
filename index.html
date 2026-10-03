@@ -1395,10 +1395,28 @@ const WFS_LIG = { base:'https://geoservizi.regione.liguria.it/geoserver/M2343/wf
 
 /* punti e curiosità scritti a mano (custom-points.json): li aggiunge Claude quando glielo chiedi */
 let customCache = null;
+let customAt = 0, customLoading = null;
 async function customAll(){
-  if (!customCache){ try { const r = await fetch('custom-points.json', {cache:'no-store'}); customCache = r.ok ? await r.json() : []; } catch(e){ customCache = []; } }
-  return customCache;
+  /* riletto ogni minuto: così i punti che Claude aggiunge mentre l'app è aperta arrivano da soli */
+  if (customCache && Date.now() - customAt < 60000) return customCache;
+  if (!customLoading) customLoading = (async () => {
+    try { const r = await fetch('custom-points.json', {cache:'no-store'}); if (r.ok){ customCache = await r.json(); customAt = Date.now(); } }
+    catch(e){} if (!customCache) customCache = [];
+    customLoading = null; return customCache; })();
+  return customLoading;
 }
+/* quando torni nell'app (per esempio dalla chat con Claude) ricarico i punti di Claude e le sezioni della città */
+let hiddenAt = 0;
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden){ hiddenAt = Date.now(); return; }
+  if (Date.now() - hiddenAt < 15000) return;
+  const before = JSON.stringify(customCache || []); customAt = 0;
+  const now = JSON.stringify(await customAll());
+  if (now === before) return;
+  if (eNear && eArea) loadArea(eArea.lat, eArea.lon, eArea.radius);
+  if (eCity){ const c = eCity, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c; eLoadCur(tc, eCityReq); eLoadDo(tc, eCityReq); }
+  wkFlash('Aggiornati i punti di Claude');
+});
 /* Curiosità e consigli hanno spesso le coordinate del centro città (tutti nello stesso punto):
    sulla mappa metto solo quelli legati a un luogo preciso, cioè con coordinate che non condividono con altri. */
 function customPrecise(all){
@@ -1474,7 +1492,10 @@ function drawArt(){
   eArt.clearLayers();
   const onPlace = o => eItems.some(w => !w.kind && haversine(o.lat, o.lon, w.lat, w.lon) <= 30);
   const hasStory = w => fltOn('storie') && eItems.some(o => o.kind && haversine(o.lat, o.lon, w.lat, w.lon) <= 30);
-  eItems.forEach((it,i) => fltOn(it.kind ? 'storie' : it.source==='custom' ? 'claude' : 'mon') && !(it.kind && onPlace(it)) && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
+  /* più curiosità nello stesso posto (entro 30 m) = un solo punto viola; la scheda le mostra tutte */
+  const drawnSt = [];
+  const dupStory = o => { if (!o.kind) return false; if (drawnSt.some(w => haversine(o.lat, o.lon, w.lat, w.lon) <= 30)) return true; drawnSt.push(o); return false; };
+  eItems.forEach((it,i) => fltOn(it.kind ? 'storie' : it.source==='custom' ? 'claude' : 'mon') && !(it.kind && onPlace(it)) && !dupStory(it) && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
       html:'<div class="c-dot'+(it.kind ? ' st' : it.source==='custom'?' cu':'')+(!it.kind && hasStory(it) ? ' hs' : '')+(i===eSel?' sel':'')+'"></div>'}), zIndexOffset: i===eSel ? 900 : 0 })
     .on('click', () => eShowItem(i, false)).addTo(eArt));
 }

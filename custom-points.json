@@ -574,7 +574,22 @@
     "lat": 38.026,
     "lon": 12.8804,
     "extract": "Percorso classico a piedi: Corso Garibaldi fino alla piccola Chiesa del Purgatorio, poi Piazza Matrice con la Chiesa Madre e, da via Ponte Castello, le mura del castello con la Madonna del Rosario. Per tornare in basso prendi la scalinata che da Porta Marina sale a Piazza Castello, con scorci sul mare. Calcola 2-3 ore con le soste.",
-    "url": null
+    "url": null,
+    "stops": [
+      {
+        "n": "Chiesa del Purgatorio"
+      },
+      {
+        "n": "Chiesa Madre – Santuario di Maria SS. del Soccorso",
+        "lat": 38.02894,
+        "lon": 12.88261
+      },
+      {
+        "n": "Chiesa della Madonna del Rosario («di l'agnuni»)",
+        "lat": 38.02998,
+        "lon": 12.88185
+      }
+    ]
   },
   {
     "kind": "da-fare",
