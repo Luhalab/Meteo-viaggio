@@ -67,3 +67,9 @@ Curiosità e consigli di Claude sulla mappa (punti viola, filtro proprio): compa
 preciso (non quelle del centro città, condivise da più voci). Toccando un luogo si vedono anche le curiosità entro 80 m; i luoghi con curiosità hanno un anello viola. Nella sezione Curiosità, "Mostra sulla mappa" porta al luogo.
 Un consiglio "da-fare" può avere il campo "stops": tappe in ordine, ognuna {"n": nome, "lat", "lon"} (coordinate facoltative:
 senza, l'app cerca il nome tra i luoghi noti e poi su OpenStreetMap). Senza "stops", l'app prova a leggere "da X a Y" nel titolo.
+
+Pagina (ottobre 2026): sotto la mappa le schede "Curiosità e leggende" / "Cosa vedere e fare" (altezza limitata,
+la mappa resta in vista), poi meteo (aperto) e tabella settimanale. Mare e meduse resta come livello della mappa;
+foto e monumenti stanno solo sulla mappa (foto di Wikimedia Commons come miniature tonde, da zoom 12).
+Tasti: "Filtri" (monumenti, luoghi di Claude, curiosità, foto, partenze dei percorsi + elenco dei percorsi in zona,
+ognuno accendibile, anche più insieme e con colori diversi) e "Sfondo" (tipo di mappa, icone dello sfondo, scritte grandi).

@@ -267,6 +267,21 @@ body.e-near .ectl .nr{display:flex}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
+.gone{display:none!important}
+/* curiosità e cose da fare in due schede, con altezza limitata: la mappa resta in vista */
+.card.tabs{padding:0;overflow:hidden}
+.tbar{display:flex;border-bottom:1px solid var(--line)}
+.tbar button{flex:1;padding:13px 8px;border:none;background:none;font:600 14px var(--sans);color:var(--tx2);border-bottom:2.5px solid transparent;cursor:pointer}
+.tbar button.on{color:var(--sea);border-bottom-color:var(--sea)}
+.tbody{max-height:min(48vh,440px);overflow:auto;padding:4px 16px 12px;overscroll-behavior:contain}
+/* foto sulla mappa */
+.ph-mk{width:38px;height:38px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.4);background:#ccc center/cover no-repeat;transform:translate(-50%,-50%);cursor:pointer}
+.ecard img.ph-big{width:100%;max-height:46vh;object-fit:cover;border-radius:10px;margin:6px 0}
+/* percorsi sulla mappa */
+.rt-st{width:28px;height:28px;border-radius:50%;background:#2470b8;color:#fff;border:2px solid #fff;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);box-shadow:0 1px 5px rgba(0,0,0,.35);cursor:pointer}
+.rt-st svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.eflt .rtl{display:flex;align-items:center;gap:8px}
+.eflt .rtc{flex:none;width:12px;height:12px;border-radius:3px}
 .c-dot.hs{box-shadow:0 0 0 2px #16211c,0 0 0 5px #6b4fa0}
 .c-dot.sel{width:22px;height:22px}
 .c-dot.sm{width:10px;height:10px;border-width:1.5px;box-shadow:0 0 0 1.5px rgba(22,33,28,.75)}
@@ -366,6 +381,7 @@ footer a{color:var(--tx2)}
       <div class="ectl ezb">
         <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        <button id="eBg" aria-label="Sfondo della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
         <button id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
@@ -384,12 +400,19 @@ footer a{color:var(--tx2)}
         <button data-o="wake"><span>Schermo sempre acceso<small>finché resti a schermo intero</small></span><i></i></button>
       </div>
       <div class="eopt eflt" id="eFltP" hidden></div>
+      <div class="eopt eflt" id="eBgP" hidden></div>
       <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
       <div class="ecard" id="eCard"></div>
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
     <div class="legend" id="eLegend"></div>
+    <div class="card tabs" id="eTabs" hidden>
+      <div class="tbar" role="tablist"><button role="tab" data-t="cur" class="on" aria-selected="true">Curiosità e leggende</button><button role="tab" data-t="do" aria-selected="false" id="eDoTab">Cosa vedere e fare</button></div>
+      <div class="tbody" id="eTabB"><div class="guide" id="eCur"></div><div class="guide" id="eDo" hidden></div></div>
+    </div>
+    <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Sulla mappa trovi monumenti, foto e percorsi; qui sotto curiosità, cose da fare e meteo.</div></div></div>
+    <details class="sec" id="wxS" hidden open><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st" id="cTitle">Meteo</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cNow"></div><div class="sub">Prossimi 15 giorni <span style="font-weight:400">(tocca un giorno)</span></div><div class="days" id="cDays"></div><div class="sub" id="cTodoT">Ora per ora</div><div id="cVerdict"></div><div id="cTodo"></div></div></details>
     <div class="card wk" id="eWeek" hidden>
       <div class="wkh"><button class="wktog" id="eWkTog" aria-expanded="true" aria-controls="eWkB1 eWkB2"><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11M15 9v11"/></svg></span><span style="flex:1"><b id="eWeekH">La settimana nelle città sulla mappa</b><span class="wkcs" id="eWkCS"></span></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="wkbody" id="eWkB1">
@@ -402,13 +425,11 @@ footer a{color:var(--tx2)}
       <div class="wkbody" id="eWkB2"><div class="wkb" id="eWkBest" hidden></div>
       <div class="wkt" id="eWeekT"></div></div>
     </div>
-    <div class="card" id="eStart"><div class="empty"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div>Cerca una città, usa la tua posizione o tocca una città sulla mappa. Qui sotto trovi meteo, mare, foto, monumenti e curiosità.</div></div></div>
-    <details class="sec" id="wxS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span class="st" id="cTitle">Meteo</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cNow"></div><div class="sub">Prossimi 15 giorni <span style="font-weight:400">(tocca un giorno)</span></div><div class="days" id="cDays"></div><div class="sub" id="cTodoT">Ora per ora</div><div id="cVerdict"></div><div id="cTodo"></div></div></details>
-    <details class="sec" id="cSeaS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="cSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cSea"></div></div></details>
-    <details class="sec" id="ePhotoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 16-5-5-9 8"/></svg></span><span class="st" id="ePhotoT">Foto</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="ePhotos"></div></div></details>
-    <details class="sec heritage" id="eMonS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
-    <details class="sec" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="guide" id="eCur"></div></div></details>
-    <details class="sec" id="eDoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span><span class="st" id="eDoT">Cosa vedere e fare</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div class="guide" id="eDo"></div></div></details>
+    <details class="sec gone" id="cSeaS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg></span><span class="st" id="cSeaT">Mare e meduse</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="cSea"></div></div></details>
+    <details class="sec gone" id="ePhotoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 16-5-5-9 8"/></svg></span><span class="st" id="ePhotoT">Foto</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="ePhotos"></div></div></details>
+    <details class="sec heritage gone" id="eMonS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
+    <details class="sec gone" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"></div></details>
+    <details class="sec gone" id="eDoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span><span class="st" id="eDoT">Cosa vedere e fare</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"></div></details>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap o Esri · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
@@ -852,7 +873,7 @@ function renderTodo(){
       '<div class="p">'+(mm>=0.1?'💧'+mm.toFixed(1)+' mm':(pp!=null?pp+'%':'&nbsp;'))+'</div>'+
       '<div class="m">💨 '+Math.round(H.wind_speed_10m[i]||0)+'</div></div>';
   }).join('')+'</div><div class="muted" style="margin-top:6px;font-size:11.5px">Scorri per vedere tutte le ore · 💧 pioggia prevista, altrimenti probabilità</div>';
-  if (oggi) setTimeout(function(){ const n=$('cTodo').querySelector('.hr.now'); if(n) n.scrollIntoView({inline:'center',block:'nearest'}); },50);
+  if (oggi) setTimeout(function(){ const n=$('cTodo').querySelector('.hr.now'); if(n){ /* scorro solo la fila delle ore, non la pagina */ const box=n.parentElement, a=n.getBoundingClientRect(), b=box.getBoundingClientRect(); box.scrollLeft += (a.left+a.width/2)-(b.left+b.width/2); } },50);
 }
 /* =====================================================================
    ESPLORA — una sola mappa: da lontano il meteo delle città,
@@ -1217,6 +1238,7 @@ function eClearCity(){
   if (!eCity) return;
   eCity = null; eCitySrc = ''; city = null; cw = null; eCityReq++; reqId++;
   ['wxS','cSeaS','ePhotoS','eMonS','eCurS','eDoS'].forEach(id => $(id).hidden = true);
+  ePhotoList = []; drawPhotos(); eRouteStarts.clearLayers();
   $('eCard').classList.remove('show'); eSel = -1;
   eRenderHero();
   if (wkMode === 'search') wkFit();
@@ -1452,42 +1474,64 @@ async function loadArea(lat, lon, radius){
   showPendingItem();
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','claude','storie'];
+const FLT_ALL = ['mon','claude','storie','foto','percorsi'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
-/* pannello dei filtri */
+/* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
+const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 function fltPanel(){
   const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
+  const dot = c => d(c, '<span class="dt" style="background:'+c+'"></span>');
+  const rs = routesHere();
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
-    row('mon', 'Monumenti e opere', d('#b98f3e', '<span class="dt" style="background:#b98f3e"></span>'))+
-    row('claude', 'Luoghi aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
-    row('storie', 'Curiosità e consigli di Claude', d('#6b4fa0', '<span class="dt" style="background:#6b4fa0"></span>'))+
-    '<div class="fh">Sfondo</div>'+
+    row('mon', 'Monumenti e opere', dot('#b98f3e'))+
+    row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
+    row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
+    row('foto', 'Foto della zona', d('#5b6b76', '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/></svg>'))+
+    row('percorsi', 'Partenze dei percorsi', d('#2470b8', RT_IC.replace('<svg', '<svg')))+
+    '<div class="fh">Percorsi in zona</div>'+
+    (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+'</small></span></span><i></i></button>').join('')+
+        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')
+      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso trovato per '+esc(eCity.n)+'.' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
+}
+function bgPanel(){
+  $('eBgP').innerHTML = '<div class="fh">Sfondo</div>'+
     [['vector','Vettoriale','scritte nitide, icone a scelta (consigliata)'],['osm','OpenStreetMap classica','con tutte le icone dei locali'],['clean','Senza icone dei locali','mappa stradale Esri']]
       .map(b => '<button data-b="'+b[0]+'" class="bgr'+(tileBase === b[0] ? ' on' : '')+'"><span>'+b[1]+'<small>'+b[2]+'</small></span><i class="rd"></i></button>').join('')+
     (tileBase === 'vector' ? '<div class="fh">Icone dello sfondo</div>'+Object.keys(VT_CATS).map(k => '<button data-v="'+k+'" class="'+(vtFlt[k] ? 'on' : '')+'"><span>'+esc(VT_CATS[k].t)+'</span><i></i></button>').join('')+
       '<button data-vall="1" class="act"><span>Accendi tutte</span></button><button data-vnone="1" class="act"><span>Spegni tutte</span></button>'+
-      '<div class="fh">Scritte</div><button data-vbig="1" class="bgr'+(vtBig ? ' on' : '')+'"><span>Scritte grandi<small>nomi di vie e luoghi più leggibili</small></span><i></i></button>' : '');
+      '<div class="fh">Scritte</div><button data-vbig="1" class="bgr'+(vtBig ? ' on' : '')+'"><span>Scritte grandi<small>nomi di vie e luoghi più leggibili</small></span><i></i></button>'
+      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">Icone a scelta e scritte grandi sono disponibili con lo sfondo vettoriale.</div>');
 }
-function setFltP(o){ if (o){ fltPanel(); setOpt(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setFltP(o){ if (o){ fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setBgP(o){ if (o){ bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
-$('eFltP').addEventListener('click', e => {
-  e.stopPropagation();          /* il pannello si ridisegna: senza questo si chiuderebbe da solo */
+$('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
+function panelClick(e){
+  e.stopPropagation();          /* i pannelli si ridisegnano: senza questo si chiuderebbero da soli */
   const bb = e.target.closest('button[data-b]');
-  if (bb){ if (bb.dataset.b !== tileBase){ tileBase = bb.dataset.b; store.set('mapBase', tileBase); setETiles(true); } fltPanel(); return; }
+  if (bb){ if (bb.dataset.b !== tileBase){ tileBase = bb.dataset.b; store.set('mapBase', tileBase); setETiles(true); } bgPanel(); return; }
   const vb = e.target.closest('button[data-v],button[data-vall],button[data-vnone],button[data-vbig]');
   if (vb){
     if (vb.dataset.v) vtFlt[vb.dataset.v] = !vtFlt[vb.dataset.v];
     else if (vb.dataset.vall) Object.keys(vtFlt).forEach(k => vtFlt[k] = true);
     else if (vb.dataset.vnone) Object.keys(vtFlt).forEach(k => vtFlt[k] = false);
     else { vtBig = !vtBig; store.set('vt_big', vtBig); }
-    store.set('vt_flt', vtFlt); vtApply(); fltPanel(); return; }
+    store.set('vt_flt', vtFlt); vtApply(); bgPanel(); return; }
+  const rb = e.target.closest('button[data-r]');
+  if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
+  if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt();
+  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts();
+}
+$('eFltP').addEventListener('click', panelClick);
+$('eBgP').addEventListener('click', panelClick);
+document.addEventListener('click', e => {
+  if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false);
+  if (!$('eBgP').hidden && !e.target.closest('#eBgP,#eBg')) setBgP(false);
 });
-document.addEventListener('click', e => { if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false); });
 function drawArt(){
   eArt.clearLayers();
   const onPlace = o => eItems.some(w => !w.kind && haversine(o.lat, o.lon, w.lat, w.lon) <= 30);
@@ -1553,6 +1597,14 @@ const CUR_SEC = [
   {re:/^storia$/i, t:'Storia'}
 ];
 const eWpCache = {};
+document.querySelector('#eTabs .tbar').addEventListener('click', e => {
+  const b = e.target.closest('button[data-t]'); if (!b) return;
+  document.querySelectorAll('#eTabs .tbar button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
+  $('eCur').hidden = b.dataset.t !== 'cur'; $('eDo').hidden = b.dataset.t !== 'do'; $('eTabB').scrollTop = 0;
+});
+const tabsSync = () => { $('eTabs').hidden = $('eCurS').hidden && $('eDoS').hidden; };
+new MutationObserver(tabsSync).observe($('eCurS'), { attributes:true, attributeFilter:['hidden'] });
+new MutationObserver(tabsSync).observe($('eDoS'), { attributes:true, attributeFilter:['hidden'] });
 const PIN_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 /* porta la mappa su un punto e apre la scheda del luogo lì (anche se l'area è ancora da caricare) */
 let ePendingShow = null;
@@ -1606,7 +1658,7 @@ async function eLoadDo(c, my){
       (rs ? '<button class="rt-btn" data-stops="'+esc(JSON.stringify(rs))+'">'+RT_IC+'Mostra il percorso sulla mappa</button><br>' : '')+
       '<span class="tag-cu">Consiglio di Claude</span></details>'; })
     .concat(eWvCache[c.n] ? guideBlocks(eWvCache[c.n], DO_SEC, base, 'Wikivoyage', 1200) : []);
-  $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n;
+  $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n; setTimeout(routesChanged, 0);
   $('eDo').innerHTML = blocks.length ? blocks.join('')+'<div class="muted" style="margin-top:8px;font-size:11.5px">Testi di Wikivoyage (CC BY-SA) e consigli di Claude</div>'
     : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>';
 }
@@ -1615,6 +1667,37 @@ $('eDo').addEventListener('click', e => { const b = e.target.closest('.rt-btn');
 
 /* Mostra un percorso: cerco i luoghi su OpenStreetMap (Nominatim) vicino alla città e li unisco con un percorso a piedi */
 const eRoute = L.layerGroup().addTo(emap);
+const eRouteStarts = L.layerGroup().addTo(emap);
+const eRoutesOn = new Map();          /* id -> livello del percorso disegnato */
+/* percorsi della città scelta: tutti quelli che hanno il tasto nella scheda "Cosa vedere e fare"
+   (consigli di Claude con tappe e paragrafi di Wikivoyage con "da X a Y") */
+function routesHere(){
+  return [...document.querySelectorAll('#eDo .rt-btn[data-stops]')].map(b => {
+    const st = JSON.parse(b.dataset.stops), names = st.map(x => typeof x === 'string' ? x : x.n);
+    const det = b.closest('details'), claude = det && det.querySelector('.tag-cu');
+    const title = claude ? det.querySelector('summary').textContent : names[0]+' → '+names[names.length-1];
+    return { id: title+'|'+names.join('|'), title, sub: (claude ? 'Consiglio di Claude · ' : 'Wikivoyage · ')+names.length+' tappe', stops: st, ch: !!b.dataset.ch };
+  });
+}
+function clearRoutes(){ eRoute.clearLayers(); eRoutesOn.clear(); }
+function toggleRoute(r, i, card){
+  if (eRoutesOn.has(r.id)){ eRoute.removeLayer(eRoutesOn.get(r.id)); eRoutesOn.delete(r.id); if (!$('eFltP').hidden) fltPanel(); return; }
+  showRoute(r.stops, null, r.ch, { id: r.id, color: ROUTE_COLORS[i % ROUTE_COLORS.length], card, title: r.title });
+}
+/* partenza di ogni percorso come pallino blu sulla mappa: toccandolo il percorso compare */
+async function drawRouteStarts(){
+  eRouteStarts.clearLayers();
+  if (!eCity || !fltOn('percorsi')) return;
+  const rs = routesHere(), c = eCity;
+  for (let i = 0; i < rs.length; i++){
+    const f = rs[i].stops[0], st = typeof f === 'string' ? { n:f } : f;
+    const pt = st.lat != null ? { lat:+st.lat, lon:+st.lon } : await knownPlace(st.n, c);
+    if (!pt || c !== eCity) continue;
+    L.marker([pt.lat, pt.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="rt-st" title="'+esc(rs[i].title)+'">'+RT_IC+'</div>' }), zIndexOffset:800 })
+      .on('click', () => toggleRoute(rs[i], i, true)).addTo(eRouteStarts);
+  }
+}
+function routesChanged(){ drawRouteStarts(); if (!$('eFltP').hidden) fltPanel(); }
 const geoMem = {};
 async function geocode(q, c){
   const key = 'geo:'+q+'|'+c.lat.toFixed(2)+','+c.lon.toFixed(2);
@@ -1643,12 +1726,13 @@ async function knownPlace(name, c){
   const hit = all.find(p => nrm(p.t) === q) || all.find(p => nrm(p.t).startsWith(q)) || all.find(p => (' '+nrm(p.t)+' ').includes(' '+q+' '));
   return hit ? { lat:hit.lat, lon:hit.lon } : null;
 }
-async function showRoute(stops, btn, churches){
+async function showRoute(stops, btn, churches, opt){
+  opt = opt || {};
   /* le tappe possono essere nomi o oggetti {n, lat, lon} */
   stops = stops.map(x => typeof x === 'string' ? { n:x } : x);
   const names = stops.map(x => x.n || x.title || 'Tappa');
   const c = eCity; if (!c) return;
-  btn.classList.add('busy'); const old = btn.innerHTML; btn.innerHTML = RT_IC+'Cerco i luoghi…';
+  const old = btn ? btn.innerHTML : ''; if (btn){ btn.classList.add('busy'); btn.innerHTML = RT_IC+'Cerco i luoghi…'; } else wkFlash('Cerco le tappe del percorso…');
   const pts = [];
   for (let i = 0; i < stops.length; i++){
     if (stops[i].lat != null){ pts.push({ lat:+stops[i].lat, lon:+stops[i].lon }); continue; }
@@ -1659,10 +1743,13 @@ async function showRoute(stops, btn, churches){
     /* nel "giro delle chiese" i nomi sono abbreviati (Gesuiti, Itria...): riprovo con "Chiesa" davanti */
     if (!g && churches && !/^(chiesa|cattedrale|santuario|basilica|duomo|badia|convento)/i.test(names[i])){ if (fresh) await wait(1100); g = await geocode('Chiesa '+names[i], c); }
     pts.push(g); if (fresh && i < stops.length - 1) await wait(1100); }   /* Nominatim: massimo una richiesta al secondo */
-  btn.classList.remove('busy'); btn.innerHTML = old;
+  if (btn){ btn.classList.remove('busy'); btn.innerHTML = old; }
   const ok = pts.map((p,i) => p && { ...p, n: names[i], i }).filter(Boolean);
   if (!ok.length){ alert('Non riesco a trovare questi luoghi sulla mappa. Puoi chiedere a Claude di aggiungerli.'); return; }
-  eRoute.clearLayers();
+  /* ogni percorso ha il suo livello e il suo colore: se ne possono vedere più insieme */
+  const id = opt.id || ('btn|'+names.join('|')), col = opt.color || '#2470b8';
+  if (eRoutesOn.has(id)) eRoute.removeLayer(eRoutesOn.get(id));
+  const lay = L.layerGroup().addTo(eRoute); eRoutesOn.set(id, lay);
   let line = null, info = '';
   if (ok.length >= 2){
     try {
@@ -1673,41 +1760,57 @@ async function showRoute(stops, btn, churches){
         info = (R.distance >= 1000 ? (R.distance/1000).toFixed(1).replace('.', ',')+' km' : Math.round(R.distance/10)*10+' m')+' a piedi, circa '+Math.max(1, Math.round(R.distance/80))+' minuti'; }
     } catch(e){}
     const ll = line || ok.map(p => [p.lat, p.lon]);
-    L.polyline(ll, { color:'#fff', weight:8, opacity:.9, interactive:false }).addTo(eRoute);
-    L.polyline(ll, { color:'#2470b8', weight:5, opacity:.95, dashArray: line ? null : '8 8', interactive:false }).addTo(eRoute);
+    L.polyline(ll, { color:'#fff', weight:8, opacity:.9, interactive:false }).addTo(lay);
+    L.polyline(ll, { color: col, weight:5, opacity:.95, dashArray: line ? null : '8 8', interactive:false }).addTo(lay);
     if (!line) info = 'Collegamento in linea d\'aria: il percorso a piedi non è disponibile ora';
   }
-  ok.forEach((p, k) => L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="rt-n">'+(k+1)+'</div>' }), zIndexOffset:1000 }).addTo(eRoute));
-  window.scrollTo({ top:0, behavior:'smooth' });
+  ok.forEach((p, k) => L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="rt-n" style="background:'+col+'">'+(k+1)+'</div>' }), zIndexOffset:1000 }).addTo(lay));
+  if (!$('eFltP').hidden) fltPanel();
+  if (opt.card !== false) window.scrollTo({ top:0, behavior:'smooth' });
   if (ok.length >= 2) emap.fitBounds(L.latLngBounds(ok.map(p => [p.lat, p.lon])).pad(0.25), { maxZoom:17 }); else emap.setView([ok[0].lat, ok[0].lon], 17);
-  let n = 0;
-  showCard('<div class="ch"><span class="meta">Percorso dai consigli</span><button class="x" aria-label="Chiudi">✕</button></div>'+
+  if (opt.card === false) return;
+  showCard('<div class="ch"><span class="meta">'+(opt.title ? esc(opt.title) : 'Percorso dai consigli')+'</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     (info ? '<p>'+esc(info)+'</p>' : '')+'<ol class="rt">'+names.map((s,i) => pts[i] ? '<li>'+esc(s)+'</li>' : '<li class="miss">'+esc(s)+' (non trovato)</li>').join('')+'</ol>'+
     '<div class="acts"><button id="eRtClr">Togli il percorso</button>'+(ok.length >= 2 ? '<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ok[0].lat+','+ok[0].lon+
       '&destination='+ok[ok.length-1].lat+','+ok[ok.length-1].lon+(ok.length > 2 ? '&waypoints='+ok.slice(1,-1).map(p => p.lat+','+p.lon).join('%7C') : '')+'">Apri in Google Maps</a>' : '')+'</div>');
-  $('eRtClr').onclick = () => { eRoute.clearLayers(); $('eCard').classList.remove('show'); };
+  $('eRtClr').onclick = () => { eRoute.removeLayer(lay); eRoutesOn.delete(id); $('eCard').classList.remove('show'); if (!$('eFltP').hidden) fltPanel(); };
 }
 
 /* ---------- sezione 2: foto della città ---------- */
 async function photoList(c){
   if (photoCache[c.n]) return photoCache[c.n];
   const u = 'https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&generator=geosearch&ggsnamespace=6&ggscoord='+c.lat+'%7C'+c.lon+
-    '&ggsradius=6000&ggslimit=30&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=420';
+    '&ggsradius=6000&ggslimit=40&prop=imageinfo%7Ccoordinates&iiprop=url%7Cextmetadata&iiurlwidth=640';
   const r = await fetch(u); if (!r.ok) throw 0; const j = await r.json();
   const pages = (j.query && j.query.pages) ? Object.values(j.query.pages) : [];
   return photoCache[c.n] = pages.map(p => {
     const ii = p.imageinfo && p.imageinfo[0]; if (!ii || !ii.thumburl) return null;
     if (/\.svg$|\.pdf$|\.tif/i.test(p.title)) return null;
     if (ii.thumbwidth && ii.thumbwidth < 300) return null;
-    return { thumb: ii.thumburl, page: ii.descriptionurl, title: p.title.replace(/^File:/,'').replace(/\.[a-z]+$/i,'').replace(/_/g,' ') };
-  }).filter(Boolean).slice(0,12);
+    const co = p.coordinates && p.coordinates[0];
+    return { thumb: ii.thumburl, page: ii.descriptionurl, title: p.title.replace(/^File:/,'').replace(/\.[a-z]+$/i,'').replace(/_/g,' '), lat: co ? co.lat : null, lon: co ? co.lon : null };
+  }).filter(Boolean).slice(0,24);
+}
+/* foto di Wikimedia Commons come miniature tonde sulla mappa (da zoom 12), quando hai scelto un luogo */
+let ePhotoList = [];
+const ePhotoL = L.layerGroup().addTo(emap);
+function drawPhotos(){
+  ePhotoL.clearLayers();
+  if (!eCity || !fltOn('foto') || emap.getZoom() < 12) return;
+  ePhotoList.forEach(ph => L.marker([ph.lat, ph.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
+      html:'<div class="ph-mk" style="background-image:url(\''+ph.thumb.replace(/'/g,'%27')+'\')"></div>' }), zIndexOffset:-100 })
+    .on('click', () => showCard('<div class="ch"><span class="meta">Foto da Wikimedia Commons</span><button class="x" aria-label="Chiudi">✕</button></div>'+
+      '<img class="ph-big" src="'+esc(ph.thumb)+'" alt="'+esc(ph.title)+'"><h3>'+esc(ph.title)+'</h3>'+
+      '<div class="acts"><a href="'+esc(ph.page)+'" target="_blank" rel="noopener">Autore e licenza</a></div>')).addTo(ePhotoL));
 }
 async function eLoadPhotos(c, my){
+  ePhotoList = []; drawPhotos();
   $('ePhotoS').hidden=false; $('ePhotoT').textContent = 'Foto '+placeDi(c);
   $('ePhotos').innerHTML = '<div class="card"><span class="muted"><span class="spin"></span>Cerco le foto…</span></div>';
   let list = [];
   try { list = await photoList(c); } catch(e){}
   if (my !== eCityReq) return;
+  ePhotoList = list.filter(x => x.lat != null); drawPhotos();
   $('ePhotos').innerHTML = list.length ? '<div class="card"><div class="gal">'+list.map(p => '<a href="'+esc(p.page)+'" target="_blank" rel="noopener" title="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="'+esc(p.title)+'" loading="lazy"></a>').join('')+
     '</div><div class="muted" style="margin-top:6px;font-size:11.5px">Foto geolocalizzate da Wikimedia Commons · tocca per autore e licenza</div></div>'
     : '<div class="card"><span class="muted">Nessuna foto trovata '+(c.virt ? 'qui vicino' : 'vicino a '+esc(c.n))+'.</span></div>';
@@ -1750,7 +1853,7 @@ function eSelectCity(c, opts){
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c;
   if (!same) $('eStart').hidden = true;
-  if (!same){ if (!(opts && opts.noArea)) eRoute.clearLayers();   /* spostando la mappa il percorso resta */
+  if (!same){ if (!(opts && opts.noArea)){ clearRoutes(); eRouteStarts.clearLayers(); }   /* spostando la mappa il percorso resta */
     const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
     openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
@@ -1799,7 +1902,7 @@ emap.on('zoomend moveend', () => {
       loadArea(c.lat, c.lng, 1800);
     } else if (haversine(c.lat, c.lng, eArea.lat, eArea.lon) > 300) $('eRefetch').classList.add('show');
   }
-  eRefreshWx(); eRefreshDots(); if (!eLoading) setHint();
+  eRefreshWx(); eRefreshDots(); drawPhotos(); if (!eLoading) setHint();
 });
 $('eRefetch').onclick = () => { const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); };
 
