@@ -192,7 +192,7 @@ body.e-full{overflow:hidden}
 .ewrap.full .ecomp{top:calc(10px + env(safe-area-inset-top,0px))}
 .ecomp svg{width:30px;height:30px}
 .ecomp b{position:absolute;top:-2px;font:700 9px var(--sans);color:#c0392b;display:none}
-.eopt{position:absolute;left:10px;bottom:84px;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
+.eopt{position:absolute;left:10px;bottom:84px;max-height:calc(100% - 100px)!important;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
 .ewrap.full .eopt{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .eopt[hidden]{display:none}
 .eopt button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:none;background:none;color:var(--tx);text-align:left;padding:10px;border-radius:10px;font:500 14px var(--sans);cursor:pointer;min-height:44px}
@@ -206,6 +206,22 @@ body.e-full{overflow:hidden}
 .eopt button.act span{color:var(--acc)}
 .eopt button.dis{display:none}
 .ewrap.locked .ezs{display:none}
+/* filtri e punti utili (ristoranti, bar...) */
+.eflt .fh{padding:8px 10px 4px;font:600 12px var(--sans);color:var(--tx2);text-transform:uppercase;letter-spacing:.04em}
+.eflt b.fd{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid;margin-right:10px}
+.eflt b.fd svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.eflt button>span{flex:1;display:flex;align-items:center}
+.eflt .dt{width:10px;height:10px;border-radius:50%;display:block}
+.poi{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(20,36,48,.3);cursor:pointer}
+.poi svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* percorsi dai consigli */
+.rt-btn{display:inline-flex;align-items:center;gap:6px;margin:4px 0 2px;border:1px solid var(--acc);background:var(--acc-soft);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);cursor:pointer}
+.rt-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rt-btn.busy{opacity:.6;pointer-events:none}
+.gp{margin:0 0 8px}
+.rt-n{width:24px;height:24px;border-radius:50%;background:#2470b8;color:#fff;border:2px solid #fff;font:700 12px/20px var(--sans);text-align:center;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.ecard ol.rt{margin:6px 0 4px 20px;padding:0;font-size:13.5px;line-height:1.5}
+.ecard ol.rt li.miss{color:var(--tx2);text-decoration:line-through}
 .ewrap.locked #emap,.ewrap.locked #emap *{touch-action:none}
 /* zoom a cursore, in basso a sinistra */
 .ezs{position:absolute;right:10px;bottom:28px;z-index:900;width:44px;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:22px;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);padding:2px 0;touch-action:none;user-select:none}
@@ -242,6 +258,7 @@ body.e-near .ectl .nr{display:flex}
 .ecard .acts{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
 .ecard .ai{background:var(--sea);color:#fff;border:none;border-radius:12px;height:42px;padding:0 16px;font-size:14px;font-weight:600;cursor:pointer}
 .ecard .acts a{font-size:13.5px;font-weight:500}
+.ecard .acts #eRtClr{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-dot.cu{background:var(--brick)}
 .c-dot.sel{width:22px;height:22px}
@@ -342,6 +359,7 @@ footer a{color:var(--tx2)}
       <div class="ectl ezb">
         <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        <button class="nr" id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
@@ -358,6 +376,7 @@ footer a{color:var(--tx2)}
         <button data-o="lock"><span>Blocca la mappa<small>niente spostamenti per sbaglio</small></span><i></i></button>
         <button data-o="wake"><span>Schermo sempre acceso<small>finché resti a schermo intero</small></span><i></i></button>
       </div>
+      <div class="eopt eflt" id="eFltP" hidden></div>
       <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
       <div class="ecard" id="eCard"></div>
@@ -764,13 +783,34 @@ async function extracts(host, title){
     return (pg && pg.extract) ? splitSections(pg.extract) : null;
   }catch(e){ return null; }
 }
+/* Trova un percorso in un paragrafo: "da X a Y", "dal X al Y", oppure un elenco tra parentesi dopo giro/percorso/itinerario */
+const RT_WORDS = /passeggiat|percors|itinerari|\bgiro\b|circumnavig|sentier|escursion|camminat|\btour\b/i;
+function routeStops(par){
+  const clean = x => x.replace(/^(la|il|lo|l'|i|gli|le)\s+/i,'').replace(/["“”«»]/g,'').replace(/\s+(e|per|dove|che|la sera|il mattino)\b.*$/i,'').trim();
+  let stops = [];
+  const m = par.match(/\b(?:da|dal|dalla|dallo|dalle|dai|dagli)\s+([^.,;:()]{3,60}?)\s+(?:fino\s+)?(?:a|al|alla|allo|alle|ai|agli|verso)\s+([^.,;:()]{3,60})/i);
+  if (m) stops = [clean(m[1]), clean(m[2])];
+  const l = par.match(/\(([^)]+)\)/);
+  if (l && RT_WORDS.test(par)){ const it = l[1].split(/,|\se\s/).map(clean).filter(x => x.length >= 3);
+    if (it.length >= 2) stops = it.map(x => clean(x.replace(/^(?:finendo|terminando|concludendo)\s+(?:a|al|alla|allo|ai|alle|con)\s+/i, ''))); }
+  stops = stops.filter(x => x.length >= 3 && x.split(' ').length <= 8);
+  return (stops.length >= 2 && (RT_WORDS.test(par) || m)) ? stops : null;
+}
+const RT_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></svg>';
+function guideBody(body, withRoutes){
+  if (!withRoutes) return '<p>'+esc(body)+'</p>';
+  return body.split('\n').filter(x => x.trim()).map(par => {
+    const st = routeStops(par);
+    return '<p class="gp">'+esc(par)+(st ? '<br><button class="rt-btn" data-ch="'+(/chies/i.test(par) ? 1 : '')+'" data-stops="'+esc(JSON.stringify(st))+'">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+'</p>';
+  }).join('');
+}
 function guideBlocks(secs, rules, base, fonte, maxLen){
   const out=[];
   rules.forEach(g => {
     const hit = secs.filter(s => g.re.test(s.title) && s.body.trim().length>100);
     hit.slice(0,2).forEach(s => {
       const body = s.body.trim().replace(/\n{2,}/g,'\n');
-      out.push('<details><summary>'+g.t+(hit.length>1?' · '+esc(s.title):'')+'</summary><p>'+esc(short(body,maxLen))+'</p>'+
+      out.push('<details><summary>'+g.t+(hit.length>1?' · '+esc(s.title):'')+'</summary>'+guideBody(short(body,maxLen), fonte === 'Wikivoyage')+
         '<a href="'+base+'#'+encodeURIComponent(s.title.replace(/ /g,'_'))+'" target="_blank" rel="noopener">Continua su '+fonte+'</a></details>');
     });
   });
@@ -1145,15 +1185,39 @@ function osmLabel(t){
   if (t.amenity === 'place_of_worship') return 'Luogo di culto';
   return 'Punto di interesse';
 }
+/* categorie dei filtri della mappa */
+const POI = {
+  rist:  { t:'Ristoranti e pizzerie', one:'Ristorante', c:'#c0662b', ic:'<path d="M7 3v18M4 3v5a3 3 0 0 0 6 0V3M17 21V3c-2 0-3.5 2.5-3.5 6s1.5 4 3.5 4"/>' },
+  bar:   { t:'Bar, caffè e gelaterie', one:'Bar', c:'#8a5a2b', ic:'<path d="M5 8h11v5a5.5 5.5 0 0 1-11 0zM16 9.5h1.5a2.5 2.5 0 0 1 0 5H16M8 3.5v2M12 3.5v2"/>' },
+  musei: { t:'Musei e gallerie', one:'Museo', c:'#6b4fa0', ic:'<path d="M3 9.5 12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>' },
+  pan:   { t:'Panorami e belvedere', one:'Belvedere', c:'#2f7d4f', ic:'<path d="M3 19 9 9l4 6 2.5-3.5L21 19z"/><circle cx="17" cy="6" r="1.8"/>' },
+  spi:   { t:'Spiagge', one:'Spiaggia', c:'#1f8fb5', ic:'<path d="M3.5 11a8.5 8.5 0 0 1 17 0zM12 11v9M7 20h10"/>' },
+  serv:  { t:'Farmacie, bagni e fontanelle', one:'Servizio', c:'#c0392b', ic:'<path d="M12 5v14M5 12h14"/>' }
+};
+function poiCat(t){
+  const a = t.amenity, tu = t.tourism;
+  if (a === 'restaurant' || a === 'fast_food') return 'rist';
+  if (a === 'cafe' || a === 'bar' || a === 'pub' || a === 'ice_cream') return 'bar';
+  if (tu === 'museum' || tu === 'gallery') return 'musei';
+  if (tu === 'viewpoint') return 'pan';
+  if (t.natural === 'beach') return 'spi';
+  if (a === 'pharmacy' || a === 'toilets' || a === 'drinking_water') return 'serv';
+  return null;
+}
 async function fetchOverpassItems(lat, lon, radius){
   const a = '(around:'+radius+','+lat+','+lon+');';
   const query = '[out:json][timeout:25];(node["historic"]'+a+'way["historic"]'+a+'relation["historic"]'+a+
-    'node["tourism"="artwork"]'+a+'node["amenity"="place_of_worship"]'+a+'way["amenity"="place_of_worship"]'+a+');out center tags;';
+    'node["tourism"="artwork"]'+a+'node["amenity"="place_of_worship"]'+a+'way["amenity"="place_of_worship"]'+a+
+    'nwr["amenity"~"^(restaurant|fast_food|cafe|bar|pub|ice_cream|pharmacy|toilets|drinking_water)$"]'+a+
+    'nwr["tourism"~"^(museum|gallery|viewpoint)$"]'+a+'nwr["natural"="beach"]'+a+');out center tags;';
   const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data='+encodeURIComponent(query) });
   const data = await res.json();
   return (data.elements||[]).map(el => {
     const la = el.lat != null ? el.lat : (el.center && el.center.lat), lo = el.lon != null ? el.lon : (el.center && el.center.lon);
     const t = el.tags || {}; if (la == null || lo == null) return null;
+    const cat = poiCat(t);
+    if (cat) return { poi:true, cat, tags:t, title: t.name || t['name:it'] || POI[cat].one, lat: la, lon: lo,
+      dist: haversine(lat, lon, la, lo), url: 'https://www.openstreetmap.org/'+el.type+'/'+el.id };
     const label = osmLabel(t);
     return { title: t.name || t['name:it'] || label, extract: label, thumb: null, lat: la, lon: lo,
       dist: haversine(lat, lon, la, lo), url: 'https://www.openstreetmap.org/'+el.type+'/'+el.id, source: 'osm' };
@@ -1235,17 +1299,65 @@ async function loadArea(lat, lon, radius){
   if (my !== eReq) return;
   eLoading = false;
   const v = r.map(x => x.status === 'fulfilled' ? x.value : []);
+  ePois = v[1].filter(o => o.poi); v[1] = v[1].filter(o => !o.poi);
   /* scarto i doppioni (stesso luogo da più fonti); i punti scritti a mano restano sempre */
   let found = v[0].slice();
   [v[1], v[2], v[3], v[4]].forEach(list => { found = found.concat(list.filter(o => !found.some(w => haversine(o.lat,o.lon,w.lat,w.lon) < 40))); });
   eItems = found.concat(v[5]).sort((a,b) => a.dist - b.dist);
   eSel = -1; $('eCard').classList.remove('show');
-  drawArt(); renderMon();
+  drawArt(); drawPois(); renderMon();
   setHint();
 }
+/* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
+const FLT_ALL = ['mon','claude'].concat(Object.keys(POI));
+let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
+const fltOn = k => eFlt[k] !== false;
+let ePois = [];
+const ePoiL = L.layerGroup();
+const POI_Z = 15;          /* ristoranti e bar sono tanti: li mostro da zoom 15 */
+const poiIcon = c => '<svg viewBox="0 0 24 24" aria-hidden="true">'+POI[c].ic+'</svg>';
+function drawPois(){
+  ePoiL.clearLayers();
+  if (!eNear || emap.getZoom() < POI_Z){ emap.removeLayer(ePoiL); return; }
+  emap.addLayer(ePoiL);
+  ePois.forEach(o => { if (!fltOn(o.cat)) return;
+    L.marker([o.lat, o.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="poi" style="border-color:'+POI[o.cat].c+';color:'+POI[o.cat].c+'">'+poiIcon(o.cat)+'</div>' }), zIndexOffset:-200 })
+      .on('click', () => showPoi(o)).addTo(ePoiL); });
+}
+const POI_TYPE = { restaurant:'Ristorante', fast_food:'Cibo veloce', cafe:'Caffè', bar:'Bar', pub:'Pub', ice_cream:'Gelateria', pharmacy:'Farmacia',
+  toilets:'Bagni pubblici', drinking_water:'Acqua potabile', museum:'Museo', gallery:'Galleria', viewpoint:'Belvedere' };
+function showPoi(o){
+  const t = o.tags, typ = POI_TYPE[t.amenity] || POI_TYPE[t.tourism] || POI[o.cat].one;
+  const extra = [t.cuisine ? 'Cucina: '+t.cuisine.replace(/;/g, ', ').replace(/_/g,' ') : '', t.opening_hours ? 'Orari: '+t.opening_hours : '',
+    t.phone || t['contact:phone'] ? 'Tel. '+(t.phone || t['contact:phone']) : ''].filter(Boolean);
+  const web = t.website || t['contact:website'];
+  const dir = 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+o.lat+','+o.lon;
+  showCard('<div class="ch"><span class="meta">'+esc(typ)+(userPos ? ' · a '+formatDist(haversine(userPos.lat,userPos.lon,o.lat,o.lon)*1)+' da te' : '')+'</span><button class="x" aria-label="Chiudi">✕</button></div>'+
+    '<h3>'+esc(o.title)+'</h3>'+(extra.length ? '<p>'+extra.map(esc).join('<br>')+'</p>' : '')+
+    '<div class="acts"><a href="'+dir+'" target="_blank" rel="noopener">Indicazioni a piedi</a>'+(web ? '<a href="'+esc(web)+'" target="_blank" rel="noopener">Sito</a>' : '')+
+    '<a href="'+esc(o.url)+'" target="_blank" rel="noopener">OpenStreetMap</a></div>');
+}
+/* pannello dei filtri */
+function fltPanel(){
+  const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
+  const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
+  $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
+    row('mon', 'Monumenti e opere', d('#b98f3e', '<span class="dt" style="background:#b98f3e"></span>'))+
+    row('claude', 'Aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
+    Object.keys(POI).map(k => row(k, POI[k].t, d(POI[k].c, poiIcon(k)))).join('')+
+    '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">Ristoranti, bar e servizi compaiono ingrandendo (zoom 15).</div>';
+}
+function setFltP(o){ if (o){ fltPanel(); setOpt(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+$('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
+$('eFltP').addEventListener('click', e => {
+  const b = e.target.closest('button[data-f]'); if (!b) return;
+  eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
+  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPois();
+});
+document.addEventListener('click', e => { if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false); });
 function drawArt(){
   eArt.clearLayers();
-  eItems.forEach((it,i) => L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
+  eItems.forEach((it,i) => fltOn(it.source==='custom' ? 'claude' : 'mon') && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
       html:'<div class="c-dot'+(it.source==='custom'?' cu':'')+(i===eSel?' sel':'')+'"></div>'}), zIndexOffset: i===eSel ? 900 : 0 })
     .on('click', () => eShowItem(i, false)).addTo(eArt));
 }
@@ -1330,6 +1442,61 @@ async function eLoadDo(c, my){
     : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>';
 }
 
+$('eDo').addEventListener('click', e => { const b = e.target.closest('.rt-btn'); if (b) showRoute(JSON.parse(b.dataset.stops), b, !!b.dataset.ch); });
+
+/* Mostra un percorso: cerco i luoghi su OpenStreetMap (Nominatim) vicino alla città e li unisco con un percorso a piedi */
+const eRoute = L.layerGroup().addTo(emap);
+const geoMem = {};
+async function geocode(q, c){
+  const key = 'geo:'+q+'|'+c.lat.toFixed(2)+','+c.lon.toFixed(2);
+  if (geoMem[key] !== undefined) return geoMem[key];
+  const cached = store.get(key, undefined); if (cached !== undefined) return geoMem[key] = cached;
+  const d = 0.12, vb = (c.lon-d)+','+(c.lat+d)+','+(c.lon+d)+','+(c.lat-d);
+  const u = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=it&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(q+', '+(c.ref||c).n);
+  let r = null;
+  try { const j = await (await fetch(u)).json(); if (j && j[0]) r = { lat:+j[0].lat, lon:+j[0].lon }; } catch(e){ return null; }
+  store.set(key, r); return geoMem[key] = r;
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function showRoute(stops, btn, churches){
+  const c = eCity; if (!c) return;
+  btn.classList.add('busy'); const old = btn.innerHTML; btn.innerHTML = RT_IC+'Cerco i luoghi…';
+  const pts = [];
+  for (let i = 0; i < stops.length; i++){ const key = 'geo:'+stops[i]+'|'+c.lat.toFixed(2)+','+c.lon.toFixed(2);
+    const fresh = geoMem[key] === undefined && store.get(key, undefined) === undefined;
+    let g = await geocode(stops[i], c);
+    /* nel "giro delle chiese" i nomi sono abbreviati (Gesuiti, Itria...): riprovo con "Chiesa" davanti */
+    if (!g && churches && !/^(chiesa|cattedrale|santuario|basilica|duomo|badia|convento)/i.test(stops[i])){ if (fresh) await wait(1100); g = await geocode('Chiesa '+stops[i], c); }
+    pts.push(g); if (fresh && i < stops.length - 1) await wait(1100); }   /* Nominatim: massimo una richiesta al secondo */
+  btn.classList.remove('busy'); btn.innerHTML = old;
+  const ok = pts.map((p,i) => p && { ...p, n: stops[i], i }).filter(Boolean);
+  if (!ok.length){ alert('Non riesco a trovare questi luoghi sulla mappa. Puoi chiedere a Claude di aggiungerli.'); return; }
+  eRoute.clearLayers();
+  let line = null, info = '';
+  if (ok.length >= 2){
+    try {
+      const u = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot/'+ok.map(p => p.lon+','+p.lat).join(';')+'?overview=full&geometries=geojson';
+      const j = await (await fetch(u)).json();
+      if (j.routes && j.routes[0]){ const R = j.routes[0];
+        line = R.geometry.coordinates.map(x => [x[1], x[0]]);
+        info = (R.distance >= 1000 ? (R.distance/1000).toFixed(1).replace('.', ',')+' km' : Math.round(R.distance/10)*10+' m')+' a piedi, circa '+Math.max(1, Math.round(R.distance/80))+' minuti'; }
+    } catch(e){}
+    const ll = line || ok.map(p => [p.lat, p.lon]);
+    L.polyline(ll, { color:'#fff', weight:8, opacity:.9, interactive:false }).addTo(eRoute);
+    L.polyline(ll, { color:'#2470b8', weight:5, opacity:.95, dashArray: line ? null : '8 8', interactive:false }).addTo(eRoute);
+    if (!line) info = 'Collegamento in linea d\'aria: il percorso a piedi non è disponibile ora';
+  }
+  ok.forEach((p, k) => L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="rt-n">'+(k+1)+'</div>' }), zIndexOffset:1000 }).addTo(eRoute));
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (ok.length >= 2) emap.fitBounds(L.latLngBounds(ok.map(p => [p.lat, p.lon])).pad(0.25), { maxZoom:17 }); else emap.setView([ok[0].lat, ok[0].lon], 17);
+  let n = 0;
+  showCard('<div class="ch"><span class="meta">Percorso dai consigli</span><button class="x" aria-label="Chiudi">✕</button></div>'+
+    (info ? '<p>'+esc(info)+'</p>' : '')+'<ol class="rt">'+stops.map((s,i) => pts[i] ? '<li>'+esc(s)+'</li>' : '<li class="miss">'+esc(s)+' (non trovato)</li>').join('')+'</ol>'+
+    '<div class="acts"><button id="eRtClr">Togli il percorso</button>'+(ok.length >= 2 ? '<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ok[0].lat+','+ok[0].lon+
+      '&destination='+ok[ok.length-1].lat+','+ok[ok.length-1].lon+(ok.length > 2 ? '&waypoints='+ok.slice(1,-1).map(p => p.lat+','+p.lon).join('%7C') : '')+'">Apri in Google Maps</a>' : '')+'</div>');
+  $('eRtClr').onclick = () => { eRoute.clearLayers(); $('eCard').classList.remove('show'); };
+}
+
 /* ---------- sezione 2: foto della città ---------- */
 async function photoList(c){
   if (photoCache[c.n]) return photoCache[c.n];
@@ -1392,7 +1559,7 @@ function eSelectCity(c, opts){
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c;
   if (!same) $('eStart').hidden = true;
-  if (!same){ const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
+  if (!same){ eRoute.clearLayers(); const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
     openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
@@ -1440,7 +1607,7 @@ emap.on('zoomend moveend', () => {
       loadArea(c.lat, c.lng, 1800);
     } else if (haversine(c.lat, c.lng, eArea.lat, eArea.lon) > 300) $('eRefetch').classList.add('show');
   }
-  eRefreshWx(); eRefreshDots(); if (!eLoading) setHint();
+  eRefreshWx(); eRefreshDots(); drawPois(); if (!eLoading) setHint();
 });
 $('eRefetch').onclick = () => { const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); };
 
@@ -1499,7 +1666,7 @@ function optSync(){
   P.querySelector('[data-o=wake]').classList.toggle('dis', !('wakeLock' in navigator));
 }
 function setOpt(o){ $('eOptP').hidden = !o; $('eOpt').setAttribute('aria-expanded', o); if (o) optSync(); }
-$('eOpt').onclick = e => { e.stopPropagation(); setOpt($('eOptP').hidden); };
+$('eOpt').onclick = e => { e.stopPropagation(); if ($('eOptP').hidden) setFltP(false); setOpt($('eOptP').hidden); };
 $('eOptP').addEventListener('click', e => {
   const b = e.target.closest('button[data-o]'); if (!b) return;
   const o = b.dataset.o;

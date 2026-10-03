@@ -19,6 +19,14 @@ Fuori dai centri abitati l'app non si aggancia per forza a una città: crea il l
 con meteo, mare, foto e monumenti di quel punto preciso, e curiosità e consigli della città più vicina.
 Con il GPS già consentito, all'apertura mostra subito il posto in cui ti trovi.
 
+Filtri della mappa (tasto imbuto, da vicino): monumenti, punti di Claude, ristoranti, bar e gelaterie, musei,
+panorami, spiagge, farmacie/bagni/fontanelle (dati OpenStreetMap, nella stessa richiesta Overpass dei monumenti;
+ristoranti e servizi da zoom 15). Tutti accesi di default, l'ultima scelta resta salvata.
+
+Percorsi: nei consigli di Wikivoyage, i paragrafi con "da X a Y" o con un elenco di tappe (giro, percorso, itinerario)
+hanno il tasto "Mostra il percorso sulla mappa": le tappe vengono cercate con Nominatim vicino alla città
+(una richiesta al secondo, risultati salvati) e unite con il percorso a piedi di routing.openstreetmap.de.
+
 Sulla mappa c'è il tasto posizione: 1° tocco centra e segue, 2° tocco gira la mappa nella direzione in cui vai,
 3° tocco torna con il nord in alto (la bussola in alto a sinistra fa lo stesso).
 Tutti i tasti della mappa stanno in basso, a portata di pollice: a destra lo zoom a cursore (da zoom 9 al massimo, movimento continuo, un livello ogni 26 px di dito, + e − alle estremità),

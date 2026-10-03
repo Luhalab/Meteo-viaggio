@@ -1,7 +1,7 @@
 /* Service worker minimo: tiene in cache solo l'app (pagina e icone).
    I dati di meteo, mare, meduse e luoghi NON vengono mai messi in cache:
    passano sempre dalla rete, così non vedi mai previsioni vecchie. */
-const CACHE = 'viaggio-v29';
+const CACHE = 'viaggio-v30';
 const SHELL = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest', './region-italia.json', './region-svizzera.json'];
 
 self.addEventListener('install', e => {
