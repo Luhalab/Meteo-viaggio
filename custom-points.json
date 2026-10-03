@@ -364,8 +364,8 @@
   {
     "kind": "curiosita",
     "title": "Una chiesa trasformata in fortezza",
-    "lat": 38.1721,
-    "lon": 12.7343,
+    "lat": 38.17603,
+    "lon": 12.73411,
     "extract": "Il santuario nacque come piccola cappella del Trecento dedicata a san Vito. Per ospitare e difendere i pellegrini dai pirati, a fine Quattrocento divenne una fortezza-alloggio, con feritoie e mura spesse da 20 cm fino a 2,5 metri. La torre di avvistamento è del 1600, su progetto del fiorentino Camilliani.",
     "url": null
   },
@@ -710,7 +710,17 @@
     "lat": 38.1721,
     "lon": 12.7343,
     "extract": "Parti dalla piazza del Santuario, passa per Via Venza (strada di murales e botteghe colorate) e prosegui verso Capo San Vito: il faro ottocentesco, alto 43 metri, dista circa 2 km dal centro, 25-30 minuti a piedi. Il momento migliore è il tramonto, con la luce che si accende sul promontorio. Porta acqua e scarpe chiuse se vai oltre la strada asfaltata.",
-    "url": null
+    "url": null,
+    "stops": [
+      {
+        "n": "Santuario di San Vito",
+        "lat": 38.17603,
+        "lon": 12.73411
+      },
+      {
+        "n": "Faro di Capo San Vito"
+      }
+    ]
   },
   {
     "kind": "da-fare",
@@ -718,7 +728,19 @@
     "lat": 38.1721,
     "lon": 12.7343,
     "extract": "Passeggiata o giro in bici lungo la costa a est del paese (circa 3 km dal centro) fino a Torre dell'Usciere e alla Tonnara del Secco, con vista sulla Riserva dello Zingaro. Meglio al mattino presto o a fine pomeriggio, per evitare il caldo. La torre risulta in area militare: guardala da fuori.",
-    "url": null
+    "url": null,
+    "stops": [
+      {
+        "n": "Torre dell'Usciere",
+        "lat": 38.17507,
+        "lon": 12.77088
+      },
+      {
+        "n": "Tonnara del Secco",
+        "lat": 38.16828,
+        "lon": 12.76857
+      }
+    ]
   },
   {
     "kind": "da-fare",

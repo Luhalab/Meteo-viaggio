@@ -266,6 +266,7 @@ body.e-near .ectl .nr{display:flex}
 .ecard .acts #eRtClr{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-dot.cu{background:var(--brick)}
+.c-dot.st{background:#6b4fa0}
 .c-dot.sel{width:22px;height:22px}
 .c-dot.sm{width:10px;height:10px;border-width:1.5px;box-shadow:0 0 0 1.5px rgba(22,33,28,.75)}
 .mark-pin{font-size:24px;transform:translate(-50%,-90%)}
@@ -1397,9 +1398,17 @@ async function customAll(){
   if (!customCache){ try { const r = await fetch('custom-points.json', {cache:'no-store'}); customCache = r.ok ? await r.json() : []; } catch(e){ customCache = []; } }
   return customCache;
 }
+/* Curiosità e consigli hanno spesso le coordinate del centro città (tutti nello stesso punto):
+   sulla mappa metto solo quelli legati a un luogo preciso, cioè con coordinate che non condividono con altri. */
+function customPrecise(all){
+  const k = p => p.lat.toFixed(4)+','+p.lon.toFixed(4), n = {};
+  all.forEach(p => { if (p.lat != null && p.kind) n[k(p)] = (n[k(p)] || 0) + 1; });
+  return p => p.lat != null && (!p.kind || n[k(p)] === 1);
+}
 async function fetchCustomPoints(lat, lon, radius){
-  return (await customAll()).filter(p => p.kind !== 'curiosita' && p.lat != null).map(p => ({
-    title: p.title, extract: p.extract || '', thumb: p.thumb || null, lat: p.lat, lon: p.lon,
+  const all = await customAll(), ok = customPrecise(all);
+  return all.filter(ok).map(p => ({
+    title: p.title, extract: p.extract || '', thumb: p.thumb || null, lat: p.lat, lon: p.lon, kind: p.kind || null, stops: p.stops || null,
     dist: haversine(lat, lon, p.lat, p.lon), url: p.url || null, source: 'custom' })).filter(p => p.dist <= radius);
 }
 
@@ -1423,7 +1432,7 @@ async function loadArea(lat, lon, radius){
   setHint();
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','claude'];
+const FLT_ALL = ['mon','claude','storie'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
 /* pannello dei filtri */
@@ -1432,7 +1441,8 @@ function fltPanel(){
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
     row('mon', 'Monumenti e opere', d('#b98f3e', '<span class="dt" style="background:#b98f3e"></span>'))+
-    row('claude', 'Aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
+    row('claude', 'Luoghi aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
+    row('storie', 'Curiosità e consigli di Claude', d('#6b4fa0', '<span class="dt" style="background:#6b4fa0"></span>'))+
     '<div class="fh">Sfondo</div>'+
     [['vector','Vettoriale','scritte nitide, icone a scelta (consigliata)'],['osm','OpenStreetMap classica','con tutte le icone dei locali'],['clean','Senza icone dei locali','mappa stradale Esri']]
       .map(b => '<button data-b="'+b[0]+'" class="bgr'+(tileBase === b[0] ? ' on' : '')+'"><span>'+b[1]+'<small>'+b[2]+'</small></span><i class="rd"></i></button>').join('')+
@@ -1460,8 +1470,8 @@ $('eFltP').addEventListener('click', e => {
 document.addEventListener('click', e => { if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false); });
 function drawArt(){
   eArt.clearLayers();
-  eItems.forEach((it,i) => fltOn(it.source==='custom' ? 'claude' : 'mon') && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
-      html:'<div class="c-dot'+(it.source==='custom'?' cu':'')+(i===eSel?' sel':'')+'"></div>'}), zIndexOffset: i===eSel ? 900 : 0 })
+  eItems.forEach((it,i) => fltOn(it.kind ? 'storie' : it.source==='custom' ? 'claude' : 'mon') && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
+      html:'<div class="c-dot'+(it.kind ? ' st' : it.source==='custom'?' cu':'')+(i===eSel?' sel':'')+'"></div>'}), zIndexOffset: i===eSel ? 900 : 0 })
     .on('click', () => eShowItem(i, false)).addTo(eArt));
 }
 const SRC_LABEL = { osm:'Vedi su OpenStreetMap', swiss:'Vedi su geo.admin.ch', 'emilia-romagna':'Vedi su patrimonioculturale-er.it',
@@ -1470,9 +1480,16 @@ function eShowItem(i, fly){
   const it = eItems[i]; if (!it) return; eSel = i; drawArt(); renderMon();
   if (fly || !eNear) emap.flyTo([it.lat,it.lon], Math.max(emap.getZoom(), 16)); else emap.panTo([it.lat,it.lon]);
   const lbl = SRC_LABEL[it.source];
-  showCard('<div class="ch"><span class="meta">'+(it.source==='custom'?'<span class="tag-cu">Aggiunto da Claude</span> · ':'')+'a '+formatDist(it.dist)+' dal centro</span><button class="x" aria-label="Chiudi">✕</button></div>'+
+  const tag = it.kind === 'curiosita' ? 'Curiosità di Claude' : it.kind === 'da-fare' ? 'Consiglio di Claude' : 'Aggiunto da Claude';
+  /* curiosità e consigli di Claude legati a questo stesso posto (entro 80 m) */
+  const near = eItems.filter(o => o !== it && o.kind && haversine(it.lat, it.lon, o.lat, o.lon) <= 80);
+  const rs = routeOf(it);
+  showCard('<div class="ch"><span class="meta">'+(it.source==='custom'?'<span class="tag-cu">'+tag+'</span> · ':'')+'a '+formatDist(it.dist)+' dal centro</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     '<h3>'+esc(it.title)+'</h3><div class="cb">'+(it.thumb?'<img src="'+esc(it.thumb)+'" alt="">':'')+'<p id="eCardTx">'+(esc(it.extract)||'Nessuna descrizione disponibile.')+'</p></div>'+
+    near.map(o => '<p style="margin-top:10px"><b>'+esc(o.title)+'</b><br>'+esc(o.extract)+'</p>').join('')+
+    (rs ? '<button class="rt-btn" id="eCardRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
     '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button>'+((it.url && lbl) ? '<a href="'+esc(it.url)+'" target="_blank" rel="noopener">'+lbl+'</a>' : '')+'</div>');
+  if (rs) $('eCardRt').onclick = () => showRoute(rs, $('eCardRt'), false);
   $('eAsk').onclick = () => shareToClaude(msgPlace(it));
   /* per Wikipedia carico l'introduzione completa, non solo le prime righe */
   if (it.source === 'wikipedia' && it.lang) wikiSummary(it.lang, it.title).then(s => {
@@ -1492,9 +1509,10 @@ function setHint(html){
 function renderMon(){
   if (!eItems.length && !eCity){ $('eMonS').hidden=true; return; }
   $('eMonS').hidden=false;
-  $('eMonT').textContent = eCity ? 'Monumenti '+placeDi(eCity) : 'Monumenti in zona'; $('eMonN').textContent = eItems.length || '';
-  if (!eItems.length){ $('eMon').innerHTML = '<span class="muted">'+(eReq && eArea ? 'Nessun monumento catalogato qui.' : '<span class="spin"></span>Cerco…')+'</span>'; return; }
-  $('eMon').innerHTML = eItems.slice(0,40).map((it,i) =>
+  $('eMonT').textContent = eCity ? 'Monumenti '+placeDi(eCity) : 'Monumenti in zona'; const monN = eItems.filter(o => !o.kind).length; $('eMonN').textContent = monN || '';
+  if (!monN){ $('eMon').innerHTML = '<span class="muted">'+(eReq && eArea ? 'Nessun monumento catalogato qui.' : '<span class="spin"></span>Cerco…')+'</span>'; return; }
+  /* curiosità e consigli non sono monumenti: restano sulla mappa ma non in questo elenco */
+  $('eMon').innerHTML = eItems.map((it,i) => [it,i]).filter(x => !x[0].kind).slice(0,40).map(([it,i]) =>
     '<div class="mon'+(i===eSel?' on':'')+'" data-i="'+i+'"><span class="dt'+(it.source==='custom'?' cu':'')+'"></span><div class="tx">'+
     '<div class="hd"><b>'+esc(it.title)+'</b><span>'+formatDist(it.dist)+'</span></div>'+
     (it.source==='custom' ? '<div class="tag-cu">Aggiunto da Claude</div>' : '')+
@@ -1538,7 +1556,10 @@ async function eLoadDo(c, my){
   if (eWvCache[c.n] === undefined) eWvCache[c.n] = await extracts(LG+'.wikivoyage.org', c.n);
   if (my !== eCityReq) return;
   const base = 'https://'+LG+'.wikivoyage.org/wiki/'+encodeURIComponent(c.n.replace(/ /g,'_'));
-  const blocks = mine.map(p => '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p><span class="tag-cu">Consiglio di Claude</span></details>')
+  const blocks = mine.map(p => { const rs = routeOf(p);
+    return '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
+      (rs ? '<button class="rt-btn" data-stops="'+esc(JSON.stringify(rs))+'">'+RT_IC+'Mostra il percorso sulla mappa</button><br>' : '')+
+      '<span class="tag-cu">Consiglio di Claude</span></details>'; })
     .concat(eWvCache[c.n] ? guideBlocks(eWvCache[c.n], DO_SEC, base, 'Wikivoyage', 1200) : []);
   $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n;
   $('eDo').innerHTML = blocks.length ? blocks.join('')+'<div class="muted" style="margin-top:8px;font-size:11.5px">Testi di Wikivoyage (CC BY-SA) e consigli di Claude</div>'
@@ -1561,18 +1582,40 @@ async function geocode(q, c){
   store.set(key, r); return geoMem[key] = r;
 }
 const wait = ms => new Promise(r => setTimeout(r, ms));
+/* tappe di un consiglio di Claude: il campo "stops" se c'è, altrimenti le cerco nel titolo e nel testo */
+function routeOf(p){
+  if (Array.isArray(p.stops) && p.stops.length >= 2) return p.stops;
+  if (p.kind !== 'da-fare') return null;
+  return routeStops(p.title) || routeStops(p.extract || '');
+}
+const nrm = x => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+/* un nome di tappa ("santuario", "Torre dell'Usciere") lo cerco prima tra i luoghi già sulla mappa e tra quelli di Claude */
+async function knownPlace(name, c){
+  const q = nrm(name); if (q.length < 4) return null;
+  const all = (await customAll()).filter(p => p.lat != null && !p.kind).map(p => ({ t:p.title, lat:p.lat, lon:p.lon }))
+    .concat(eItems.filter(o => !o.kind).map(o => ({ t:o.title, lat:o.lat, lon:o.lon })))
+    .filter(p => km(c.lat, c.lon, p.lat, p.lon) <= 15);
+  const hit = all.find(p => nrm(p.t) === q) || all.find(p => nrm(p.t).startsWith(q)) || all.find(p => (' '+nrm(p.t)+' ').includes(' '+q+' '));
+  return hit ? { lat:hit.lat, lon:hit.lon } : null;
+}
 async function showRoute(stops, btn, churches){
+  /* le tappe possono essere nomi o oggetti {n, lat, lon} */
+  stops = stops.map(x => typeof x === 'string' ? { n:x } : x);
+  const names = stops.map(x => x.n || x.title || 'Tappa');
   const c = eCity; if (!c) return;
   btn.classList.add('busy'); const old = btn.innerHTML; btn.innerHTML = RT_IC+'Cerco i luoghi…';
   const pts = [];
-  for (let i = 0; i < stops.length; i++){ const key = 'geo:'+stops[i]+'|'+c.lat.toFixed(2)+','+c.lon.toFixed(2);
+  for (let i = 0; i < stops.length; i++){
+    if (stops[i].lat != null){ pts.push({ lat:+stops[i].lat, lon:+stops[i].lon }); continue; }
+    const kp = await knownPlace(names[i], c); if (kp){ pts.push(kp); continue; }
+    const key = 'geo:'+names[i]+'|'+c.lat.toFixed(2)+','+c.lon.toFixed(2);
     const fresh = geoMem[key] === undefined && store.get(key, undefined) === undefined;
-    let g = await geocode(stops[i], c);
+    let g = await geocode(names[i], c);
     /* nel "giro delle chiese" i nomi sono abbreviati (Gesuiti, Itria...): riprovo con "Chiesa" davanti */
-    if (!g && churches && !/^(chiesa|cattedrale|santuario|basilica|duomo|badia|convento)/i.test(stops[i])){ if (fresh) await wait(1100); g = await geocode('Chiesa '+stops[i], c); }
+    if (!g && churches && !/^(chiesa|cattedrale|santuario|basilica|duomo|badia|convento)/i.test(names[i])){ if (fresh) await wait(1100); g = await geocode('Chiesa '+names[i], c); }
     pts.push(g); if (fresh && i < stops.length - 1) await wait(1100); }   /* Nominatim: massimo una richiesta al secondo */
   btn.classList.remove('busy'); btn.innerHTML = old;
-  const ok = pts.map((p,i) => p && { ...p, n: stops[i], i }).filter(Boolean);
+  const ok = pts.map((p,i) => p && { ...p, n: names[i], i }).filter(Boolean);
   if (!ok.length){ alert('Non riesco a trovare questi luoghi sulla mappa. Puoi chiedere a Claude di aggiungerli.'); return; }
   eRoute.clearLayers();
   let line = null, info = '';
@@ -1594,7 +1637,7 @@ async function showRoute(stops, btn, churches){
   if (ok.length >= 2) emap.fitBounds(L.latLngBounds(ok.map(p => [p.lat, p.lon])).pad(0.25), { maxZoom:17 }); else emap.setView([ok[0].lat, ok[0].lon], 17);
   let n = 0;
   showCard('<div class="ch"><span class="meta">Percorso dai consigli</span><button class="x" aria-label="Chiudi">✕</button></div>'+
-    (info ? '<p>'+esc(info)+'</p>' : '')+'<ol class="rt">'+stops.map((s,i) => pts[i] ? '<li>'+esc(s)+'</li>' : '<li class="miss">'+esc(s)+' (non trovato)</li>').join('')+'</ol>'+
+    (info ? '<p>'+esc(info)+'</p>' : '')+'<ol class="rt">'+names.map((s,i) => pts[i] ? '<li>'+esc(s)+'</li>' : '<li class="miss">'+esc(s)+' (non trovato)</li>').join('')+'</ol>'+
     '<div class="acts"><button id="eRtClr">Togli il percorso</button>'+(ok.length >= 2 ? '<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ok[0].lat+','+ok[0].lon+
       '&destination='+ok[ok.length-1].lat+','+ok[ok.length-1].lon+(ok.length > 2 ? '&waypoints='+ok.slice(1,-1).map(p => p.lat+','+p.lon).join('%7C') : '')+'">Apri in Google Maps</a>' : '')+'</div>');
   $('eRtClr').onclick = () => { eRoute.clearLayers(); $('eCard').classList.remove('show'); };
@@ -1662,7 +1705,8 @@ function eSelectCity(c, opts){
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c;
   if (!same) $('eStart').hidden = true;
-  if (!same){ eRoute.clearLayers(); const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
+  if (!same){ if (!(opts && opts.noArea)) eRoute.clearLayers();   /* spostando la mappa il percorso resta */
+    const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
     openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);

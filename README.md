@@ -62,3 +62,8 @@ sfondo mappa Esri, con OpenStreetMap di riserva · comuni italiani ISTAT · loca
 
 ## Pubblicazione
 Sito statico: su Vercel scegliere Framework Preset "Other", senza build.
+
+Curiosità e consigli di Claude sulla mappa (punti viola, filtro proprio): compaiono solo se hanno le coordinate del luogo
+preciso (non quelle del centro città, condivise da più voci). Toccando un luogo si vedono anche le curiosità entro 80 m.
+Un consiglio "da-fare" può avere il campo "stops": tappe in ordine, ognuna {"n": nome, "lat", "lon"} (coordinate facoltative:
+senza, l'app cerca il nome tra i luoghi noti e poi su OpenStreetMap). Senza "stops", l'app prova a leggere "da X a Y" nel titolo.
