@@ -187,12 +187,12 @@ body.e-full{overflow:hidden}
 .ectl button.on{color:#2470b8}
 .ectl button.on svg circle{fill:#2470b8;fill-opacity:.25}
 .ectl button.hu{background:#2470b8;color:#fff}
-.ecomp{position:absolute;left:10px;top:92px;z-index:900;width:44px;height:44px;border:none;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.ecomp{position:absolute;left:10px;top:auto;z-index:900;width:44px;height:44px;border:none;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .ecomp[hidden]{display:none}
 .ecomp svg{width:30px;height:30px}
 .ecomp b{position:absolute;top:-2px;font:700 9px var(--sans);color:#c0392b;display:none}
-.eopt{position:absolute;right:62px;top:10px;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
-.ewrap.full .eopt{top:calc(10px + env(safe-area-inset-top,0px))}
+.eopt{position:absolute;right:62px;bottom:28px;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
+.ewrap.full .eopt{bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .eopt[hidden]{display:none}
 .eopt button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:none;background:none;color:var(--tx);text-align:left;padding:10px;border-radius:10px;font:500 14px var(--sans);cursor:pointer;min-height:44px}
 .eopt button:active{background:var(--soft)}
@@ -204,8 +204,11 @@ body.e-full{overflow:hidden}
 .eopt button.on i::after{transform:translateX(14px)}
 .eopt button.act span{color:var(--acc)}
 .eopt button.dis{display:none}
-.ewrap.locked .ezb{display:none}
+.ewrap.locked .ezb .zq{display:none}
 .ectl.ezb{top:auto;bottom:28px}
+.leaflet-bottom.leaflet-left .leaflet-control-zoom{margin-bottom:28px}
+.ewrap.full .leaflet-bottom.leaflet-left .leaflet-control-zoom{margin-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+.leaflet-touch .leaflet-control-zoom a{width:44px;height:44px;line-height:44px;font-size:24px}
 .ewrap.full .ectl.ezb{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:955;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
 .epill[hidden]{display:none}
@@ -215,7 +218,10 @@ body.e-near .ectl .nr{display:flex}
 .erefetch{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:900;background:#16211c;color:#f4efde;border:1px solid var(--gold);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .ewrap.full .erefetch{top:calc(10px + env(safe-area-inset-top,0px))}
 .erefetch.show{display:block}
-.ehint{position:absolute;left:10px;bottom:24px;z-index:900;max-width:calc(100% - 20px);background:rgba(255,255,255,.96);color:#3b4a55;border-radius:999px;padding:7px 12px;font-size:12.5px;pointer-events:none;box-shadow:0 2px 8px rgba(20,36,48,.12)}
+.erefetch.show ~ .ehint{top:58px}
+.ewrap.full .ehint{top:calc(10px + env(safe-area-inset-top,0px))}
+.ewrap.full .erefetch.show ~ .ehint{top:calc(58px + env(safe-area-inset-top,0px))}
+.ehint{position:absolute;left:50%;transform:translateX(-50%);top:10px;white-space:nowrap;z-index:900;max-width:calc(100% - 20px);background:rgba(255,255,255,.96);color:#3b4a55;border-radius:999px;padding:7px 12px;font-size:12.5px;pointer-events:none;box-shadow:0 2px 8px rgba(20,36,48,.12)}
 .ecard{position:absolute;left:10px;right:10px;bottom:24px;z-index:950;background:var(--card);color:var(--tx);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:14px 16px;max-height:60%;overflow:auto;display:none}
 .ewrap.full .ecard{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 .ecard.show{display:block}
@@ -325,12 +331,12 @@ footer a{color:var(--tx2)}
       <button class="erefetch" id="eRefetch">Cerca opere in questa zona</button>
       <div class="ectl">
         <button id="eFull" aria-label="Schermo intero"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-        <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
-        <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
-        <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
-        <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
       <div class="ectl ezb">
+        <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
+        <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+        <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         <button class="zq" id="eZin" aria-label="Ingrandisci quasi al massimo sulla tua posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6M10.5 7.5v6"/></svg></button>
         <button class="zq" id="eZout" aria-label="Allontana la mappa restando sulla tua posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/></svg></button>
       </div>
@@ -801,8 +807,9 @@ const POINTS_REPO = 'Luhalab/Meteo-viaggio';
 let eLoading = false, eCity = null, eItems = [], eArea = null, eNear = false, eSel = -1, eLayerMode = 'wx', eReq = 0, eCityReq = 0;
 
 const CAN_ROT = typeof L.Map.prototype.setBearing === 'function';
-const emap = L.map('emap', Object.assign({ minZoom:5, maxZoom:20, zoomSnap:0.5, zoomDelta:1 },
+const emap = L.map('emap', Object.assign({ minZoom:5, maxZoom:20, zoomSnap:0.5, zoomDelta:1, zoomControl:false },
   CAN_ROT ? { rotate:true, rotateControl:false, shiftKeyRotate:false, touchRotate: store.get('mapRot2', false), bearing:0 } : {}));
+L.control.zoom({ position:'bottomleft', zoomInTitle:'Ingrandisci', zoomOutTitle:'Rimpicciolisci' }).addTo(emap);
 emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
 /* Sfondo OpenStreetMap a ogni zoom. Le scritte delle tile OSM sono piccole sui telefoni:
    da zoom 12 in su uso le tile del livello precedente mostrate al doppio (512 px),
@@ -1519,10 +1526,10 @@ const ZOOM_NEAR = 18, ZOOM_FAR = 9;
 const zqCenter = () => userPos ? [userPos.lat, userPos.lon] : emap.getCenter();
 $('eZin').onclick  = () => emap.flyTo(zqCenter(), ZOOM_NEAR);
 $('eZout').onclick = () => emap.flyTo(zqCenter(), ZOOM_FAR);
-/* la bussola sta sotto i tasti dello zoom, ovunque finiscano */
+/* la bussola sta sopra i tasti + e − (in basso a sinistra) */
 function placeComp(){
   const z = document.querySelector('#emap .leaflet-control-zoom'), w = $('eWrap'); if (!z) return;
-  $('eComp').style.top = (z.getBoundingClientRect().bottom - w.getBoundingClientRect().top + 10) + 'px';
+  $('eComp').style.bottom = (w.getBoundingClientRect().bottom - z.getBoundingClientRect().top + 10) + 'px';
 }
 placeComp(); window.addEventListener('resize', placeComp);
 $('eFull').addEventListener('click', () => setTimeout(placeComp, 100));
