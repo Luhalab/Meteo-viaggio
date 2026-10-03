@@ -866,14 +866,25 @@ emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
    perché lì contano le etichette del meteo. */
 const BIG_LABELS_Z = 12;
 let eTiles = null, eTileKind = '';
-function setETiles(){
-  const kind = emap.getZoom() >= BIG_LABELS_Z ? 'osm2' : 'osm';
-  if (eTiles && kind === eTileKind) return;
-  const old = eTiles;
-  const opts = { maxZoom:20, maxNativeZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' };
-  if (kind === 'osm2') Object.assign(opts, { tileSize:512, zoomOffset:-1, maxNativeZoom:20 });
-  eTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', opts).addTo(emap);
-  eTiles.bringToBack();
+/* Sfondo CARTO Voyager: strade e nomi come OpenStreetMap ma senza le icone di negozi e ristoranti,
+   così sulla mappa compare solo quello che scegli con i filtri. Tile @2x (nitide sul telefono);
+   da zoom 12 le mostro al doppio per avere scritte più grandi. Se CARTO non risponde, torno a OpenStreetMap. */
+let tileFails = 0, tileBase = 'carto';
+function setETiles(force){
+  const kind = tileBase + (emap.getZoom() >= BIG_LABELS_Z ? '2' : '1');
+  if (eTiles && kind === eTileKind && !force) return;
+  const old = eTiles, big = kind.endsWith('2');
+  const opts = { maxZoom:20, maxNativeZoom:big ? 20 : 19 };
+  if (big) Object.assign(opts, { tileSize:512, zoomOffset:-1 });
+  if (tileBase === 'carto'){
+    Object.assign(opts, { subdomains:'abcd', attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>' });
+    eTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', opts);
+    eTiles.on('tileerror', () => { if (++tileFails >= 8 && tileBase === 'carto'){ tileBase = 'osm'; setETiles(true); } });
+  } else {
+    opts.attribution = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    eTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', opts);
+  }
+  eTiles.addTo(emap); eTiles.bringToBack();
   if (old){ let done = false; const rm = () => { if (!done){ done = true; emap.removeLayer(old); } };
     eTiles.once('load', rm); setTimeout(rm, 2500); }        /* tolgo il vecchio sfondo solo quando il nuovo è pronto */
   eTileKind = kind;
