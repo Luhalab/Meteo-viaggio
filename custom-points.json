@@ -735,5 +735,13 @@
     "lon": 12.7343,
     "extract": "La Riserva dello Zingaro si estende per circa 7 km fino a Scopello, tra sentieri, macchia mediterranea e calette di ciottoli con acqua turchese. Da San Vito si può fare un tratto di andata e ritorno: parti presto, porta acqua e scarpe da trekking, e controlla orari e biglietto d'ingresso prima di andare.",
     "url": null
+  },
+  {
+    "title": "Le lapidi garibaldine di Palazzo Senatorio",
+    "lat": 38.0185,
+    "lon": 12.5137,
+    "extract": "Sulla facciata di Palazzo Senatorio, lungo via Torrearsa, una grande lapide ricorda la battaglia di Santa Maria di Capua del 1-2 ottobre 1860 e il Garibaldi dei volontari: dice che Trapani vi ebbe capitani, eroi e gloriosi caduti. Poco sopra c'è una seconda targa dedicata ad aprile 1860, la primavera della spedizione dei Mille.",
+    "url": null,
+    "kind": "curiosita"
   }
 ]
