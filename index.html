@@ -191,7 +191,6 @@ body.e-full{overflow:hidden}
 .ecomp[hidden]{display:none}
 .ecomp svg{width:30px;height:30px}
 .ecomp b{position:absolute;top:-2px;font:700 9px var(--sans);color:#c0392b;display:none}
-.ewrap.full .ecomp{top:calc(92px + env(safe-area-inset-top,0px))}
 .eopt{position:absolute;right:62px;top:10px;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
 .ewrap.full .eopt{top:calc(10px + env(safe-area-inset-top,0px))}
 .eopt[hidden]{display:none}
@@ -205,9 +204,10 @@ body.e-full{overflow:hidden}
 .eopt button.on i::after{transform:translateX(14px)}
 .eopt button.act span{color:var(--acc)}
 .eopt button.dis{display:none}
-.ebox{position:absolute;inset:0;z-index:940;cursor:crosshair;touch-action:none;background:rgba(22,75,110,.06)}
-.ebox[hidden]{display:none}
-.ebr{position:absolute;border:2px solid #2470b8;background:rgba(36,112,184,.15);border-radius:4px;display:none}
+/* zoom veloce: quasi al massimo / quasi tutta la regione */
+.ezq a{display:flex!important;align-items:center;justify-content:center;color:#142430}
+.ezq svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.ewrap.locked .ezq{display:none}
 .epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:955;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
 .epill[hidden]{display:none}
 .ewrap.locked .leaflet-control-zoom{display:none}
@@ -336,11 +336,9 @@ footer a{color:var(--tx2)}
         <button data-o="headup"><span>Ruota seguendo la direzione<small>la mappa gira come te, utile camminando</small></span><i></i></button>
         <button data-o="rot2"><span>Ruota con due dita<small>gira la mappa a mano</small></span><i></i></button>
         <button data-o="north" class="act"><span>Nord in alto</span></button>
-        <button data-o="box" class="act"><span>Zoom a selezione<small>disegna un rettangolo con il dito</small></span></button>
         <button data-o="lock"><span>Blocca la mappa<small>niente spostamenti per sbaglio</small></span><i></i></button>
         <button data-o="wake"><span>Schermo sempre acceso<small>finché resti a schermo intero</small></span><i></i></button>
       </div>
-      <div class="ebox" id="eBox" hidden><div class="ebr" id="eBoxR"></div></div>
       <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
       <div class="ecard" id="eCard"></div>
@@ -1433,7 +1431,7 @@ $('eFull').onclick = () => {
   $('eWrap').classList.toggle('full', f); document.body.classList.toggle('e-full', f);
   $('eFull').innerHTML = svgIc(f ? 'x' : 'full'); $('eFull').setAttribute('aria-label', f ? 'Esci da schermo intero' : 'Schermo intero');
   setTimeout(() => emap.invalidateSize(), 80);
-  if (!f){ setOpt(false); setLock(false); setBox(false); setWake(false); }
+  if (!f){ setOpt(false); setLock(false); setWake(false); }
 };
 
 /* ---------- posizione, rotazione e opzioni della mappa ---------- */
@@ -1471,7 +1469,7 @@ $('eLoc').onclick = async () => {
 };
 
 /* pannello opzioni (a schermo intero) */
-let locked = false, boxOn = false, wakeOn = false, wakeLock = null;
+let locked = false, wakeOn = false, wakeLock = null;
 function optSync(){
   const P = $('eOptP');
   P.querySelector('[data-o=headup]').classList.toggle('on', headUp);
@@ -1489,7 +1487,6 @@ $('eOptP').addEventListener('click', e => {
   if (o === 'headup'){ if (!headUp && userPos){ setFollow(true); emap.panTo([userPos.lat, userPos.lon]); } setHeadUp(!headUp); }
   else if (o === 'rot2'){ const on = !emap.touchRotate.enabled(); on ? emap.touchRotate.enable() : emap.touchRotate.disable(); store.set('mapRot2', on); }
   else if (o === 'north'){ northUp(); setOpt(false); }
-  else if (o === 'box'){ setOpt(false); setBox(true); }
   else if (o === 'lock') setLock(!locked);
   else if (o === 'wake') setWake(!wakeOn);
   optSync();
@@ -1499,11 +1496,10 @@ document.addEventListener('click', e => { if (!$('eOptP').hidden && !e.target.cl
 /* messaggio in basso: mappa bloccata o zoom a selezione */
 function pillSync(){
   const p = $('ePill');
-  if (boxOn){ p.textContent = 'Disegna un rettangolo · Annulla'; p.hidden = false; }
-  else if (locked){ p.textContent = '🔒 Mappa bloccata · tocca per sbloccare'; p.hidden = false; }
+  if (locked){ p.textContent = '🔒 Mappa bloccata · tocca per sbloccare'; p.hidden = false; }
   else p.hidden = true;
 }
-$('ePill').onclick = () => { if (boxOn) setBox(false); else setLock(false); };
+$('ePill').onclick = () => setLock(false);
 
 /* blocca la mappa: niente trascinamenti, zoom o rotazioni per sbaglio (il GPS continua a centrarla) */
 function setLock(on){
@@ -1515,30 +1511,26 @@ function setLock(on){
   optSync(); pillSync();
 }
 
-/* zoom a selezione: col dito disegni un rettangolo e la mappa ingrandisce lì */
-let boxStart = null;
-function setBox(on){ boxOn = on; $('eBox').hidden = !on; $('eBoxR').style.display = 'none'; boxStart = null; pillSync(); }
-const ebox = $('eBox'), ebr = $('eBoxR');
-ebox.addEventListener('pointerdown', e => {
-  const r = ebox.getBoundingClientRect(); boxStart = { x: e.clientX - r.left, y: e.clientY - r.top };
-  ebox.setPointerCapture(e.pointerId); Object.assign(ebr.style, { display:'block', left: boxStart.x+'px', top: boxStart.y+'px', width:'0', height:'0' });
-});
-ebox.addEventListener('pointermove', e => {
-  if (!boxStart) return; const r = ebox.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  Object.assign(ebr.style, { left: Math.min(x, boxStart.x)+'px', top: Math.min(y, boxStart.y)+'px', width: Math.abs(x-boxStart.x)+'px', height: Math.abs(y-boxStart.y)+'px' });
-});
-ebox.addEventListener('pointerup', e => {
-  if (!boxStart) return;
-  const r = ebox.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  const w = Math.abs(x - boxStart.x), h = Math.abs(y - boxStart.y);
-  const mid = L.point((x + boxStart.x) / 2, (y + boxStart.y) / 2);
-  setBox(false);
-  if (w < 24 || h < 24){ wkFlash('Rettangolo troppo piccolo: riprova'); setBox(true); return; }
-  const sz = emap.getSize(), z = emap.getZoom() + Math.log2(Math.min(sz.x / w, sz.y / h));
-  setFollow(false);
-  emap.setView(emap.containerPointToLatLng(mid), Math.min(emap.getMaxZoom(), Math.floor(z * 2) / 2));
-});
-ebox.addEventListener('pointercancel', () => { boxStart = null; ebr.style.display = 'none'; });
+/* due tasti sotto + e −: ingrandisci quasi al massimo, oppure allontana fino a vedere quasi tutto */
+const ZOOM_NEAR = 18, ZOOM_FAR = 6;
+const ZQ = L.Control.extend({ options:{ position:'topleft' }, onAdd(){
+  const d = L.DomUtil.create('div', 'leaflet-bar ezq');
+  const mk = (cls, title, svg, fn) => { const a = L.DomUtil.create('a', cls, d); a.href = '#'; a.title = title; a.setAttribute('role','button'); a.setAttribute('aria-label', title); a.innerHTML = svg;
+    L.DomEvent.on(a, 'click', e => { L.DomEvent.stop(e); fn(); }); };
+  mk('', 'Ingrandisci quasi al massimo', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6M10.5 7.5v6"/></svg>',
+     () => { const c = (follow && userPos) ? [userPos.lat, userPos.lon] : emap.getCenter(); emap.flyTo(c, ZOOM_NEAR); });
+  mk('', 'Allontana per vedere tutta la zona', '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/></svg>',
+     () => { setFollow(false); if (headUp) setHeadUp(false); emap.flyTo(emap.getCenter(), ZOOM_FAR); });
+  L.DomEvent.disableClickPropagation(d);
+  return d; } });
+new ZQ().addTo(emap);
+/* la bussola sta sotto i tasti dello zoom, ovunque finiscano */
+function placeComp(){
+  const z = document.querySelector('#emap .ezq'), w = $('eWrap'); if (!z) return;
+  $('eComp').style.top = (z.getBoundingClientRect().bottom - w.getBoundingClientRect().top + 10) + 'px';
+}
+placeComp(); window.addEventListener('resize', placeComp);
+$('eFull').addEventListener('click', () => setTimeout(placeComp, 100));
 
 /* schermo sempre acceso */
 async function setWake(on){
