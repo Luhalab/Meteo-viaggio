@@ -19,6 +19,12 @@ Fuori dai centri abitati l'app non si aggancia per forza a una città: crea il l
 con meteo, mare, foto e monumenti di quel punto preciso, e curiosità e consigli della città più vicina.
 Con il GPS già consentito, all'apertura mostra subito il posto in cui ti trovi.
 
+Sulla mappa c'è il tasto posizione: 1° tocco centra e segue, 2° tocco gira la mappa nella direzione in cui vai,
+3° tocco torna con il nord in alto (la bussola in alto a sinistra fa lo stesso). A schermo intero il tasto opzioni
+offre: rotazione seguendo la direzione, rotazione con due dita, nord in alto, zoom a selezione (rettangolo col dito),
+blocca la mappa, schermo sempre acceso. La rotazione usa il plugin leaflet-rotate (jsDelivr); se non si carica,
+l'app funziona senza rotazione.
+
 ## Struttura
 - `index.html` — l'app (il "motore", uguale per tutte le regioni)
 - `region-italia.json` — 7.894 comuni + 105 punti mare

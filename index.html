@@ -182,6 +182,36 @@ body.e-full{overflow:hidden}
 .ectl button{width:44px;height:44px;border:none;border-radius:12px;background:#fff;color:#142430;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .ectl button.busy svg{animation:s 1s linear infinite}
 .ectl .nr{display:none}
+.ectl .fo{display:none}
+.ewrap.full .ectl .fo{display:flex}
+.ectl button.on{color:#2470b8}
+.ectl button.on svg circle{fill:#2470b8;fill-opacity:.25}
+.ectl button.hu{background:#2470b8;color:#fff}
+.ecomp{position:absolute;left:10px;top:92px;z-index:900;width:44px;height:44px;border:none;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.ecomp[hidden]{display:none}
+.ecomp svg{width:30px;height:30px}
+.ecomp b{position:absolute;top:-2px;font:700 9px var(--sans);color:#c0392b;display:none}
+.ewrap.full .ecomp{top:calc(92px + env(safe-area-inset-top,0px))}
+.eopt{position:absolute;right:62px;top:10px;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
+.ewrap.full .eopt{top:calc(10px + env(safe-area-inset-top,0px))}
+.eopt[hidden]{display:none}
+.eopt button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:none;background:none;color:var(--tx);text-align:left;padding:10px;border-radius:10px;font:500 14px var(--sans);cursor:pointer;min-height:44px}
+.eopt button:active{background:var(--soft)}
+.eopt button+button{border-top:1px solid var(--line)}
+.eopt small{display:block;font-weight:400;font-size:12px;color:var(--tx2);margin-top:1px}
+.eopt i{flex:none;width:36px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:background .15s}
+.eopt i::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.eopt button.on i{background:var(--acc)}
+.eopt button.on i::after{transform:translateX(14px)}
+.eopt button.act span{color:var(--acc)}
+.eopt button.dis{display:none}
+.ebox{position:absolute;inset:0;z-index:940;cursor:crosshair;touch-action:none;background:rgba(22,75,110,.06)}
+.ebox[hidden]{display:none}
+.ebr{position:absolute;border:2px solid #2470b8;background:rgba(36,112,184,.15);border-radius:4px;display:none}
+.epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:955;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
+.epill[hidden]{display:none}
+.ewrap.locked .leaflet-control-zoom{display:none}
+@media (prefers-reduced-motion:reduce){.eopt i,.eopt i::after{transition:none}}
 body.e-near .ectl .nr{display:flex}
 .erefetch{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:900;background:#16211c;color:#f4efde;border:1px solid var(--gold);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .ewrap.full .erefetch{top:calc(10px + env(safe-area-inset-top,0px))}
@@ -296,9 +326,22 @@ footer a{color:var(--tx2)}
       <button class="erefetch" id="eRefetch">Cerca opere in questa zona</button>
       <div class="ectl">
         <button id="eFull" aria-label="Schermo intero"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+        <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
+      <button class="ecomp" id="eComp" aria-label="Riporta il nord in alto" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l4 9h-8z" fill="#c0392b"/><path d="M12 21l-4-9h8z" fill="#8a96a0"/></svg><b>N</b></button>
+      <div class="eopt" id="eOptP" hidden>
+        <button data-o="headup"><span>Ruota seguendo la direzione<small>la mappa gira come te, utile camminando</small></span><i></i></button>
+        <button data-o="rot2"><span>Ruota con due dita<small>gira la mappa a mano</small></span><i></i></button>
+        <button data-o="north" class="act"><span>Nord in alto</span></button>
+        <button data-o="box" class="act"><span>Zoom a selezione<small>disegna un rettangolo con il dito</small></span></button>
+        <button data-o="lock"><span>Blocca la mappa<small>niente spostamenti per sbaglio</small></span><i></i></button>
+        <button data-o="wake"><span>Schermo sempre acceso<small>finché resti a schermo intero</small></span><i></i></button>
+      </div>
+      <div class="ebox" id="eBox" hidden><div class="ebr" id="eBoxR"></div></div>
+      <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
       <div class="ecard" id="eCard"></div>
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
@@ -336,6 +379,7 @@ footer a{color:var(--tx2)}
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onerror="document.getElementById('map').innerHTML='<div style=\'padding:20px;font-size:14px\'>Mappa non caricata: manca la connessione alla libreria Leaflet. Ricarica la pagina.</div>'"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script>
 const ICON = {"full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "star": "<path d=\"m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>", "x": "<path d=\"M6 6l12 12M18 6 6 18\"/>"};
 const svgIc = (n, fill) => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"'+(fill?' style="fill:currentColor"':'')+'>'+ICON[n]+'</svg>';
@@ -755,7 +799,9 @@ const PROJECT_CHAT_URL = 'https://claude.ai/project/01a0de7f-b1b3-75ca-930e-ca42
 const POINTS_REPO = 'Luhalab/Meteo-viaggio';
 let eLoading = false, eCity = null, eItems = [], eArea = null, eNear = false, eSel = -1, eLayerMode = 'wx', eReq = 0, eCityReq = 0;
 
-const emap = L.map('emap', { minZoom:5, maxZoom:20, zoomSnap:0.5, zoomDelta:1 });
+const CAN_ROT = typeof L.Map.prototype.setBearing === 'function';
+const emap = L.map('emap', Object.assign({ minZoom:5, maxZoom:20, zoomSnap:0.5, zoomDelta:1 },
+  CAN_ROT ? { rotate:true, rotateControl:false, shiftKeyRotate:false, touchRotate: store.get('mapRot2', false), bearing:0 } : {}));
 emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
 /* Sfondo OpenStreetMap a ogni zoom. Le scritte delle tile OSM sono piccole sui telefoni:
    da zoom 12 in su uso le tile del livello precedente mostrate al doppio (512 px),
@@ -977,11 +1023,12 @@ function eClearCity(){
   eRenderHero();
   if (wkMode === 'search') wkFit();
   else if (wkMode === 'pick'){ if (eNear) emap.setView(emap.getCenter(), 10); else eRefreshWx(); }
-  else if (emap.getZoom() > 10) emap.setView(emap.getCenter(), 10); else eRefreshWx();
+  else eRefreshWx();
 }
 emap.on('click', () => {
   if (Date.now() - lpFired < 900) return;
   if ($('eCard').classList.contains('show')){ $('eCard').classList.remove('show'); eSel = -1; drawArt(); renderMon(); setHint(); return; }
+  if (eNear || locked) return;          /* da vicino o a mappa bloccata un tocco non fa saltare via */
   if (eCity) eClearCity();
 });
 
@@ -1386,7 +1433,122 @@ $('eFull').onclick = () => {
   $('eWrap').classList.toggle('full', f); document.body.classList.toggle('e-full', f);
   $('eFull').innerHTML = svgIc(f ? 'x' : 'full'); $('eFull').setAttribute('aria-label', f ? 'Esci da schermo intero' : 'Schermo intero');
   setTimeout(() => emap.invalidateSize(), 80);
+  if (!f){ setOpt(false); setLock(false); setBox(false); setWake(false); }
 };
+
+/* ---------- posizione, rotazione e opzioni della mappa ---------- */
+var headUp = false;
+/* rotazione visiva della mappa in gradi (senso orario): serve per il cono e la bussola */
+function mapRot(){ return CAN_ROT ? emap.getBearing() : 0; }
+function refreshComp(){
+  const b = mapRot(), show = CAN_ROT && (headUp || (Math.abs(((b + 180) % 360) - 180) > 0.5));
+  $('eComp').hidden = !show;
+  $('eComp').querySelector('svg').style.transform = 'rotate('+b+'deg)';
+  applyHeading();
+}
+if (CAN_ROT) emap.on('rotate', refreshComp);
+function setHeadUp(on){
+  headUp = on && CAN_ROT;
+  $('eLoc').classList.toggle('hu', headUp);
+  $('eLoc').setAttribute('aria-label', headUp ? 'Torna con il nord in alto' : follow ? 'Ruota la mappa seguendo la direzione' : 'Centra sulla mia posizione');
+  if (headUp){ startCompass(); if (heading != null) emap.setBearing((360 - heading) % 360); else wkFlash('Muovi un po\' il telefono per trovare la direzione'); }
+  optSync(); refreshComp();
+}
+function northUp(){ setHeadUp(false); if (CAN_ROT) emap.setBearing(0); refreshComp(); }
+$('eComp').onclick = northUp;
+/* tasto posizione sulla mappa: 1° tocco centra e segue, 2° tocco gira la mappa con te, 3° torna col nord in alto */
+$('eLoc').onclick = async () => {
+  startCompass();
+  if (follow && userPos){ if (!headUp && CAN_ROT) setHeadUp(true); else northUp();
+    emap.panTo([userPos.lat, userPos.lon]); return; }
+  const b = $('eLoc'); b.classList.add('busy');
+  const pos = (watchId != null && userPos) ? userPos : await freshPos(); b.classList.remove('busy');
+  if (!pos){ alert('Non riesco a leggere la posizione. Controlla che la localizzazione sia attiva e che il sito abbia il permesso.'); return; }
+  tracking = true; startTracking(); drawEMe(); setFollow(true);
+  const pl = placeAt(pos.lat, pos.lon); if (pl && pl !== eCity) eSelectCity(pl, {noArea:true, src:'gps'});
+  emap.setView([pos.lat, pos.lon], Math.max(emap.getZoom(), 16));
+  setHeadUp(false);
+};
+
+/* pannello opzioni (a schermo intero) */
+let locked = false, boxOn = false, wakeOn = false, wakeLock = null;
+function optSync(){
+  const P = $('eOptP');
+  P.querySelector('[data-o=headup]').classList.toggle('on', headUp);
+  P.querySelector('[data-o=rot2]').classList.toggle('on', CAN_ROT && emap.touchRotate.enabled());
+  P.querySelector('[data-o=lock]').classList.toggle('on', locked);
+  P.querySelector('[data-o=wake]').classList.toggle('on', wakeOn);
+  ['headup','rot2','north'].forEach(k => P.querySelector('[data-o='+k+']').classList.toggle('dis', !CAN_ROT));
+  P.querySelector('[data-o=wake]').classList.toggle('dis', !('wakeLock' in navigator));
+}
+function setOpt(o){ $('eOptP').hidden = !o; $('eOpt').setAttribute('aria-expanded', o); if (o) optSync(); }
+$('eOpt').onclick = e => { e.stopPropagation(); setOpt($('eOptP').hidden); };
+$('eOptP').addEventListener('click', e => {
+  const b = e.target.closest('button[data-o]'); if (!b) return;
+  const o = b.dataset.o;
+  if (o === 'headup'){ if (!headUp && userPos){ setFollow(true); emap.panTo([userPos.lat, userPos.lon]); } setHeadUp(!headUp); }
+  else if (o === 'rot2'){ const on = !emap.touchRotate.enabled(); on ? emap.touchRotate.enable() : emap.touchRotate.disable(); store.set('mapRot2', on); }
+  else if (o === 'north'){ northUp(); setOpt(false); }
+  else if (o === 'box'){ setOpt(false); setBox(true); }
+  else if (o === 'lock') setLock(!locked);
+  else if (o === 'wake') setWake(!wakeOn);
+  optSync();
+});
+document.addEventListener('click', e => { if (!$('eOptP').hidden && !e.target.closest('#eOptP,#eOpt')) setOpt(false); });
+
+/* messaggio in basso: mappa bloccata o zoom a selezione */
+function pillSync(){
+  const p = $('ePill');
+  if (boxOn){ p.textContent = 'Disegna un rettangolo · Annulla'; p.hidden = false; }
+  else if (locked){ p.textContent = '🔒 Mappa bloccata · tocca per sbloccare'; p.hidden = false; }
+  else p.hidden = true;
+}
+$('ePill').onclick = () => { if (boxOn) setBox(false); else setLock(false); };
+
+/* blocca la mappa: niente trascinamenti, zoom o rotazioni per sbaglio (il GPS continua a centrarla) */
+function setLock(on){
+  locked = on;
+  const H = ['dragging','doubleClickZoom','scrollWheelZoom','boxZoom','keyboard','touchZoom','touchGestures'];
+  H.forEach(h => { if (emap[h]) on ? emap[h].disable() : emap[h].enable(); });
+  if (!on && CAN_ROT && !emap.touchRotate.enabled()) emap.touchGestures.rotate = false;
+  $('eWrap').classList.toggle('locked', on);
+  optSync(); pillSync();
+}
+
+/* zoom a selezione: col dito disegni un rettangolo e la mappa ingrandisce lì */
+let boxStart = null;
+function setBox(on){ boxOn = on; $('eBox').hidden = !on; $('eBoxR').style.display = 'none'; boxStart = null; pillSync(); }
+const ebox = $('eBox'), ebr = $('eBoxR');
+ebox.addEventListener('pointerdown', e => {
+  const r = ebox.getBoundingClientRect(); boxStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+  ebox.setPointerCapture(e.pointerId); Object.assign(ebr.style, { display:'block', left: boxStart.x+'px', top: boxStart.y+'px', width:'0', height:'0' });
+});
+ebox.addEventListener('pointermove', e => {
+  if (!boxStart) return; const r = ebox.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  Object.assign(ebr.style, { left: Math.min(x, boxStart.x)+'px', top: Math.min(y, boxStart.y)+'px', width: Math.abs(x-boxStart.x)+'px', height: Math.abs(y-boxStart.y)+'px' });
+});
+ebox.addEventListener('pointerup', e => {
+  if (!boxStart) return;
+  const r = ebox.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const w = Math.abs(x - boxStart.x), h = Math.abs(y - boxStart.y);
+  const mid = L.point((x + boxStart.x) / 2, (y + boxStart.y) / 2);
+  setBox(false);
+  if (w < 24 || h < 24){ wkFlash('Rettangolo troppo piccolo: riprova'); setBox(true); return; }
+  const sz = emap.getSize(), z = emap.getZoom() + Math.log2(Math.min(sz.x / w, sz.y / h));
+  setFollow(false);
+  emap.setView(emap.containerPointToLatLng(mid), Math.min(emap.getMaxZoom(), Math.floor(z * 2) / 2));
+});
+ebox.addEventListener('pointercancel', () => { boxStart = null; ebr.style.display = 'none'; });
+
+/* schermo sempre acceso */
+async function setWake(on){
+  wakeOn = on;
+  if (on && 'wakeLock' in navigator){ try { wakeLock = await navigator.wakeLock.request('screen'); }
+    catch(e){ wakeOn = false; wkFlash('Il telefono non permette di tenere lo schermo acceso'); } }
+  else if (!on && wakeLock){ wakeLock.release().catch(() => {}); wakeLock = null; }
+  optSync();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && wakeOn) setWake(true); });
 
 /* ---------- condividi con Claude (come Cicerone) ---------- */
 /* ---------- messaggi per Claude: completi, così agisce subito senza fare domande ---------- */
@@ -1450,11 +1612,14 @@ function applyHeading(){
   const el = meMk && meMk.getElement(); if (!el) return;
   const w = el.querySelector('.me'); if (!w) return;
   if (heading == null){ w.classList.remove('hd'); return; }
-  w.classList.add('hd'); w.querySelector('.me-cone').style.transform = 'rotate('+heading+'deg)';
+  w.classList.add('hd'); w.querySelector('.me-cone').style.transform = 'rotate('+(heading + mapRot())+'deg)';
 }
 function setHeading(h){
   heading = (h + 360) % 360;
-  if (!headRaf) headRaf = requestAnimationFrame(() => { headRaf = 0; applyHeading(); });
+  if (!headRaf) headRaf = requestAnimationFrame(() => { headRaf = 0;
+    if (headUp && CAN_ROT){ const cur = emap.getBearing(), want = (360 - heading) % 360;
+      if (Math.abs(((want - cur + 540) % 360) - 180) > 2) emap.setBearing(want); }   /* sotto i 2° non giro: niente tremolio */
+    applyHeading(); });
 }
 /* bussola del telefono: su Android funziona subito, su iPhone chiede il permesso al primo tocco */
 function startCompass(){
@@ -1495,10 +1660,10 @@ function startTracking(){
   }, () => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 });
 }
 function stopTracking(){ if (watchId != null){ navigator.geolocation.clearWatch(watchId); watchId = null; } }
-function setFollow(f){ follow = f; $('meBtn').classList.toggle('on', f); }
+function setFollow(f){ follow = f; $('meBtn').classList.toggle('on', f); $('eLoc').classList.toggle('on', f); }
 /* per non consumare batteria: fermo il GPS quando l'app non è in primo piano */
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopTracking(); else if (tracking) startTracking(); });
-emap.on('dragstart', () => setFollow(false));
+emap.on('dragstart', () => { setFollow(false); if (headUp) setHeadUp(false); });
 /* se il permesso c'è già, la posizione si muove da sola fin dall'apertura */
 if (navigator.permissions && navigator.permissions.query)
   navigator.permissions.query({ name: 'geolocation' }).then(r => { if (r.state === 'granted'){ tracking = true; startTracking(); startCompass(); } }).catch(() => {});
