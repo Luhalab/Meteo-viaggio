@@ -267,6 +267,7 @@ body.e-near .ectl .nr{display:flex}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
+.c-dot.hs{box-shadow:0 0 0 2px #16211c,0 0 0 5px #6b4fa0}
 .c-dot.sel{width:22px;height:22px}
 .c-dot.sm{width:10px;height:10px;border-width:1.5px;box-shadow:0 0 0 1.5px rgba(22,33,28,.75)}
 .mark-pin{font-size:24px;transform:translate(-50%,-90%)}
@@ -1430,6 +1431,7 @@ async function loadArea(lat, lon, radius){
   eSel = -1; $('eCard').classList.remove('show');
   drawArt(); renderMon();
   setHint();
+  showPendingItem();
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
 const FLT_ALL = ['mon','claude','storie'];
@@ -1470,8 +1472,10 @@ $('eFltP').addEventListener('click', e => {
 document.addEventListener('click', e => { if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false); });
 function drawArt(){
   eArt.clearLayers();
-  eItems.forEach((it,i) => fltOn(it.kind ? 'storie' : it.source==='custom' ? 'claude' : 'mon') && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
-      html:'<div class="c-dot'+(it.kind ? ' st' : it.source==='custom'?' cu':'')+(i===eSel?' sel':'')+'"></div>'}), zIndexOffset: i===eSel ? 900 : 0 })
+  const onPlace = o => eItems.some(w => !w.kind && haversine(o.lat, o.lon, w.lat, w.lon) <= 30);
+  const hasStory = w => fltOn('storie') && eItems.some(o => o.kind && haversine(o.lat, o.lon, w.lat, w.lon) <= 30);
+  eItems.forEach((it,i) => fltOn(it.kind ? 'storie' : it.source==='custom' ? 'claude' : 'mon') && !(it.kind && onPlace(it)) && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
+      html:'<div class="c-dot'+(it.kind ? ' st' : it.source==='custom'?' cu':'')+(!it.kind && hasStory(it) ? ' hs' : '')+(i===eSel?' sel':'')+'"></div>'}), zIndexOffset: i===eSel ? 900 : 0 })
     .on('click', () => eShowItem(i, false)).addTo(eArt));
 }
 const SRC_LABEL = { osm:'Vedi su OpenStreetMap', swiss:'Vedi su geo.admin.ch', 'emilia-romagna':'Vedi su patrimonioculturale-er.it',
@@ -1528,13 +1532,33 @@ const CUR_SEC = [
   {re:/^storia$/i, t:'Storia'}
 ];
 const eWpCache = {};
+const PIN_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+/* porta la mappa su un punto e apre la scheda del luogo lì (anche se l'area è ancora da caricare) */
+let ePendingShow = null;
+function showPendingItem(){
+  if (!ePendingShow) return;
+  let best = -1, bd = 80;
+  eItems.forEach((o, i) => { const d = haversine(ePendingShow.lat, ePendingShow.lon, o.lat, o.lon); if (!o.kind && d < bd){ bd = d; best = i; } });
+  if (best < 0) eItems.forEach((o, i) => { const d = haversine(ePendingShow.lat, ePendingShow.lon, o.lat, o.lon); if (d < bd){ bd = d; best = i; } });
+  ePendingShow = null; if (best >= 0) eShowItem(best, false);
+}
+function gotoPoint(lat, lon){
+  ePendingShow = { lat, lon };
+  window.scrollTo({ top:0, behavior:'smooth' });
+  emap.setView([lat, lon], 17);
+  if (!eLoading && eArea && haversine(lat, lon, eArea.lat, eArea.lon) < eArea.radius * 0.8) showPendingItem();
+}
+$('eCur').addEventListener('click', e => { const b = e.target.closest('[data-goto]'); if (!b) return; const [la, lo] = b.dataset.goto.split(',').map(Number); gotoPoint(la, lo); });
 async function eLoadCur(c, my){
   const LG = (REG&&REG.wikiLang)||'it';
-  const custom = (await customAll()).filter(p => p.kind === 'curiosita' && p.lat != null && km(c.lat,c.lon,p.lat,p.lon) <= 8);
+  const all = await customAll(), precise = customPrecise(all);
+  const custom = all.filter(p => p.kind === 'curiosita' && p.lat != null && km(c.lat,c.lon,p.lat,p.lon) <= 8);
   if (eWpCache[c.n] === undefined) eWpCache[c.n] = (guideCache[c.n] && guideCache[c.n].wp !== undefined) ? guideCache[c.n].wp : await extracts(LG+'.wikipedia.org', c.n);
   if (my !== eCityReq) return;
   const base = 'https://'+LG+'.wikipedia.org/wiki/'+encodeURIComponent(c.n.replace(/ /g,'_'));
-  const blocks = custom.map(p => '<details open><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p><span class="tag-cu">Aggiunto da Claude</span></details>')
+  const blocks = custom.map(p => '<details open><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
+      (precise(p) ? '<button class="rt-btn" data-goto="'+p.lat+','+p.lon+'">'+PIN_IC+'Mostra sulla mappa</button><br>' : '')+
+      '<span class="tag-cu">Aggiunto da Claude</span></details>')
     .concat(eWpCache[c.n] ? guideBlocks(eWpCache[c.n], CUR_SEC, base, 'Wikipedia', 900) : []);
   $('eCurS').hidden=false;
   $('eCur').innerHTML = (blocks.length ? blocks.join('') : '<span class="muted">Ancora nessuna curiosità per '+esc(c.n)+'.</span>')+
