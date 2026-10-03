@@ -204,15 +204,20 @@ body.e-full{overflow:hidden}
 .eopt button.on i::after{transform:translateX(14px)}
 .eopt button.act span{color:var(--acc)}
 .eopt button.dis{display:none}
-.ewrap.locked .ezb .zq{display:none}
+.ewrap.locked .ezs{display:none}
+/* zoom a cursore, in basso a sinistra */
+.ezs{position:absolute;left:10px;bottom:28px;z-index:900;width:44px;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:22px;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);padding:2px 0;touch-action:none;user-select:none}
+.ewrap.full .ezs{bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+.ezs button{width:44px;height:40px;border:none;background:none;color:#142430;font:500 24px/1 var(--sans);cursor:pointer;padding:0}
+.ezs .zt{position:relative;width:44px;height:150px;cursor:pointer;touch-action:none}
+.ezs .zt::before{content:'';position:absolute;left:50%;top:6px;bottom:6px;width:4px;margin-left:-2px;border-radius:2px;background:#d6dde2}
+.ezs .zf{position:absolute;left:50%;bottom:6px;width:4px;margin-left:-2px;border-radius:2px;background:#2470b8}
+.ezs .zk{position:absolute;left:50%;width:22px;height:22px;margin:0 0 -11px -11px;border-radius:50%;background:#fff;border:2px solid #2470b8;box-shadow:0 1px 4px rgba(20,36,48,.3)}
+.ezs .zt:focus-visible{outline:2px solid #2470b8;outline-offset:2px;border-radius:8px}
 .ectl.ezb{top:auto;bottom:28px}
-.leaflet-bottom.leaflet-left .leaflet-control-zoom{margin-bottom:28px}
-.ewrap.full .leaflet-bottom.leaflet-left .leaflet-control-zoom{margin-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
-.leaflet-touch .leaflet-control-zoom a{width:44px;height:44px;line-height:44px;font-size:24px}
 .ewrap.full .ectl.ezb{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:955;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
 .epill[hidden]{display:none}
-.ewrap.locked .leaflet-control-zoom{display:none}
 @media (prefers-reduced-motion:reduce){.eopt i,.eopt i::after{transition:none}}
 body.e-near .ectl .nr{display:flex}
 .erefetch{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:900;background:#16211c;color:#f4efde;border:1px solid var(--gold);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
@@ -337,8 +342,11 @@ footer a{color:var(--tx2)}
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
         <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
-        <button class="zq" id="eZin" aria-label="Ingrandisci quasi al massimo sulla tua posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6M10.5 7.5v6"/></svg></button>
-        <button class="zq" id="eZout" aria-label="Allontana la mappa restando sulla tua posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/></svg></button>
+      </div>
+      <div class="ezs" id="eZs" role="group" aria-label="Zoom della mappa">
+        <button id="eZp" aria-label="Ingrandisci">+</button>
+        <div class="zt" id="eZt" role="slider" aria-label="Livello di zoom" aria-orientation="vertical" tabindex="0"><div class="zf" id="eZf"></div><div class="zk" id="eZk"></div></div>
+        <button id="eZm" aria-label="Rimpicciolisci">−</button>
       </div>
       <button class="ecomp" id="eComp" aria-label="Riporta il nord in alto" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l4 9h-8z" fill="#c0392b"/><path d="M12 21l-4-9h8z" fill="#8a96a0"/></svg><b>N</b></button>
       <div class="eopt" id="eOptP" hidden>
@@ -809,7 +817,6 @@ let eLoading = false, eCity = null, eItems = [], eArea = null, eNear = false, eS
 const CAN_ROT = typeof L.Map.prototype.setBearing === 'function';
 const emap = L.map('emap', Object.assign({ minZoom:5, maxZoom:20, zoomSnap:0.5, zoomDelta:1, zoomControl:false },
   CAN_ROT ? { rotate:true, rotateControl:false, shiftKeyRotate:false, touchRotate: store.get('mapRot2', false), bearing:0 } : {}));
-L.control.zoom({ position:'bottomleft', zoomInTitle:'Ingrandisci', zoomOutTitle:'Rimpicciolisci' }).addTo(emap);
 emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
 /* Sfondo OpenStreetMap a ogni zoom. Le scritte delle tile OSM sono piccole sui telefoni:
    da zoom 12 in su uso le tile del livello precedente mostrate al doppio (512 px),
@@ -1521,14 +1528,31 @@ function setLock(on){
   optSync(); pillSync();
 }
 
-/* due tasti in basso a destra: ingrandisci quasi al massimo o allontana, sempre centrati sulla tua posizione */
-const ZOOM_NEAR = 18, ZOOM_FAR = 9;
-const zqCenter = () => userPos ? [userPos.lat, userPos.lon] : emap.getCenter();
-$('eZin').onclick  = () => emap.flyTo(zqCenter(), ZOOM_NEAR);
-$('eZout').onclick = () => emap.flyTo(zqCenter(), ZOOM_FAR);
-/* la bussola sta sopra i tasti + e − (in basso a sinistra) */
+/* zoom a cursore: trascini il pallino su e giù; + e − ai lati per un passo alla volta */
+const zt = $('eZt');
+function zsSync(){
+  const mn = emap.getMinZoom(), mx = emap.getMaxZoom(), f = Math.max(0, Math.min(1, (emap.getZoom() - mn) / (mx - mn)));
+  const h = zt.clientHeight - 12;
+  $('eZk').style.bottom = (6 + f * h) + 'px'; $('eZf').style.height = (f * h) + 'px';
+  zt.setAttribute('aria-valuenow', Math.round(emap.getZoom())); zt.setAttribute('aria-valuemin', mn); zt.setAttribute('aria-valuemax', mx);
+}
+emap.on('zoom zoomend', zsSync); zsSync();
+let zsDrag = false, zsRaf = 0, zsWant = null;
+function zsFrom(e){
+  const r = zt.getBoundingClientRect(), f = 1 - Math.max(0, Math.min(1, (e.clientY - r.top - 6) / (r.height - 12)));
+  zsWant = emap.getMinZoom() + f * (emap.getMaxZoom() - emap.getMinZoom());
+  if (!zsRaf) zsRaf = requestAnimationFrame(() => { zsRaf = 0; emap.setZoom(Math.round(zsWant * 2) / 2, { animate:false }); zsSync(); });
+}
+zt.addEventListener('pointerdown', e => { e.preventDefault(); zsDrag = true; zt.setPointerCapture(e.pointerId); zsFrom(e); });
+zt.addEventListener('pointermove', e => { if (zsDrag) zsFrom(e); });
+['pointerup','pointercancel'].forEach(t => zt.addEventListener(t, () => { zsDrag = false; }));
+zt.addEventListener('keydown', e => { if (e.key === 'ArrowUp') emap.zoomIn(); else if (e.key === 'ArrowDown') emap.zoomOut(); });
+$('eZp').onclick = () => emap.zoomIn();
+$('eZm').onclick = () => emap.zoomOut();
+L.DomEvent.disableClickPropagation($('eZs')); L.DomEvent.disableScrollPropagation($('eZs'));
+/* la bussola sta sopra il cursore dello zoom */
 function placeComp(){
-  const z = document.querySelector('#emap .leaflet-control-zoom'), w = $('eWrap'); if (!z) return;
+  const z = $('eZs'), w = $('eWrap'); if (!z) return;
   $('eComp').style.bottom = (w.getBoundingClientRect().bottom - z.getBoundingClientRect().top + 10) + 'px';
 }
 placeComp(); window.addEventListener('resize', placeComp);
