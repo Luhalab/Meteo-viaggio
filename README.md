@@ -20,7 +20,7 @@ con meteo, mare, foto e monumenti di quel punto preciso, e curiosità e consigli
 Con il GPS già consentito, all'apertura mostra subito il posto in cui ti trovi.
 
 Filtri della mappa (tasto imbuto): monumenti e punti di Claude, e la scelta dello sfondo:
-- Vettoriale (prova): OpenFreeMap disegnata da MapLibre (caricata solo se scelta), in un livello sotto Leaflet
+- Vettoriale (predefinita): OpenFreeMap disegnata da MapLibre (caricata solo se scelta), in un livello sotto Leaflet
   allineato a ogni spostamento, zoom e rotazione. Icone dello sfondo accendibili per categoria, scritte grandi nitide.
   Se il telefono non regge la grafica vettoriale, l'app torna da sola alla mappa classica.
 - OpenStreetMap classica, con tutte le icone dei locali.

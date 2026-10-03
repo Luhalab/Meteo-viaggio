@@ -996,7 +996,7 @@ let eTiles = null, eTileKind = '';
    'osm'   = OpenStreetMap, dettagliato (ha anche le icone di negozi e ristoranti, disegnate nell'immagine)
    'clean' = Esri World Street Map, strade e nomi senza le icone dei locali: così decidono i filtri
    Da zoom 12 le tile sono mostrate al doppio, per avere scritte più grandi. La scelta resta salvata. */
-let tileBase = store.get('mapBase', 'osm');
+let tileBase = store.get('mapBase', 'vector');
 function setETiles(force){
   if (tileBase === 'vector'){ if (eTileKind !== 'vector' || force) startVector(); return; }
   if (eTileKind === 'vector') stopVector();
@@ -1434,7 +1434,7 @@ function fltPanel(){
     row('mon', 'Monumenti e opere', d('#b98f3e', '<span class="dt" style="background:#b98f3e"></span>'))+
     row('claude', 'Aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
     '<div class="fh">Sfondo</div>'+
-    [['vector','Vettoriale (prova)','scritte nitide, icone a scelta'],['osm','OpenStreetMap classica','con tutte le icone dei locali'],['clean','Senza icone dei locali','mappa stradale Esri']]
+    [['vector','Vettoriale','scritte nitide, icone a scelta (consigliata)'],['osm','OpenStreetMap classica','con tutte le icone dei locali'],['clean','Senza icone dei locali','mappa stradale Esri']]
       .map(b => '<button data-b="'+b[0]+'" class="bgr'+(tileBase === b[0] ? ' on' : '')+'"><span>'+b[1]+'<small>'+b[2]+'</small></span><i class="rd"></i></button>').join('')+
     (tileBase === 'vector' ? '<div class="fh">Icone dello sfondo</div>'+Object.keys(VT_CATS).map(k => '<button data-v="'+k+'" class="'+(vtFlt[k] ? 'on' : '')+'"><span>'+esc(VT_CATS[k].t)+'</span><i></i></button>').join('')+
       '<button data-vall="1" class="act"><span>Accendi tutte</span></button><button data-vnone="1" class="act"><span>Spegni tutte</span></button>'+
