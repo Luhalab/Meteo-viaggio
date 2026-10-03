@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mappa vettoriale · prova</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+:root{--sea:#164b6e;--acc:#2470b8;--tx:#142430;--tx2:#5b6b76;--line:#e1e6ea;--card:#fff;--soft:#eef2f4;--sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html,body{margin:0;height:100%;font-family:var(--sans);color:var(--tx);background:#e8ecef}
+#map{position:fixed;inset:0}
+.top{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:10px;right:10px;z-index:5;display:flex;gap:8px;align-items:center;pointer-events:none}
+.top>*{pointer-events:auto}
+.badge{background:var(--sea);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.back{background:#fff;color:var(--tx);border-radius:999px;padding:8px 14px;font-size:13px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.stat{position:fixed;left:10px;top:calc(54px + env(safe-area-inset-top,0px));z-index:5;background:rgba(255,255,255,.95);border-radius:12px;padding:8px 12px;font-size:12.5px;line-height:1.45;box-shadow:0 2px 8px rgba(0,0,0,.15);max-width:calc(100% - 90px)}
+.stat b{font-weight:600}
+.fbtn{position:fixed;left:10px;bottom:calc(28px + env(safe-area-inset-bottom,0px));z-index:5;width:48px;height:48px;border:none;border-radius:14px;background:#fff;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx)}
+.fbtn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.panel{position:fixed;left:10px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:6;width:min(300px,calc(100% - 20px));max-height:calc(100% - 180px);overflow:auto;background:var(--card);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px}
+.panel[hidden]{display:none}
+.panel .fh{padding:8px 10px 4px;font-size:12px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em}
+.panel button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:none;background:none;color:var(--tx);text-align:left;padding:10px;border-radius:10px;font:500 14.5px var(--sans);cursor:pointer;min-height:44px}
+.panel button+button{border-top:1px solid var(--line)}
+.panel small{display:block;font-weight:400;font-size:12px;color:var(--tx2)}
+.panel i{flex:none;width:36px;height:22px;border-radius:999px;background:var(--line);position:relative}
+.panel i::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.panel button.on i{background:var(--acc)}
+.panel button.on i::after{transform:translateX(14px)}
+.maplibregl-ctrl-group button{width:40px;height:40px}
+.maplibregl-popup-content{border-radius:12px;font:14px var(--sans)}
+.err{position:fixed;inset:auto 10px 90px 10px;z-index:7;background:#fff3f0;color:#8a2a1a;border-radius:12px;padding:12px;font-size:14px;display:none}
+@media (prefers-reduced-motion:reduce){.panel i::after{transition:none}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="top"><a class="back" href="./">← App</a><span class="badge">Prova: mappa vettoriale</span></div>
+<div class="stat" id="stat">Carico la mappa…</div>
+<button class="fbtn" id="fbtn" aria-label="Icone e scritte" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
+<div class="panel" id="panel" hidden></div>
+<div class="err" id="err"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+/* Prova di mappa VETTORIALE: OpenFreeMap (gratis, senza chiave, dati OpenStreetMap) disegnata da MapLibre.
+   Le icone dei locali sono elementi separati: si accendono e spengono per categoria.
+   La pagina misura quanto ci mette a caricare e quanti dati scarica, per confrontarla con l'app. */
+const T0 = performance.now();
+const STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const $ = id => document.getElementById(id);
+const store = { get(k,d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+                set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} } };
+
+/* categorie delle icone (classi del livello "poi" di OpenMapTiles) */
+const CATS = {
+  cibo:     { t:'Ristoranti e pizzerie',        c:['restaurant','fast_food'] },
+  bar:      { t:'Bar, caffè e gelaterie',       c:['cafe','bar','beer','ice_cream'] },
+  negozi:   { t:'Negozi e supermercati',        c:['shop','grocery','clothing_store','alcohol_shop','bakery','laundry','car','music','jewelry','furniture','hairdresser'] },
+  cultura:  { t:'Musei, monumenti e teatri',    c:['museum','art_gallery','attraction','castle','monument','theatre','cinema','library','zoo'] },
+  chiese:   { t:'Chiese',                       c:['place_of_worship'] },
+  alloggi:  { t:'Hotel e B&B',                  c:['lodging','campsite'] },
+  trasporti:{ t:'Bus, treni, porto e parcheggi',c:['bus','railway','ferry_terminal','harbor','parking','fuel','aerialway','airport','entrance'] },
+  servizi:  { t:'Farmacie, ospedali e servizi', c:['pharmacy','hospital','doctor','dentist','toilets','drinking_water','police','post','bank','atm','town_hall'] },
+  altro:    { t:'Altre icone',                  c:[] }
+};
+const KNOWN = [].concat(...Object.values(CATS).map(x => x.c));
+let flt = Object.assign(Object.fromEntries(Object.keys(CATS).map(k => [k, true])), store.get('vt_flt', {}));
+let bigText = store.get('vt_big', true);
+
+/* i filtri dello stile possono essere nella sintassi vecchia: li converto in espressioni per poterli combinare */
+const LEG = ['==','!=','<','<=','>','>=','in','!in','has','!has','all','any','none'];
+function isLegacy(f){
+  if (!Array.isArray(f) || !LEG.includes(f[0])) return false;
+  if (['all','any','none'].includes(f[0])) return f.slice(1).some(isLegacy);
+  if (f[0] === 'has' || f[0] === '!has') return typeof f[1] === 'string';
+  return typeof f[1] === 'string';
+}
+function keyExpr(k){ return k === '$type' ? ['geometry-type'] : k === '$id' ? ['id'] : ['get', k]; }
+function conv(f){
+  if (!isLegacy(f)) return f;
+  const op = f[0];
+  if (op === 'all' || op === 'any') return [op].concat(f.slice(1).map(conv));
+  if (op === 'none') return ['!', ['any'].concat(f.slice(1).map(conv))];
+  if (op === 'has') return ['has', f[1]];
+  if (op === '!has') return ['!', ['has', f[1]]];
+  if (op === 'in' || op === '!in'){ const vals = f.slice(2); if (!vals.length) return op === '!in';
+    const m = ['match', keyExpr(f[1]), vals, true, false]; return op === 'in' ? m : ['!', m]; }
+  const k = keyExpr(f[1]), v = f[2];
+  if (op === '==' || op === '!=') return [op, k, v];
+  return [op, ['to-number', k], v];
+}
+/* scritte più grandi: moltiplico la dimensione del testo, anche se cambia con lo zoom */
+function scaleSize(v, m){
+  if (typeof v === 'number') return v * m;
+  if (v && v.stops) return Object.assign({}, v, { stops: v.stops.map(s => [s[0], s[1] * m]) });
+  if (Array.isArray(v) && (v[0] === 'interpolate' || v[0] === 'step')){
+    const start = v[0] === 'interpolate' ? 3 : 2;
+    return v.map((x, i) => (i >= start && typeof x === 'number' && ((v[0] === 'interpolate' ? (i - start) % 2 === 1 : (i - start) % 2 === 0))) ? x * m : x);
+  }
+  return v;
+}
+
+let map, poiLayers = [], origFilter = {}, origSize = {};
+function applyPoi(){
+  const off = [].concat(...Object.keys(CATS).filter(k => !flt[k]).map(k => CATS[k].c));
+  poiLayers.forEach(id => {
+    const parts = ['all'];
+    if (origFilter[id]) parts.push(conv(origFilter[id]));
+    if (off.length) parts.push(['match', ['get','class'], off, false, true]);
+    if (!flt.altro) parts.push(['match', ['get','class'], KNOWN, true, false]);
+    map.setFilter(id, parts.length > 1 ? parts : null);
+  });
+}
+function applyText(){
+  Object.keys(origSize).forEach(id => map.setLayoutProperty(id, 'text-size', bigText ? scaleSize(origSize[id], 1.35) : origSize[id]));
+}
+function panel(){
+  const row = (k, t) => '<button data-k="'+k+'" class="'+(flt[k] ? 'on' : '')+'"><span>'+t+'</span><i></i></button>';
+  $('panel').innerHTML = '<div class="fh">Icone sulla mappa</div>'+Object.keys(CATS).map(k => row(k, CATS[k].t)).join('')+
+    '<div class="fh">Scritte</div><button data-big="1" class="'+(bigText ? 'on' : '')+'"><span>Scritte grandi<small>nomi di vie e luoghi più leggibili</small></span><i></i></button>'+
+    '<button data-all="1"><span style="color:var(--acc)">Accendi tutto</span></button><button data-none="1"><span style="color:var(--acc)">Spegni tutte le icone</span></button>';
+}
+$('fbtn').onclick = e => { e.stopPropagation(); const o = $('panel').hidden; if (o) panel(); $('panel').hidden = !o; $('fbtn').setAttribute('aria-expanded', o); };
+$('panel').addEventListener('click', e => {
+  e.stopPropagation();          /* il pannello si ridisegna: senza questo si chiuderebbe da solo */
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.k){ flt[b.dataset.k] = !flt[b.dataset.k]; }
+  else if (b.dataset.big){ bigText = !bigText; store.set('vt_big', bigText); applyText(); }
+  else if (b.dataset.all){ Object.keys(flt).forEach(k => flt[k] = true); }
+  else if (b.dataset.none){ Object.keys(flt).forEach(k => flt[k] = false); }
+  store.set('vt_flt', flt); applyPoi(); panel();
+});
+document.addEventListener('click', e => { if (!$('panel').hidden && !e.target.closest('#panel,#fbtn')) { $('panel').hidden = true; $('fbtn').setAttribute('aria-expanded', false); } });
+
+/* quanto pesa: tempo di caricamento e dati scaricati (stima dal browser) */
+function kb(){ return Math.round(performance.getEntriesByType('resource').reduce((a, r) => a + (r.transferSize || r.encodedBodySize || 0), 0) / 1024); }
+let tLoad = null;
+function stat(){
+  $('stat').innerHTML = (tLoad ? 'Mappa pronta in <b>'+(tLoad/1000).toFixed(1).replace('.', ',')+' s</b>' : 'Carico la mappa…')+
+    '<br>Dati scaricati finora: <b>'+(kb() >= 1024 ? (kb()/1024).toFixed(1).replace('.', ',')+' MB' : kb()+' KB')+'</b>';
+}
+setInterval(stat, 1500);
+
+function start(center, zoom){
+  if (typeof maplibregl === 'undefined'){ $('err').style.display = 'block'; $('err').textContent = 'Il motore della mappa non si è caricato: controlla la connessione e ricarica.'; return; }
+  map = new maplibregl.Map({ container:'map', style: STYLE, center, zoom, maxZoom:19.5, attributionControl:{ compact:true } });
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch:true }), 'bottom-right');
+  map.addControl(new maplibregl.GeolocateControl({ positionOptions:{ enableHighAccuracy:true }, trackUserLocation:true, showUserHeading:true }), 'bottom-right');
+  map.addControl(new maplibregl.ScaleControl({ unit:'metric' }), 'bottom-left');
+  map.on('error', e => { if (!tLoad){ $('err').style.display = 'block'; $('err').textContent = 'Non riesco a caricare la mappa di OpenFreeMap. Riprova tra poco.'; } });
+  map.on('load', async () => {
+    tLoad = performance.now() - T0; stat();
+    const st = map.getStyle();
+    st.layers.forEach(l => {
+      if (l.type !== 'symbol') return;
+      if (l['source-layer'] === 'poi'){ poiLayers.push(l.id); origFilter[l.id] = l.filter || null; }
+      const ts = l.layout && l.layout['text-size']; if (ts !== undefined) origSize[l.id] = ts;
+      else if (l.layout && l.layout['text-field']) origSize[l.id] = 16;
+    });
+    try { applyPoi(); } catch(e){ console.error(e); }
+    try { applyText(); } catch(e){ console.error(e); }
+    /* i punti aggiunti da Claude, come nell'app */
+    try {
+      const pts = (await (await fetch('custom-points.json', { cache:'no-store' })).json()).filter(p => p.lat != null && p.kind !== 'curiosita');
+      map.addSource('claude', { type:'geojson', data:{ type:'FeatureCollection', features: pts.map(p => ({ type:'Feature', properties:{ t:p.title, x:p.extract || '' }, geometry:{ type:'Point', coordinates:[p.lon, p.lat] } })) } });
+      map.addLayer({ id:'claude', type:'circle', source:'claude', paint:{ 'circle-radius':7, 'circle-color':'#b4553f', 'circle-stroke-color':'#fff', 'circle-stroke-width':2 } });
+      map.on('click', 'claude', e => { const f = e.features[0];
+        new maplibregl.Popup({ maxWidth:'280px' }).setLngLat(f.geometry.coordinates).setHTML('<b></b><p style="margin:6px 0 0"></p>').addTo(map)
+          .getElement().querySelector('b').textContent = f.properties.t;
+        document.querySelector('.maplibregl-popup p').textContent = f.properties.x; });
+      map.on('mouseenter', 'claude', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'claude', () => map.getCanvas().style.cursor = '');
+    } catch(e){}
+  });
+}
+/* parto dalla tua posizione se il permesso c'è già, altrimenti da Trapani */
+const TRAPANI = [12.5135, 38.0176];
+if (navigator.geolocation && navigator.permissions && navigator.permissions.query){
+  navigator.permissions.query({ name:'geolocation' }).then(r => {
+    if (r.state === 'granted') navigator.geolocation.getCurrentPosition(p => start([p.coords.longitude, p.coords.latitude], 16), () => start(TRAPANI, 15), { timeout:6000 });
+    else start(TRAPANI, 15);
+  }).catch(() => start(TRAPANI, 15));
+} else start(TRAPANI, 15);
+</script>
+</body>
+</html>
