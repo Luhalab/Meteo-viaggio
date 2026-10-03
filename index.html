@@ -95,6 +95,9 @@ h2{font-size:15px;font-weight:600;margin:18px 2px 8px}
 .leaflet-div-icon{background:none;border:none}
 .jl-mk{font-size:22px;transform:translate(-50%,-50%);width:max-content}
 .leaflet-container{font-family:var(--sans)}
+#emap .vt-gl{position:absolute!important;inset:0;z-index:0;pointer-events:none}
+.vt-gl .maplibregl-canvas{outline:none}
+body.vt-on #emap.leaflet-container{background:#f2efe9}
 .leaflet-popup-content-wrapper{border-radius:14px}
 .leaflet-popup-content{margin:12px 14px;font:14px var(--sans)}
 .pop b{font-size:15px}
@@ -212,6 +215,9 @@ body.e-full{overflow:hidden}
 .eflt b.fd svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .eflt button>span{flex:1;display:flex;align-items:center}
 .eflt button.bgr>span{display:block}
+.eflt i.rd{width:22px;border-radius:50%;background:none;border:2px solid var(--line);box-sizing:border-box}
+.eflt i.rd::after{display:none}
+.eflt button.on i.rd{border:7px solid var(--acc);background:#fff}
 .eflt .dt{width:10px;height:10px;border-radius:50%;display:block}
 /* percorsi dai consigli */
 .rt-btn{display:inline-flex;align-items:center;gap:6px;margin:4px 0 2px;border:1px solid var(--acc);background:var(--acc-soft);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);cursor:pointer}
@@ -358,7 +364,7 @@ footer a{color:var(--tx2)}
       <div class="ectl ezb">
         <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
-        <button class="nr" id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
+        <button id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
@@ -405,7 +411,6 @@ footer a{color:var(--tx2)}
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap o Esri · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
       Comuni e abitanti: ISTAT
-      <br><a href="mappa-test.html">Prova la nuova mappa vettoriale (versione test)</a>
     </footer>
   </section>
 
@@ -865,6 +870,127 @@ emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
    così nomi di strade e luoghi diventano leggibili. Da lontano restano normali,
    perché lì contano le etichette del meteo. */
 const BIG_LABELS_Z = 12;
+
+/* ---------- sfondo VETTORIALE (OpenFreeMap + MapLibre) ----------
+   La mappa vettoriale sta in un livello sotto Leaflet, fuori dalle sue trasformazioni:
+   a ogni spostamento, zoom o rotazione di Leaflet la allineo (stesso centro, zoom - 1, rotazione opposta).
+   Così marcatori, cursore, blocco e tutto il resto restano quelli di sempre, e le scritte girano dritte.
+   Le icone dello sfondo (ristoranti, bar...) si accendono e spengono per categoria; le scritte possono essere grandi. */
+const VT_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const VT_CATS = {
+  cibo:     { t:'Ristoranti e pizzerie',        c:['restaurant','fast_food'] },
+  bar:      { t:'Bar, caffè e gelaterie',       c:['cafe','bar','beer','ice_cream'] },
+  negozi:   { t:'Negozi e supermercati',        c:['shop','grocery','clothing_store','alcohol_shop','bakery','laundry','car','music','jewelry','furniture','hairdresser'] },
+  cultura:  { t:'Musei, monumenti e teatri',    c:['museum','art_gallery','attraction','castle','monument','theatre','cinema','library','zoo'] },
+  chiese:   { t:'Chiese',                       c:['place_of_worship'] },
+  alloggi:  { t:'Hotel e B&B',                  c:['lodging','campsite'] },
+  trasporti:{ t:'Bus, treni, porto e parcheggi',c:['bus','railway','ferry_terminal','harbor','parking','fuel','aerialway','airport','entrance'] },
+  servizi:  { t:'Farmacie, ospedali e servizi', c:['pharmacy','hospital','doctor','dentist','toilets','drinking_water','police','post','bank','atm','town_hall'] },
+  altro:    { t:'Altre icone',                  c:[] }
+};
+const VT_KNOWN = [].concat(...Object.values(VT_CATS).map(x => x.c));
+let vtFlt = Object.assign(Object.fromEntries(Object.keys(VT_CATS).map(k => [k, true])), store.get('vt_flt', {}));
+let vtBig = store.get('vt_big', true);
+let vtGL = null, vtDiv = null, vtPoi = [], vtOrigF = {}, vtOrigS = {}, vtLoading = null;
+/* i filtri dello stile possono essere nella sintassi vecchia: li converto per poterli combinare */
+const VT_LEG = ['==','!=','<','<=','>','>=','in','!in','has','!has','all','any','none'];
+function vtIsLeg(f){
+  if (!Array.isArray(f) || !VT_LEG.includes(f[0])) return false;
+  if (['all','any','none'].includes(f[0])) return f.slice(1).some(vtIsLeg);
+  return typeof f[1] === 'string';
+}
+const vtKey = k => k === '$type' ? ['geometry-type'] : k === '$id' ? ['id'] : ['get', k];
+function vtConv(f){
+  if (!vtIsLeg(f)) return f;
+  const op = f[0];
+  if (op === 'all' || op === 'any') return [op].concat(f.slice(1).map(vtConv));
+  if (op === 'none') return ['!', ['any'].concat(f.slice(1).map(vtConv))];
+  if (op === 'has') return ['has', f[1]];
+  if (op === '!has') return ['!', ['has', f[1]]];
+  if (op === 'in' || op === '!in'){ const v = f.slice(2); if (!v.length) return op === '!in';
+    const m = ['match', vtKey(f[1]), v, true, false]; return op === 'in' ? m : ['!', m]; }
+  if (op === '==' || op === '!=') return [op, vtKey(f[1]), f[2]];
+  return [op, ['to-number', vtKey(f[1])], f[2]];
+}
+function vtScale(v, m){
+  if (typeof v === 'number') return v * m;
+  if (v && v.stops) return Object.assign({}, v, { stops: v.stops.map(x => [x[0], x[1] * m]) });
+  if (Array.isArray(v) && (v[0] === 'interpolate' || v[0] === 'step')){
+    const st = v[0] === 'interpolate' ? 3 : 2;
+    return v.map((x, i) => (i >= st && typeof x === 'number' && ((i - st) % 2 === (v[0] === 'interpolate' ? 1 : 0))) ? x * m : x);
+  }
+  return v;
+}
+function vtApply(){
+  if (!vtGL || !vtGL.isStyleLoaded()) return;
+  const off = [].concat(...Object.keys(VT_CATS).filter(k => !vtFlt[k]).map(k => VT_CATS[k].c));
+  vtPoi.forEach(id => { const parts = ['all'];
+    if (vtOrigF[id]) parts.push(vtConv(vtOrigF[id]));
+    if (off.length) parts.push(['match', ['get','class'], off, false, true]);
+    if (!vtFlt.altro) parts.push(['match', ['get','class'], VT_KNOWN, true, false]);
+    try { vtGL.setFilter(id, parts.length > 1 ? parts : null); } catch(e){} });
+  Object.keys(vtOrigS).forEach(id => { try { vtGL.setLayoutProperty(id, 'text-size', vtBig ? vtScale(vtOrigS[id], 1.35) : vtOrigS[id]); } catch(e){} });
+}
+function vtSync(e){
+  if (!vtGL) return;
+  if (e && (e.type === 'resize' || e.type === 'viewreset')) vtGL.resize();
+  const c = emap.getCenter();
+  vtGL.jumpTo({ center:[c.lng, c.lat], zoom: emap.getZoom() - 1, bearing: CAN_ROT ? (360 - emap.getBearing()) % 360 : 0 });
+}
+function loadJs(src){ return new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); }); }
+function vtLib(){
+  if (window.maplibregl) return Promise.resolve();
+  if (!vtLoading){
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(l);
+    vtLoading = loadJs('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js');
+  }
+  return vtLoading;
+}
+function vtFail(){
+  stopVector(); tileBase = 'osm'; store.set('mapBase', 'osm'); eTileKind = ''; setETiles(true);
+  wkFlash('Mappa vettoriale non disponibile su questo telefono: torno a quella classica');
+}
+const vtEvents = 'move zoom rotate resize viewreset';
+async function startVector(){
+  eTileKind = 'vector';
+  try { await vtLib(); } catch(e){ vtFail(); return; }
+  if (tileBase !== 'vector' || vtGL) return;
+  vtDiv = document.createElement('div'); vtDiv.className = 'vt-gl';
+  emap.getContainer().insertBefore(vtDiv, emap.getContainer().firstChild);
+  try {
+    const c = emap.getCenter();
+    vtGL = new maplibregl.Map({ container: vtDiv, style: VT_STYLE, center:[c.lng, c.lat], zoom: emap.getZoom() - 1, interactive:false, attributionControl:false, fadeDuration:0 });
+  } catch(e){ vtFail(); return; }
+  let ready = false;
+  /* errore dello stile o del motore (non di una singola tile): torno alla mappa classica */
+  vtGL.on('error', e => { if (!ready && e && !e.sourceId && !e.tile) vtFail(); });
+  setTimeout(() => { if (!ready && vtGL && tileBase === 'vector') vtFail(); }, 20000);
+  vtGL.on('load', () => { ready = true;
+    vtPoi = []; vtOrigF = {}; vtOrigS = {};
+    vtGL.getStyle().layers.forEach(l => { if (l.type !== 'symbol') return;
+      if (l['source-layer'] === 'poi'){ vtPoi.push(l.id); vtOrigF[l.id] = l.filter || null; }
+      const ts = l.layout && l.layout['text-size']; if (ts !== undefined) vtOrigS[l.id] = ts; else if (l.layout && l.layout['text-field']) vtOrigS[l.id] = 16; });
+    vtApply();
+    /* tolgo il vecchio sfondo a immagini solo quando quello vettoriale è pronto */
+    if (eTiles){ emap.removeLayer(eTiles); eTiles = null; }
+    document.body.classList.add('vt-on');
+  });
+  /* niente animazione CSS dello zoom: la mappa vettoriale segue Leaflet passo passo */
+  vtZoomAnim = emap._zoomAnimated; emap._zoomAnimated = false;
+  emap.on(vtEvents, vtSync); vtSync();
+  emap.attributionControl.addAttribution(VT_ATTR);
+}
+const VT_ATTR = '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+let vtZoomAnim = null;
+function stopVector(){
+  emap.off(vtEvents, vtSync);
+  if (vtZoomAnim !== null){ emap._zoomAnimated = vtZoomAnim; vtZoomAnim = null; }
+  if (vtGL){ try { vtGL.remove(); } catch(e){} vtGL = null; }
+  if (vtDiv){ vtDiv.remove(); vtDiv = null; }
+  document.body.classList.remove('vt-on');
+  emap.attributionControl.removeAttribution(VT_ATTR);
+  if (eTileKind === 'vector') eTileKind = '';
+}
 let eTiles = null, eTileKind = '';
 /* Due sfondi, entrambi gratuiti e senza chiave:
    'osm'   = OpenStreetMap, dettagliato (ha anche le icone di negozi e ristoranti, disegnate nell'immagine)
@@ -872,6 +998,8 @@ let eTiles = null, eTileKind = '';
    Da zoom 12 le tile sono mostrate al doppio, per avere scritte più grandi. La scelta resta salvata. */
 let tileBase = store.get('mapBase', 'osm');
 function setETiles(force){
+  if (tileBase === 'vector'){ if (eTileKind !== 'vector' || force) startVector(); return; }
+  if (eTileKind === 'vector') stopVector();
   const kind = tileBase + (emap.getZoom() >= BIG_LABELS_Z ? '2' : '1');
   if (eTiles && kind === eTileKind && !force) return;
   const old = eTiles, big = kind.endsWith('2');
@@ -1305,13 +1433,26 @@ function fltPanel(){
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
     row('mon', 'Monumenti e opere', d('#b98f3e', '<span class="dt" style="background:#b98f3e"></span>'))+
     row('claude', 'Aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
-    '<div class="fh">Sfondo</div><button data-b="1" class="bgr'+(tileBase === 'clean' ? ' on' : '')+'"><span>Mappa senza icone dei locali<small>niente icone di negozi, bar e ristoranti</small></span><i></i></button>';
+    '<div class="fh">Sfondo</div>'+
+    [['vector','Vettoriale (prova)','scritte nitide, icone a scelta'],['osm','OpenStreetMap classica','con tutte le icone dei locali'],['clean','Senza icone dei locali','mappa stradale Esri']]
+      .map(b => '<button data-b="'+b[0]+'" class="bgr'+(tileBase === b[0] ? ' on' : '')+'"><span>'+b[1]+'<small>'+b[2]+'</small></span><i class="rd"></i></button>').join('')+
+    (tileBase === 'vector' ? '<div class="fh">Icone dello sfondo</div>'+Object.keys(VT_CATS).map(k => '<button data-v="'+k+'" class="'+(vtFlt[k] ? 'on' : '')+'"><span>'+esc(VT_CATS[k].t)+'</span><i></i></button>').join('')+
+      '<button data-vall="1" class="act"><span>Accendi tutte</span></button><button data-vnone="1" class="act"><span>Spegni tutte</span></button>'+
+      '<div class="fh">Scritte</div><button data-vbig="1" class="bgr'+(vtBig ? ' on' : '')+'"><span>Scritte grandi<small>nomi di vie e luoghi più leggibili</small></span><i></i></button>' : '');
 }
 function setFltP(o){ if (o){ fltPanel(); setOpt(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eFltP').addEventListener('click', e => {
+  e.stopPropagation();          /* il pannello si ridisegna: senza questo si chiuderebbe da solo */
   const bb = e.target.closest('button[data-b]');
-  if (bb){ tileBase = tileBase === 'clean' ? 'osm' : 'clean'; store.set('mapBase', tileBase); bb.classList.toggle('on', tileBase === 'clean'); setETiles(true); return; }
+  if (bb){ if (bb.dataset.b !== tileBase){ tileBase = bb.dataset.b; store.set('mapBase', tileBase); setETiles(true); } fltPanel(); return; }
+  const vb = e.target.closest('button[data-v],button[data-vall],button[data-vnone],button[data-vbig]');
+  if (vb){
+    if (vb.dataset.v) vtFlt[vb.dataset.v] = !vtFlt[vb.dataset.v];
+    else if (vb.dataset.vall) Object.keys(vtFlt).forEach(k => vtFlt[k] = true);
+    else if (vb.dataset.vnone) Object.keys(vtFlt).forEach(k => vtFlt[k] = false);
+    else { vtBig = !vtBig; store.set('vt_big', vtBig); }
+    store.set('vt_flt', vtFlt); vtApply(); fltPanel(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
   b.classList.toggle('on', fltOn(b.dataset.f)); drawArt();

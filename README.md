@@ -19,8 +19,13 @@ Fuori dai centri abitati l'app non si aggancia per forza a una città: crea il l
 con meteo, mare, foto e monumenti di quel punto preciso, e curiosità e consigli della città più vicina.
 Con il GPS già consentito, all'apertura mostra subito il posto in cui ti trovi.
 
-Filtri della mappa (tasto imbuto, da vicino): monumenti e punti di Claude, più l'interruttore per lo sfondo
-senza icone dei locali. L'ultima scelta resta salvata.
+Filtri della mappa (tasto imbuto): monumenti e punti di Claude, e la scelta dello sfondo:
+- Vettoriale (prova): OpenFreeMap disegnata da MapLibre (caricata solo se scelta), in un livello sotto Leaflet
+  allineato a ogni spostamento, zoom e rotazione. Icone dello sfondo accendibili per categoria, scritte grandi nitide.
+  Se il telefono non regge la grafica vettoriale, l'app torna da sola alla mappa classica.
+- OpenStreetMap classica, con tutte le icone dei locali.
+- Senza icone dei locali (Esri World Street Map).
+Le scelte restano salvate.
 
 Percorsi: nei consigli di Wikivoyage, i paragrafi con "da X a Y" o con un elenco di tappe (giro, percorso, itinerario)
 hanno il tasto "Mostra il percorso sulla mappa": le tappe vengono cercate con Nominatim vicino alla città
