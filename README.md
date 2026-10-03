@@ -3,7 +3,7 @@
 App web per turisti, Italia e Svizzera, in una pagina.
 
 ## Com'è fatta
-Una sola pagina. In alto una mappa dettagliata (CARTO Voyager, dati OpenStreetMap, senza icone di negozi: le mettono i filtri; riserva OpenStreetMap): da lontano mostra le città con il meteo (o mare e meduse);
+Una sola pagina. In alto una mappa dettagliata (OpenStreetMap; nei filtri si può scegliere lo sfondo Esri World Street Map, senza icone dei locali): da lontano mostra le città con il meteo (o mare e meduse);
 da zoom 14 in su mostra anche la mappa di Cicerone con chiese, monumenti, castelli e opere,
 la scheda di ogni punto e "Chiedi a Claude". Schermo intero, "Segna questo punto", "Fotografa un dettaglio".
 Scelta una città, sotto la mappa compaiono sezioni a scomparsa: meteo (adesso, 15 giorni, ora per ora),

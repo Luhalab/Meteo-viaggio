@@ -866,20 +866,20 @@ emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
    perché lì contano le etichette del meteo. */
 const BIG_LABELS_Z = 12;
 let eTiles = null, eTileKind = '';
-/* Sfondo CARTO Voyager: strade e nomi come OpenStreetMap ma senza le icone di negozi e ristoranti,
-   così sulla mappa compare solo quello che scegli con i filtri. Tile @2x (nitide sul telefono);
-   da zoom 12 le mostro al doppio per avere scritte più grandi. Se CARTO non risponde, torno a OpenStreetMap. */
-let tileFails = 0, tileBase = 'carto';
+/* Due sfondi, entrambi gratuiti e senza chiave:
+   'osm'   = OpenStreetMap, dettagliato (ha anche le icone di negozi e ristoranti, disegnate nell'immagine)
+   'clean' = Esri World Street Map, strade e nomi senza le icone dei locali: così decidono i filtri
+   Da zoom 12 le tile sono mostrate al doppio, per avere scritte più grandi. La scelta resta salvata. */
+let tileBase = store.get('mapBase', 'osm');
 function setETiles(force){
   const kind = tileBase + (emap.getZoom() >= BIG_LABELS_Z ? '2' : '1');
   if (eTiles && kind === eTileKind && !force) return;
   const old = eTiles, big = kind.endsWith('2');
   const opts = { maxZoom:20, maxNativeZoom:big ? 20 : 19 };
   if (big) Object.assign(opts, { tileSize:512, zoomOffset:-1 });
-  if (tileBase === 'carto'){
-    Object.assign(opts, { subdomains:'abcd', attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>' });
-    eTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', opts);
-    eTiles.on('tileerror', () => { if (++tileFails >= 8 && tileBase === 'carto'){ tileBase = 'osm'; setETiles(true); } });
+  if (tileBase === 'clean'){
+    opts.attribution = 'Sfondo Esri, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    eTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', opts);
   } else {
     opts.attribution = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
     eTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', opts);
@@ -1356,11 +1356,14 @@ function fltPanel(){
     row('mon', 'Monumenti e opere', d('#b98f3e', '<span class="dt" style="background:#b98f3e"></span>'))+
     row('claude', 'Aggiunti da Claude', d('#b4553f', '<span class="dt" style="background:#b4553f"></span>'))+
     Object.keys(POI).map(k => row(k, POI[k].t, d(POI[k].c, poiIcon(k)))).join('')+
+    '<div class="fh">Sfondo</div><button data-b="1" class="'+(tileBase === 'clean' ? 'on' : '')+'"><span>Mappa senza icone dei locali<small>senza, ristoranti e bar li mostrano solo i filtri</small></span><i></i></button>'+
     '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">Ristoranti, bar e servizi compaiono ingrandendo (zoom 15).</div>';
 }
 function setFltP(o){ if (o){ fltPanel(); setOpt(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eFltP').addEventListener('click', e => {
+  const bb = e.target.closest('button[data-b]');
+  if (bb){ tileBase = tileBase === 'clean' ? 'osm' : 'clean'; store.set('mapBase', tileBase); bb.classList.toggle('on', tileBase === 'clean'); setETiles(true); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
   b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPois();
