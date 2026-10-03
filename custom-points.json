@@ -765,5 +765,74 @@
     "extract": "Sulla facciata di Palazzo Senatorio, lungo via Torrearsa, una grande lapide ricorda la battaglia di Santa Maria di Capua del 1-2 ottobre 1860 e il Garibaldi dei volontari: dice che Trapani vi ebbe capitani, eroi e gloriosi caduti. Poco sopra c'è una seconda targa dedicata ad aprile 1860, la primavera della spedizione dei Mille.",
     "url": null,
     "kind": "curiosita"
+  },
+  {
+    "title": "Chiesa di Sant'Antonio di Padova",
+    "lat": 38.02483,
+    "lon": 12.8809,
+    "extract": "Nata come piccola chiesa fuori dalle mura, si ampliò quando si diffuse il culto di Maria SS. Immacolata, a cui era dedicato l'altare maggiore: nel 1774 ne aveva tre, gli altri per sant'Antonio e san Francesco di Paola. Sorge in via Alonzo, a pochi passi dal Corso.",
+    "url": null
+  },
+  {
+    "title": "Chiesa della Madonna del Rosario («di l'agnuni»)",
+    "lat": 38.02998,
+    "lon": 12.88185,
+    "extract": "Piccola chiesa nel borgo accanto al castello, chiamata «dell'angolo» in dialetto. Secondo la tradizione risale all'epoca normanna, intorno al 1100. Sul portale c'è un bassorilievo cinquecentesco con la Madonna e il Bambino, attribuito alla scuola dei Gagini.",
+    "url": null
+  },
+  {
+    "title": "Torre di Scopello",
+    "lat": 38.07304,
+    "lon": 12.82169,
+    "extract": "Una delle torri di avvistamento che punteggiano la costa tra Castellammare e lo Zingaro, sopra la tonnara di Scopello. Fa parte del sistema difensivo contro le incursioni dal mare e oggi è un punto panoramico sui faraglioni.",
+    "url": null
+  },
+  {
+    "title": "Terme Segestane",
+    "lat": 37.97256,
+    "lon": 12.89186,
+    "extract": "Sorgenti termali in contrada Ponte Bagni, sulle falde di Monte Inici, a monte di Castellammare. Escono lungo una faglia e sono tra le acque calde più note del territorio. Si raggiungono dalla strada provinciale per Ponte Bagni.",
+    "url": null
+  },
+  {
+    "title": "Il castello più forte, secondo Idrisi",
+    "lat": 38.03069,
+    "lon": 12.88192,
+    "kind": "curiosita",
+    "extract": "Le prime notizie del castello arabo-normanno vengono dal geografo arabo Idrisi nel «Libro di Re Ruggero» del 1154. Scrisse che nessun castello era più forte per posizione e costruzione. La tradizione lo attribuisce agli Arabi, intorno al X secolo, sulle rovine di fortificazioni precedenti.",
+    "url": null
+  },
+  {
+    "title": "Cetaria, la città dei tonni",
+    "lat": 38.07153,
+    "lon": 12.82158,
+    "kind": "curiosita",
+    "extract": "Si pensa che Scopello sia sorta dove c'era la mitica città di Cetaria, il cui nome potrebbe derivare dai tanti tonni di quel mare. Il riparo dei faraglioni ne fece un approdo fin dall'antichità: sui fondali sono state trovate anfore e altri reperti, per questo si parla di «museo sommerso».",
+    "url": null
+  },
+  {
+    "title": "Mezza giornata a Scopello",
+    "lat": 38.026,
+    "lon": 12.8804,
+    "kind": "da-fare",
+    "extract": "Scopello è a circa 10 km, 15-20 minuti d'auto. Il periodo migliore va da aprile a ottobre. Parti dalla torre, scendi alla tonnara e chiudi con i faraglioni, con il bagno se il mare è calmo. L'accesso alla tonnara è gestito da privati: controlla orari ed eventuale biglietto. Poi puoi proseguire verso l'ingresso sud dello Zingaro.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Torre di Scopello",
+        "lat": 38.07304,
+        "lon": 12.82169
+      },
+      {
+        "n": "Tonnara di Scopello",
+        "lat": 38.07153,
+        "lon": 12.82158
+      },
+      {
+        "n": "Faraglioni di Scopello",
+        "lat": 38.07019,
+        "lon": 12.82107
+      }
+    ]
   }
 ]
