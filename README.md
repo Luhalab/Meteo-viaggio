@@ -81,3 +81,8 @@ della città ("Esplora …" / "Torna al meteo") passa dall'uno all'altro; anche 
 Foto: non più sulla mappa. Nel modo meteo, scelta una città, sotto il nome compare una striscia con le immagini
 della voce di Wikipedia della città (prima la foto principale; solo jpg grandi, senza stemmi e mappe); toccandole
 si apre il visore a tutto schermo. Nei filtri compaiono solo i percorsi con almeno 2 tappe con coordinate.
+
+Pagina personalizzabile (tasto "Personalizza la pagina" in fondo): ordine e visibilità dei blocchi Esplora,
+Chiedi a Claude, Mappa, Meteo/Mare, Foto, schede Curiosità/Cosa fare, Meteo, Settimana (salvati sul telefono).
+L'ordine predefinito tiene sopra la mappa solo blocchi che non cambiano con lo zoom, così la mappa non salta.
+Tolto il riquadro di giudizio della giornata ("Tempo incerto…") dalla sezione meteo.
