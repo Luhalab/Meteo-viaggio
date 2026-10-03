@@ -187,12 +187,13 @@ body.e-full{overflow:hidden}
 .ectl button.on{color:#2470b8}
 .ectl button.on svg circle{fill:#2470b8;fill-opacity:.25}
 .ectl button.hu{background:#2470b8;color:#fff}
-.ecomp{position:absolute;left:10px;top:auto;z-index:900;width:44px;height:44px;border:none;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.ecomp{position:absolute;left:10px;top:10px;z-index:900;width:44px;height:44px;border:none;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .ecomp[hidden]{display:none}
+.ewrap.full .ecomp{top:calc(10px + env(safe-area-inset-top,0px))}
 .ecomp svg{width:30px;height:30px}
 .ecomp b{position:absolute;top:-2px;font:700 9px var(--sans);color:#c0392b;display:none}
-.eopt{position:absolute;right:62px;bottom:28px;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
-.ewrap.full .eopt{bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+.eopt{position:absolute;left:10px;bottom:84px;z-index:960;width:min(280px,calc(100% - 82px));background:var(--card);color:var(--tx);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.28);padding:6px;max-height:calc(100% - 20px);overflow:auto}
+.ewrap.full .eopt{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .eopt[hidden]{display:none}
 .eopt button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:none;background:none;color:var(--tx);text-align:left;padding:10px;border-radius:10px;font:500 14px var(--sans);cursor:pointer;min-height:44px}
 .eopt button:active{background:var(--soft)}
@@ -206,17 +207,17 @@ body.e-full{overflow:hidden}
 .eopt button.dis{display:none}
 .ewrap.locked .ezs{display:none}
 /* zoom a cursore, in basso a sinistra */
-.ezs{position:absolute;left:10px;bottom:28px;z-index:900;width:44px;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:22px;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);padding:2px 0;touch-action:none;user-select:none}
+.ezs{position:absolute;right:10px;bottom:28px;z-index:900;width:44px;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:22px;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);padding:2px 0;touch-action:none;user-select:none}
 .ewrap.full .ezs{bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .ezs button{width:44px;height:40px;border:none;background:none;color:#142430;font:500 24px/1 var(--sans);cursor:pointer;padding:0}
-.ezs .zt{position:relative;width:44px;height:150px;cursor:pointer;touch-action:none}
+.ezs .zt{position:relative;width:44px;height:170px;cursor:pointer;touch-action:none}
 .ezs .zt::before{content:'';position:absolute;left:50%;top:6px;bottom:6px;width:4px;margin-left:-2px;border-radius:2px;background:#d6dde2}
 .ezs .zf{position:absolute;left:50%;bottom:6px;width:4px;margin-left:-2px;border-radius:2px;background:#2470b8}
 .ezs .zk{position:absolute;left:50%;width:22px;height:22px;margin:0 0 -11px -11px;border-radius:50%;background:#fff;border:2px solid #2470b8;box-shadow:0 1px 4px rgba(20,36,48,.3)}
 .ezs .zt:focus-visible{outline:2px solid #2470b8;outline-offset:2px;border-radius:8px}
-.ectl.ezb{top:auto;bottom:28px}
+.ectl.ezb{top:auto;bottom:28px;left:10px;right:auto;flex-direction:row}
 .ewrap.full .ectl.ezb{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}
-.epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:955;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
+.epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:965;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
 .epill[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.eopt i,.eopt i::after{transition:none}}
 body.e-near .ectl .nr{display:flex}
@@ -338,10 +339,10 @@ footer a{color:var(--tx2)}
         <button id="eFull" aria-label="Schermo intero"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
       <div class="ectl ezb">
+        <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+        <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
-        <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
-        <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
       </div>
       <div class="ezs" id="eZs" role="group" aria-label="Zoom della mappa">
         <button id="eZp" aria-label="Ingrandisci">+</button>
@@ -1528,35 +1529,32 @@ function setLock(on){
   optSync(); pillSync();
 }
 
-/* zoom a cursore: trascini il pallino su e giù; + e − ai lati per un passo alla volta */
+/* zoom a cursore (in basso a destra): va da zoom 9, i dintorni, al massimo.
+   Il pallino si sposta del movimento del dito (non salta dove tocchi) e si ferma sui livelli interi,
+   così è meno sensibile. + e − ai lati per un passo alla volta. */
+const ZS_MIN = 9, ZS_PX = 26;          /* 26 px di dito per ogni livello di zoom */
 const zt = $('eZt');
+const zsMax = () => emap.getMaxZoom();
 function zsSync(){
-  const mn = emap.getMinZoom(), mx = emap.getMaxZoom(), f = Math.max(0, Math.min(1, (emap.getZoom() - mn) / (mx - mn)));
+  const mx = zsMax(), f = Math.max(0, Math.min(1, (emap.getZoom() - ZS_MIN) / (mx - ZS_MIN)));
   const h = zt.clientHeight - 12;
   $('eZk').style.bottom = (6 + f * h) + 'px'; $('eZf').style.height = (f * h) + 'px';
-  zt.setAttribute('aria-valuenow', Math.round(emap.getZoom())); zt.setAttribute('aria-valuemin', mn); zt.setAttribute('aria-valuemax', mx);
+  zt.setAttribute('aria-valuenow', Math.round(emap.getZoom())); zt.setAttribute('aria-valuemin', ZS_MIN); zt.setAttribute('aria-valuemax', mx);
 }
 emap.on('zoom zoomend', zsSync); zsSync();
-let zsDrag = false, zsRaf = 0, zsWant = null;
-function zsFrom(e){
-  const r = zt.getBoundingClientRect(), f = 1 - Math.max(0, Math.min(1, (e.clientY - r.top - 6) / (r.height - 12)));
-  zsWant = emap.getMinZoom() + f * (emap.getMaxZoom() - emap.getMinZoom());
-  if (!zsRaf) zsRaf = requestAnimationFrame(() => { zsRaf = 0; emap.setZoom(Math.round(zsWant * 2) / 2, { animate:false }); zsSync(); });
-}
-zt.addEventListener('pointerdown', e => { e.preventDefault(); zsDrag = true; zt.setPointerCapture(e.pointerId); zsFrom(e); });
-zt.addEventListener('pointermove', e => { if (zsDrag) zsFrom(e); });
-['pointerup','pointercancel'].forEach(t => zt.addEventListener(t, () => { zsDrag = false; }));
-zt.addEventListener('keydown', e => { if (e.key === 'ArrowUp') emap.zoomIn(); else if (e.key === 'ArrowDown') emap.zoomOut(); });
+let zsStart = null;
+zt.addEventListener('pointerdown', e => { e.preventDefault(); zt.setPointerCapture(e.pointerId);
+  zsStart = { y: e.clientY, z: Math.max(ZS_MIN, Math.round(emap.getZoom())), last: null }; });
+zt.addEventListener('pointermove', e => {
+  if (!zsStart) return;
+  const z = Math.max(ZS_MIN, Math.min(zsMax(), zsStart.z + Math.round((zsStart.y - e.clientY) / ZS_PX)));
+  if (z !== zsStart.last){ zsStart.last = z; emap.setZoom(z, { animate:false }); }
+});
+['pointerup','pointercancel'].forEach(t => zt.addEventListener(t, () => { zsStart = null; }));
+zt.addEventListener('keydown', e => { if (e.key === 'ArrowUp') emap.zoomIn(); else if (e.key === 'ArrowDown' && emap.getZoom() > ZS_MIN) emap.zoomOut(); });
 $('eZp').onclick = () => emap.zoomIn();
-$('eZm').onclick = () => emap.zoomOut();
+$('eZm').onclick = () => { const z = emap.getZoom(); if (z > ZS_MIN) emap.setZoom(Math.max(ZS_MIN, Math.ceil(z) - 1)); };
 L.DomEvent.disableClickPropagation($('eZs')); L.DomEvent.disableScrollPropagation($('eZs'));
-/* la bussola sta sopra il cursore dello zoom */
-function placeComp(){
-  const z = $('eZs'), w = $('eWrap'); if (!z) return;
-  $('eComp').style.bottom = (w.getBoundingClientRect().bottom - z.getBoundingClientRect().top + 10) + 'px';
-}
-placeComp(); window.addEventListener('resize', placeComp);
-$('eFull').addEventListener('click', () => setTimeout(placeComp, 100));
 
 /* schermo sempre acceso */
 async function setWake(on){
