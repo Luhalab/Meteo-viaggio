@@ -275,6 +275,25 @@ body.e-near .ectl .nr{display:flex}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
 .gone{display:none!important}
+/* striscia di foto (solo nel modo meteo) e visore */
+.phs{margin:0 0 12px}
+.phs[hidden],body.e-near .phs{display:none!important}
+.phs-row{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px;scrollbar-width:none}
+.phs-row::-webkit-scrollbar{display:none}
+.phs-row button{flex:none;border:none;padding:0;background:none;scroll-snap-align:start;cursor:pointer;border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.phs-row img{display:block;height:110px;width:150px;object-fit:cover}
+.phs-row button:first-child img{width:200px}
+.phs-src{font-size:11.5px;color:var(--tx2);margin:2px 4px 0}
+.lbx{position:fixed;inset:0;z-index:3000;background:#0b0f13;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.lbx[hidden]{display:none}
+.lbx img{max-width:100%;max-height:calc(100% - 150px);object-fit:contain}
+.lbx button{position:absolute;border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:50%;width:46px;height:46px;font-size:26px;line-height:1;cursor:pointer}
+.lbx .lx{top:calc(14px + env(safe-area-inset-top,0px));right:14px;font-size:20px}
+.lbx .lp{left:10px;top:50%;margin-top:-23px}
+.lbx .ln{right:10px;top:50%;margin-top:-23px}
+.lbx .lc{position:absolute;left:16px;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));color:#f2f2f2;font-size:14px;line-height:1.4}
+.lbx .lc small{display:block;color:#b9c2c9;font-size:12px;margin-top:4px}
+.lbx .lc a{color:#9cc7ff}
 /* curiosità e cose da fare in due schede, con altezza limitata: la mappa resta in vista */
 .card.tabs{padding:0;overflow:hidden}
 .tbar{display:flex;border-bottom:1px solid var(--line)}
@@ -377,6 +396,7 @@ footer a{color:var(--tx2)}
   <!-- ======== ESPLORA ======== -->
   <section class="view on" id="vEsp">
     <div class="ehero" id="eHero" hidden><h2 id="eHName"></h2><div class="ew" id="eHW"></div></div>
+    <div class="phs" id="ePhs" hidden><div class="phs-row" id="ePhsRow"></div><div class="phs-src">Foto dalla voce di Wikipedia · tocca per ingrandire</div></div>
     <button class="egoc" id="eGoC" hidden></button>
     <button class="askcity" id="eAskCity"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span id="eAskCityT">Chiedi a Claude di aggiungere punti e curiosità</span></button>
     <div class="seg" id="eSeg"><button data-l="wx" class="on">Meteo</button><button data-l="sea">Mare e meduse</button></div>
@@ -438,6 +458,7 @@ footer a{color:var(--tx2)}
     <details class="sec heritage gone" id="eMonS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
     <details class="sec gone" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"></div></details>
     <details class="sec gone" id="eDoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span><span class="st" id="eDoT">Cosa vedere e fare</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"></div></details>
+    <div class="lbx" id="eLbx" hidden role="dialog" aria-label="Foto"><button class="lx" id="eLbxX" aria-label="Chiudi">✕</button><button class="lp" id="eLbxP" aria-label="Foto precedente">‹</button><img id="eLbxImg" alt=""><button class="ln" id="eLbxN" aria-label="Foto successiva">›</button><div class="lc" id="eLbxCap"></div></div>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap o Esri · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
@@ -1246,7 +1267,7 @@ function eClearCity(){
   if (!eCity) return;
   eCity = null; eCitySrc = ''; city = null; cw = null; eCityReq++; reqId++;
   ['wxS','cSeaS','ePhotoS','eMonS','eCurS','eDoS'].forEach(id => $(id).hidden = true);
-  ePhotoList = []; drawPhotos(); eRouteStarts.clearLayers();
+  ePhotoList = []; $('ePhs').hidden = true; eRouteStarts.clearLayers();
   $('eCard').classList.remove('show'); eSel = -1;
   eRenderHero();
   if (wkMode === 'search') wkFit();
@@ -1496,12 +1517,10 @@ function fltPanel(){
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
-    row('foto', 'Foto della zona', d('#5b6b76', '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.5"/></svg>'))+
-    row('percorsi', 'Partenze dei percorsi', d('#2470b8', RT_IC.replace('<svg', '<svg')))+
     '<div class="fh">Percorsi in zona</div>'+
     (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+'</small></span></span><i></i></button>').join('')+
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')
-      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso trovato per '+esc(eCity.n)+'.' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
+      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso con tappe sulla mappa per '+esc(eCity.n)+'.' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
 }
 function bgPanel(){
   $('eBgP').innerHTML = '<div class="fh">Sfondo</div>'+
@@ -1680,7 +1699,7 @@ const eRoutesOn = new Map();          /* id -> livello del percorso disegnato */
 /* percorsi della città scelta: tutti quelli che hanno il tasto nella scheda "Cosa vedere e fare"
    (consigli di Claude con tappe e paragrafi di Wikivoyage con "da X a Y") */
 function routesHere(){
-  return [...document.querySelectorAll('#eDo .rt-btn[data-stops]')].map(b => {
+  return [...document.querySelectorAll('#eDo .rt-btn[data-stops]')].filter(b => JSON.parse(b.dataset.stops).filter(x => x && x.lat != null).length >= 2).map(b => {
     const st = JSON.parse(b.dataset.stops), names = st.map(x => typeof x === 'string' ? x : x.n);
     const det = b.closest('details'), claude = det && det.querySelector('.tag-cu');
     const title = claude ? det.querySelector('summary').textContent : names[0]+' → '+names[names.length-1];
@@ -1693,18 +1712,7 @@ function toggleRoute(r, i, card){
   showRoute(r.stops, null, r.ch, { id: r.id, color: ROUTE_COLORS[i % ROUTE_COLORS.length], card, title: r.title });
 }
 /* partenza di ogni percorso come pallino blu sulla mappa: toccandolo il percorso compare */
-async function drawRouteStarts(){
-  eRouteStarts.clearLayers();
-  if (!eCity || !fltOn('percorsi')) return;
-  const rs = routesHere(), c = eCity;
-  for (let i = 0; i < rs.length; i++){
-    const f = rs[i].stops[0], st = typeof f === 'string' ? { n:f } : f;
-    const pt = st.lat != null ? { lat:+st.lat, lon:+st.lon } : await knownPlace(st.n, c);
-    if (!pt || c !== eCity) continue;
-    L.marker([pt.lat, pt.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="rt-st" title="'+esc(rs[i].title)+'">'+RT_IC+'</div>' }), zIndexOffset:800 })
-      .on('click', () => toggleRoute(rs[i], i, true)).addTo(eRouteStarts);
-  }
-}
+function drawRouteStarts(){ eRouteStarts.clearLayers(); }   /* le partenze sulla mappa non servono: bastano i filtri */
 function routesChanged(){ drawRouteStarts(); if (!$('eFltP').hidden) fltPanel(); }
 const geoMem = {};
 async function geocode(q, c){
@@ -1784,44 +1792,59 @@ async function showRoute(stops, btn, churches, opt){
   $('eRtClr').onclick = () => { eRoute.removeLayer(lay); eRoutesOn.delete(id); $('eCard').classList.remove('show'); if (!$('eFltP').hidden) fltPanel(); };
 }
 
-/* ---------- sezione 2: foto della città ---------- */
+/* ---------- foto della città ----------
+   Invece delle foto geolocalizzate degli utenti, uso le immagini scelte dagli autori della voce di Wikipedia
+   sulla città (la foto principale per prima): sono quasi sempre vedute, monumenti e scorci significativi.
+   Le mostro solo nel modo meteo, in una striscia sotto la mappa; toccandole si ingrandiscono. */
+const PH_SKIP = /stemma|coat.of.arms|gonfalone|bandiera|flag|mappa|\bmap\b|locator|location|localizzazione|posizione|logo|icon|disambig|symbol|simbolo|firma|signature|grafico|chart|diagram|pianta|\bplan\b|cartina|carta /i;
 async function photoList(c){
-  if (photoCache[c.n]) return photoCache[c.n];
-  const u = 'https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&generator=geosearch&ggsnamespace=6&ggscoord='+c.lat+'%7C'+c.lon+
-    '&ggsradius=6000&ggslimit=40&prop=imageinfo%7Ccoordinates&iiprop=url%7Cextmetadata&iiurlwidth=640';
-  const r = await fetch(u); if (!r.ok) throw 0; const j = await r.json();
-  const pages = (j.query && j.query.pages) ? Object.values(j.query.pages) : [];
-  return photoCache[c.n] = pages.map(p => {
+  const name = (c.virt ? c.ref : c).n;
+  if (photoCache[name]) return photoCache[name];
+  const LG = (REG&&REG.wikiLang)||'it', api = 'https://'+LG+'.wikipedia.org/w/api.php?origin=*&format=json&redirects=1&titles='+encodeURIComponent(name);
+  const [a, b] = await Promise.all([
+    fetch(api+'&action=query&prop=pageimages&piprop=name').then(r => r.json()).catch(() => ({})),
+    fetch(api+'&action=query&generator=images&gimlimit=80&prop=imageinfo&iiprop=url%7Csize%7Cmime%7Cextmetadata&iiurlwidth=900').then(r => r.json()).catch(() => ({}))
+  ]);
+  const lead = a.query && a.query.pages ? (Object.values(a.query.pages)[0] || {}).pageimage : null;
+  const pages = b.query && b.query.pages ? Object.values(b.query.pages) : [];
+  const strip = h => (h || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  const list = pages.map(p => {
     const ii = p.imageinfo && p.imageinfo[0]; if (!ii || !ii.thumburl) return null;
-    if (/\.svg$|\.pdf$|\.tif/i.test(p.title)) return null;
-    if (ii.thumbwidth && ii.thumbwidth < 300) return null;
-    const co = p.coordinates && p.coordinates[0];
-    return { thumb: ii.thumburl, page: ii.descriptionurl, title: p.title.replace(/^File:/,'').replace(/\.[a-z]+$/i,'').replace(/_/g,' '), lat: co ? co.lat : null, lon: co ? co.lon : null };
-  }).filter(Boolean).slice(0,24);
+    if (ii.mime !== 'image/jpeg') return null;          /* le foto vere sono jpg: png e svg sono mappe, stemmi, schemi */
+    if (PH_SKIP.test(p.title)) return null;
+    if ((ii.width || 0) < 800 || (ii.height || 0) < 450) return null;
+    const m = ii.extmetadata || {}, file = p.title.replace(/^[^:]+:/, '');
+    return { thumb: ii.thumburl, page: ii.descriptionurl, file: file.replace(/ /g,'_'),
+      title: strip(m.ImageDescription && m.ImageDescription.value).slice(0, 160) || file.replace(/\.[a-z]+$/i,'').replace(/_/g,' '),
+      author: strip(m.Artist && m.Artist.value).slice(0, 60), lic: strip(m.LicenseShortName && m.LicenseShortName.value) };
+  }).filter(Boolean);
+  if (lead){ const i = list.findIndex(x => x.file === lead.replace(/ /g,'_')); if (i > 0) list.unshift(list.splice(i, 1)[0]); }
+  return photoCache[name] = list.slice(0, 20);
 }
-/* foto di Wikimedia Commons come miniature tonde sulla mappa (da zoom 12), quando hai scelto un luogo */
-let ePhotoList = [];
-const ePhotoL = L.layerGroup().addTo(emap);
-function drawPhotos(){
-  ePhotoL.clearLayers();
-  if (!eCity || !fltOn('foto') || !eNear) return;
-  ePhotoList.forEach(ph => L.marker([ph.lat, ph.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
-      html:'<div class="ph-mk" style="background-image:url(\''+ph.thumb.replace(/'/g,'%27')+'\')"></div>' }), zIndexOffset:-100 })
-    .on('click', () => showCard('<div class="ch"><span class="meta">Foto da Wikimedia Commons</span><button class="x" aria-label="Chiudi">✕</button></div>'+
-      '<img class="ph-big" src="'+esc(ph.thumb)+'" alt="'+esc(ph.title)+'"><h3>'+esc(ph.title)+'</h3>'+
-      '<div class="acts"><a href="'+esc(ph.page)+'" target="_blank" rel="noopener">Autore e licenza</a></div>')).addTo(ePhotoL));
+let ePhotoList = [], lbxI = 0;
+function drawPhotos(){}            /* le foto non stanno più sulla mappa */
+function lbxShow(i){
+  const ph = ePhotoList[i]; if (!ph) return; lbxI = i;
+  $('eLbxImg').src = ph.thumb; $('eLbxImg').alt = ph.title;
+  $('eLbxCap').innerHTML = esc(ph.title)+'<small>'+esc([ph.author, ph.lic].filter(Boolean).join(' · '))+' · <a href="'+esc(ph.page)+'" target="_blank" rel="noopener">fonte</a> · '+(i+1)+'/'+ePhotoList.length+'</small>';
+  $('eLbx').hidden = false;
 }
+$('eLbxX').onclick = () => { $('eLbx').hidden = true; };
+$('eLbxP').onclick = () => lbxShow((lbxI - 1 + ePhotoList.length) % ePhotoList.length);
+$('eLbxN').onclick = () => lbxShow((lbxI + 1) % ePhotoList.length);
+document.addEventListener('keydown', e => { if ($('eLbx').hidden) return; if (e.key === 'Escape') $('eLbx').hidden = true; if (e.key === 'ArrowLeft') $('eLbxP').click(); if (e.key === 'ArrowRight') $('eLbxN').click(); });
+let lbxX = null;            /* scorrere col dito per cambiare foto */
+$('eLbx').addEventListener('pointerdown', e => { lbxX = e.clientX; });
+$('eLbx').addEventListener('pointerup', e => { if (lbxX == null) return; const dx = e.clientX - lbxX; lbxX = null; if (Math.abs(dx) > 50) (dx < 0 ? $('eLbxN') : $('eLbxP')).click(); });
+$('ePhsRow').addEventListener('click', e => { const im = e.target.closest('[data-i]'); if (im) lbxShow(+im.dataset.i); });
 async function eLoadPhotos(c, my){
-  ePhotoList = []; drawPhotos();
-  $('ePhotoS').hidden=false; $('ePhotoT').textContent = 'Foto '+placeDi(c);
-  $('ePhotos').innerHTML = '<div class="card"><span class="muted"><span class="spin"></span>Cerco le foto…</span></div>';
+  ePhotoList = []; $('ePhs').hidden = true; $('ePhsRow').innerHTML = '';
   let list = [];
   try { list = await photoList(c); } catch(e){}
   if (my !== eCityReq) return;
-  ePhotoList = list.filter(x => x.lat != null); drawPhotos();
-  $('ePhotos').innerHTML = list.length ? '<div class="card"><div class="gal">'+list.map(p => '<a href="'+esc(p.page)+'" target="_blank" rel="noopener" title="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="'+esc(p.title)+'" loading="lazy"></a>').join('')+
-    '</div><div class="muted" style="margin-top:6px;font-size:11.5px">Foto geolocalizzate da Wikimedia Commons · tocca per autore e licenza</div></div>'
-    : '<div class="card"><span class="muted">Nessuna foto trovata '+(c.virt ? 'qui vicino' : 'vicino a '+esc(c.n))+'.</span></div>';
+  ePhotoList = list;
+  $('ePhsRow').innerHTML = list.map((p, i) => '<button data-i="'+i+'" aria-label="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="" loading="lazy"></button>').join('');
+  $('ePhs').hidden = !list.length;
 }
 
 /* ---------- scelta della città ---------- */
@@ -1905,7 +1928,6 @@ emap.on('zoomend moveend', () => {
   setETiles();
   if (near !== eNear){
     eNear = near; document.body.classList.toggle('e-near', near); renderGoBtn();
-    near ? emap.addLayer(eRouteStarts) : emap.removeLayer(eRouteStarts);
     if (near){ emap.addLayer(eArt); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
     else { emap.removeLayer(eArt); $('eCard').classList.remove('show'); $('eRefetch').classList.remove('show');
            if (eLayerMode==='sea'){ eSea.addTo(emap); eJelly.addTo(emap); } }

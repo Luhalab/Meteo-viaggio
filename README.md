@@ -77,3 +77,7 @@ ognuno accendibile, anche più insieme e con colori diversi) e "Sfondo" (tipo di
 Due modi secondo lo zoom: da lontano (sotto zoom 14) meteo, tabella settimanale e livello mare e meduse;
 da vicino (zoom 14+) monumenti, foto, percorsi e le schede curiosità / cose da fare. Il tasto sotto il nome
 della città ("Esplora …" / "Torna al meteo") passa dall'uno all'altro; anche "Vai alla città" nel fumetto.
+
+Foto: non più sulla mappa. Nel modo meteo, scelta una città, sotto il nome compare una striscia con le immagini
+della voce di Wikipedia della città (prima la foto principale; solo jpg grandi, senza stemmi e mappe); toccandole
+si apre il visore a tutto schermo. Nei filtri compaiono solo i percorsi con almeno 2 tappe con coordinate.
