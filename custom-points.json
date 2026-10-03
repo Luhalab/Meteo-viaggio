@@ -682,5 +682,58 @@
     "lon": 8.7241,
     "extract": "Un percorso di mezza giornata: Reinhart am Stadtgarten in centro, Villa Flora a circa 10 minuti a piedi, poi Am Römerholz in collina (circa 15 minuti dal Stadthaus, in salita). Am Römerholz era chiuso il lunedì, aperto 10-17 e il mercoledì fino alle 20: controlla gli orari aggiornati prima di partire.",
     "url": null
+  },
+  {
+    "title": "Santuario di San Vito",
+    "lat": 38.17603,
+    "lon": 12.73411,
+    "extract": "Chiesa-fortezza nel cuore del paese, affacciata sull'omonima piazza: massicce mura con feritoie, nate per difendere il culto di san Vito dalle incursioni dei pirati. Secondo Lonely Planet la torre fu aggiunta intorno al 1600 su progetto di Camillo Camilliani; la stampa locale segnala all'interno opere legate alla bottega dei Gagini e una cripta. Il borgo è cresciuto proprio attorno a questa fortezza.",
+    "url": null
+  },
+  {
+    "title": "Torre dell'Usciere",
+    "lat": 38.17507,
+    "lon": 12.77088,
+    "extract": "Torre costiera di avvistamento sul litorale a est del paese, verso la Tonnara del Secco. Una guida online la data al 1583 e la segnala in area militare: è meglio ammirarla da fuori e verificare l'accesso prima di avvicinarsi. Domina un tratto di costa con vista fino alla Riserva dello Zingaro.",
+    "url": null
+  },
+  {
+    "title": "Monte Monaco",
+    "lat": 38.16708,
+    "lon": 12.75695,
+    "extract": "Il rilievo che veglia sul paese e sulla sua baia sabbiosa. Le pareti a ovest e a est dell'abitato sono celebri tra gli arrampicatori e ospitano a ottobre il San Vito Climbing Festival; i sentieri offrono punti panoramici sul golfo.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Dal santuario al faro, a piedi",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Parti dalla piazza del Santuario, passa per Via Venza (strada di murales e botteghe colorate) e prosegui verso Capo San Vito: il faro ottocentesco, alto 43 metri, dista circa 2 km dal centro, 25-30 minuti a piedi. Il momento migliore è il tramonto, con la luce che si accende sul promontorio. Porta acqua e scarpe chiuse se vai oltre la strada asfaltata.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Da Torre dell'Usciere alla Tonnara",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "Passeggiata o giro in bici lungo la costa a est del paese (circa 3 km dal centro) fino a Torre dell'Usciere e alla Tonnara del Secco, con vista sulla Riserva dello Zingaro. Meglio al mattino presto o a fine pomeriggio, per evitare il caldo. La torre risulta in area militare: guardala da fuori.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Cosa mangiare a San Vito",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "La cucina risente dell'influenza nordafricana: prova il cous cous di pesce, piatto simbolo del paese (a fine settembre c'è il Cous Cous Fest). Chiudi con un caldo-freddo, coppa di gelato con pan di Spagna inzuppato e cioccolato caldo. Prenota nei weekend d'estate.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Sentiero costiero verso lo Zingaro",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "extract": "La Riserva dello Zingaro si estende per circa 7 km fino a Scopello, tra sentieri, macchia mediterranea e calette di ciottoli con acqua turchese. Da San Vito si può fare un tratto di andata e ritorno: parti presto, porta acqua e scarpe da trekking, e controlla orari e biglietto d'ingresso prima di andare.",
+    "url": null
   }
 ]
