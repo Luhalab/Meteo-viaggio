@@ -93,3 +93,5 @@ Curiosità e consigli chiusi di default, con le fonti (campo "fonti": [{"t","url
 con tracciato vero, anche nei filtri dei percorsi), testi Wikivoyage e consigli di Claude, con fonti.
 A schermo intero e da vicino, curiosità e cose da fare diventano un pannello in basso: chiuso mostra le linguette,
 aperto occupa metà schermo.
+A schermo intero e da lontano, con una città scelta, il pannello in basso ha "Meteo" e "Foto".
+Nei pannelli: toccare la linguetta già scelta chiude, un'altra linguetta apre; si possono anche trascinare su e giù.

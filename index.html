@@ -327,6 +327,12 @@ body.e-near .ectl .nr{display:flex}
 .card.tabs{padding:0;overflow:hidden}
 /* a schermo intero (e da vicino) le schede diventano un pannello in basso: chiuso mostra solo le linguette, aperto metà schermo */
 .card.tabs .grip{display:none}
+#eWxT:not(.sheet){display:none!important}
+#eWxT #wxS{margin:0;box-shadow:none;background:none}
+#eWxT #wxS>summary{display:none}
+#eWxT .phs{margin:8px 0}
+#eWxT .phs-row{flex-wrap:wrap;overflow:visible}
+#eWxT .phs-row img,#eWxT .phs-row button:first-child img{width:calc((100vw - 52px)/2);max-width:260px;height:120px}
 .ewrap.full .card.tabs.sheet{position:absolute;left:0;right:0;bottom:0;z-index:975;margin:0;border-radius:18px 18px 0 0;box-shadow:0 -6px 22px rgba(0,0,0,.28);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
 .card.tabs.sheet .grip{display:flex;justify-content:center;width:100%;border:none;background:none;padding:8px 0 2px;cursor:pointer}
 .card.tabs.sheet .grip span{width:42px;height:5px;border-radius:3px;background:var(--line)}
@@ -476,6 +482,11 @@ footer a{color:var(--tx2)}
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
     <div class="legend" id="eLegend"></div>
+    <div class="card tabs" id="eWxT" hidden>
+      <button class="grip" id="eGrip2" aria-label="Apri o chiudi meteo e foto" aria-expanded="false"><span></span></button>
+      <div class="tbar" role="tablist"><button role="tab" data-w="m" class="on" aria-selected="true">Meteo</button><button role="tab" data-w="f" id="eWxTf" aria-selected="false">Foto</button></div>
+      <div class="tbody"><div id="eWxPm"></div><div id="eWxPf" hidden></div></div>
+    </div>
     <div class="card tabs" id="eTabs" hidden>
       <button class="grip" id="eGrip" aria-label="Apri o chiudi curiosità e cose da fare" aria-expanded="false"><span></span></button>
       <div class="tbar" role="tablist"><button role="tab" data-t="cur" class="on" aria-selected="true">Curiosità e leggende</button><button role="tab" data-t="do" aria-selected="false" id="eDoTab">Cosa vedere e fare</button></div>
@@ -1312,6 +1323,7 @@ function eClearCity(){
   eCity = null; eCitySrc = ''; city = null; cw = null; eCityReq++; reqId++;
   ['wxS','cSeaS','ePhotoS','eMonS','eCurS','eDoS'].forEach(id => $(id).hidden = true);
   ePhotoList = []; $('ePhs').hidden = true; eRouteStarts.clearLayers(); eOsmRoutes = [];
+  setTimeout(sheetSync, 0);
   $('eCard').classList.remove('show'); eSel = -1;
   eRenderHero();
   if (wkMode === 'search') wkFit();
@@ -1676,17 +1688,44 @@ document.querySelector('#eTabs .tbar').addEventListener('click', e => {
 });
 const tabsSync = () => { $('eTabs').hidden = $('eCurS').hidden && $('eDoS').hidden; sheetSync(); };
 /* pannello a metà schermo nella mappa a schermo intero */
+/* Da vicino: curiosità e cose da fare. Da lontano (con una città scelta): meteo e foto. */
 function sheetSync(){
-  const T = $('eTabs'), W = $('eWrap');
-  const on = W.classList.contains('full') && eNear && !T.hidden;
-  if (on && T.parentElement !== W){ W.appendChild(T); T.classList.add('sheet'); T.classList.remove('open'); $('eGrip').setAttribute('aria-expanded', false); }
-  if (!on && T.parentElement === W){ T.classList.remove('sheet', 'open'); applyLayout(); }
-  W.classList.toggle('has-sheet', on);
+  const T = $('eTabs'), X = $('eWxT'), W = $('eWrap'), full = W.classList.contains('full');
+  const on1 = full && eNear && !T.hidden, on2 = full && !eNear && !!eCity;
+  if (on1 && T.parentElement !== W){ W.appendChild(T); T.classList.add('sheet'); T.classList.remove('open'); $('eGrip').setAttribute('aria-expanded', false); }
+  if (!on1 && T.parentElement === W){ T.classList.remove('sheet', 'open'); applyLayout(); }
+  if (on2 && X.parentElement !== W){
+    $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPf').appendChild($('ePhs'));
+    W.appendChild(X); X.hidden = false; X.classList.add('sheet'); X.classList.remove('open'); $('eGrip2').setAttribute('aria-expanded', false); }
+  if (on2){ $('eWxTf').hidden = $('ePhs').hidden; }
+  if (!on2 && X.parentElement === W){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eTabs').after(X); applyLayout(); }
+  W.classList.toggle('has-sheet', on1 || on2);
 }
-function sheetOpen(o){ const T = $('eTabs'); if (!T.classList.contains('sheet')) return; T.classList.toggle('open', o); $('eGrip').setAttribute('aria-expanded', o); }
+function sheetOpen(o){
+  document.querySelectorAll('.card.tabs.sheet').forEach(T => { T.classList.toggle('open', o); T.querySelector('.grip').setAttribute('aria-expanded', o); });
+}
 $('eGrip').onclick = () => sheetOpen(!$('eTabs').classList.contains('open'));
-document.querySelector('#eTabs .tbar').addEventListener('click', () => sheetOpen(true));
-L.DomEvent.disableClickPropagation($('eTabs')); L.DomEvent.disableScrollPropagation($('eTabs'));
+$('eGrip2').onclick = () => sheetOpen(!$('eWxT').classList.contains('open'));
+/* nel pannello: toccare la linguetta già scelta chiude; un'altra linguetta la apre; trascinare giù o su chiude o apre */
+let sheetSwiped = 0;
+document.querySelector('#eTabs .tbar').addEventListener('click', e => {
+  const T = $('eTabs'), b = e.target.closest('button[data-t]'); if (!b || !T.classList.contains('sheet') || Date.now() - sheetSwiped < 400) return;
+  const was = b.classList.contains('on') && T.classList.contains('open');
+  setTimeout(() => sheetOpen(!was), 0);
+}, true);
+['eTabs','eWxT'].forEach(id => {
+  const T = $(id); let y0 = null;
+  T.addEventListener('pointerdown', e => { if (T.classList.contains('sheet') && e.target.closest('.grip,.tbar')) y0 = e.clientY; });
+  window.addEventListener('pointerup', e => { if (y0 == null) return; const dy = e.clientY - y0; y0 = null;
+    if (Math.abs(dy) > 40){ sheetSwiped = Date.now(); sheetOpen(dy < 0); } });
+});
+document.querySelector('#eWxT .tbar').addEventListener('click', e => {
+  const b = e.target.closest('button[data-w]'); if (!b || Date.now() - sheetSwiped < 400) return;
+  const was = b.classList.contains('on') && $('eWxT').classList.contains('open');
+  document.querySelectorAll('#eWxT .tbar button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
+  $('eWxPm').hidden = b.dataset.w !== 'm'; $('eWxPf').hidden = b.dataset.w !== 'f'; sheetOpen(!was);
+});
+['eTabs','eWxT'].forEach(id => { L.DomEvent.disableClickPropagation($(id)); L.DomEvent.disableScrollPropagation($(id)); });
 new MutationObserver(tabsSync).observe($('eCurS'), { attributes:true, attributeFilter:['hidden'] });
 new MutationObserver(tabsSync).observe($('eDoS'), { attributes:true, attributeFilter:['hidden'] });
 const PIN_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
@@ -1962,7 +2001,7 @@ async function eLoadPhotos(c, my){
   if (my !== eCityReq) return;
   ePhotoList = list;
   $('ePhsRow').innerHTML = list.map((p, i) => '<button data-i="'+i+'" aria-label="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="" loading="lazy"></button>').join('');
-  $('ePhs').hidden = !list.length;
+  $('ePhs').hidden = !list.length; sheetSync();
 }
 
 /* ---------- scelta della città ---------- */
@@ -2005,7 +2044,7 @@ PAGE_DEF.forEach(k => { if (!pageOrder.includes(k)) pageOrder.push(k); });
 let pageHide = store.get('pageHide', []);
 function applyLayout(){
   let at = $('eHero');
-  pageOrder.forEach(k => PAGE_BLOCKS[k].ids.forEach(id => { const el = $(id); if (!el) return;
+  pageOrder.forEach(k => PAGE_BLOCKS[k].ids.forEach(id => { const el = $(id); if (!el || el.closest('.card.tabs.sheet')) return;   /* ciò che sta nel pannello resta lì */
     at.after(el); at = el; el.classList.toggle('uhide', pageHide.includes(k) && !PAGE_BLOCKS[k].fixed); }));
   setTimeout(() => emap.invalidateSize(), 50);
 }
@@ -2060,6 +2099,7 @@ function eSelectCity(c, opts){
   if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
   eRefreshWx(); eRenderHero();
   if (!mapData[c.n]) fetchMissing([c]);
+  sheetSync();
 }
 /* Un punto fuori dai centri abitati diventa un luogo a sé ("Vicino a Marsala"):
    meteo, mare, foto e monumenti di quel punto preciso, curiosità e consigli della città più vicina. */
