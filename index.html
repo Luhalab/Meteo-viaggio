@@ -375,9 +375,13 @@ body.gm .ewrap.full .eopt{max-height:calc(100% - var(--gmTop) - var(--sheetH,70p
 #eWxT .phs-row{flex-wrap:wrap;overflow:visible}
 #eWxT .phs-row img,#eWxT .phs-row button:first-child img{width:calc((100vw - 52px)/2);max-width:260px;height:120px}
 .ewrap.full .card.tabs.sheet{position:absolute;left:0;right:0;bottom:0;z-index:975;margin:0;border-radius:18px 18px 0 0;box-shadow:0 -6px 22px rgba(0,0,0,.28);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.card.tabs.sheet .grip,.card.tabs.sheet .tbar,.card.tabs.sheet .shead{touch-action:none}
 .card.tabs.sheet .grip{display:flex;justify-content:center;width:100%;border:none;background:none;padding:8px 0 2px;cursor:pointer}
 .card.tabs.sheet .grip span{width:42px;height:5px;border-radius:3px;background:var(--line)}
 .card.tabs.sheet:not(.open) .tbody{display:none}
+.card.tabs.sheet.dragging .tbody{display:block;flex:1;max-height:none;overflow:hidden}
+.ewrap.full .card.tabs.sheet{transition:height .22s ease}
+@media (prefers-reduced-motion:reduce){.ewrap.full .card.tabs.sheet{transition:none}}
 .card.tabs.sheet.open{height:52%}
 .ewrap.full .card.tabs.sheet.max{height:calc(100% - env(safe-area-inset-top,0px) - 6px);border-radius:14px 14px 0 0}
 body.sheet-max.gm header{display:none}
@@ -1847,11 +1851,61 @@ document.querySelector('#eTabs .tbar').addEventListener('click', e => {
   const was = b.classList.contains('on') && T.classList.contains('open');
   setTimeout(() => sheetOpen(!was), 0);
 }, true);
+/* Trascinamento su tutto il pannello.
+   Sul telefono uso gli eventi touch: con i pointer events il browser, appena il dito scorre in verticale,
+   si prende il gesto (pointercancel) e il pannello non riceve mai la fine del trascinamento.
+   Su = un gradino in più (chiuso → metà → tutto); giù = uno in meno. Il contenuto scorre normalmente
+   quando il pannello è a tutto schermo; da lì, trascinando giù con il contenuto già in cima, si scende di un gradino. */
 ['eTabs','eWxT'].forEach(id => {
-  const T = $(id); let y0 = null;
-  T.addEventListener('pointerdown', e => { if (T.classList.contains('sheet') && e.target.closest('.grip,.tbar')) y0 = e.clientY; });
-  window.addEventListener('pointerup', e => { if (y0 == null) return; const dy = e.clientY - y0; y0 = null;
-    if (Math.abs(dy) > 40){ sheetSwiped = Date.now(); sheetSet(sheetState() + (dy < 0 ? 1 : -1)); } });   /* su: un gradino in più; giù: uno in meno */
+  const T = $(id); let g = null;
+  const scroller = () => T.querySelector('.tbody');
+  /* altezze delle tre posizioni */
+  const hs = () => { const W = $('eWrap').clientHeight; return [ +(T.dataset.ch || 70), Math.round(W * 0.52), W - 6 ]; };
+  /* come su Google Maps: il pannello segue il dito, poi si ferma sulla posizione più vicina
+     (o su quella successiva se il gesto è veloce) */
+  function start(x, y, target){
+    const sc = scroller();
+    g = { x, y, t: Date.now(), top: sc ? sc.scrollTop : 0, inBody: !!(sc && sc.contains(target)), dir: 0, mine: false,
+          h: T.getBoundingClientRect().height, st: sheetState(), ly: y, lt: Date.now(), v: 0 };
+  }
+  function move(x, y, ev){
+    if (!g) return;
+    const dx = x - g.x, dy = y - g.y;
+    if (!g.dir){ if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      g.dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'; }            /* scorrimenti orizzontali (ore, tabella) restano liberi */
+    if (g.dir !== 'v') return;
+    if (!g.mine){
+      const mine = !g.inBody || (dy < 0 && g.st < 2) || (dy > 0 && g.top <= 0);
+      if (!mine) return;
+      g.mine = true; T.classList.add('dragging'); T.style.transition = 'none';
+    }
+    if (ev && ev.cancelable) ev.preventDefault();
+    const H = hs(), now = Date.now();
+    g.v = (y - g.ly) / Math.max(1, now - g.lt); g.ly = y; g.lt = now;     /* velocità (px/ms, positiva verso il basso) */
+    T.style.height = Math.max(H[0], Math.min(H[2], g.h - dy)) + 'px';
+  }
+  function end(){
+    if (!g) return; const d = g; g = null;
+    if (!d.mine) return;
+    sheetSwiped = Date.now();
+    const H = hs(), cur = T.getBoundingClientRect().height;
+    let n;
+    n = H.map((h, i) => [Math.abs(h - cur), i]).sort((p, q) => p[0] - q[0])[0][1];      /* la posizione più vicina */
+    if (Math.abs(d.v) > 0.5){                                                             /* gesto veloce: la prossima nella sua direzione */
+      const next = d.v < 0 ? H.findIndex(h => h > cur + 10) : H.map((h, i) => h < cur - 10 ? i : -1).filter(i => i >= 0).pop();
+      if (next != null && next >= 0) n = next;
+    }
+    T.style.transition = ''; T.style.height = ''; T.classList.remove('dragging');
+    sheetSet(n);
+  }
+  T.addEventListener('touchstart', e => { if (!T.classList.contains('sheet') || e.touches.length !== 1){ g = null; return; } start(e.touches[0].clientX, e.touches[0].clientY, e.target); }, { passive:true });
+  T.addEventListener('touchmove', e => move(e.touches[0].clientX, e.touches[0].clientY, e), { passive:false });
+  T.addEventListener('touchend', end);
+  T.addEventListener('touchcancel', end);
+  /* col mouse (computer): stesso gesto, dalla parte alta del pannello */
+  T.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && T.classList.contains('sheet') && e.target.closest('.grip,.tbar,.shead')) start(e.clientX, e.clientY, e.target); });
+  window.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && g) move(e.clientX, e.clientY, null); });
+  window.addEventListener('pointerup', e => { if (e.pointerType === 'mouse') end(); });
 });
 document.querySelector('#eWxT .tbar').addEventListener('click', e => {
   const b = e.target.closest('button[data-w]'); if (!b || Date.now() - sheetSwiped < 400) return;
