@@ -98,3 +98,10 @@ Nei pannelli: toccare la linguetta già scelta chiude, un'altra linguetta apre; 
 Meteo essenziale: solo la fila ora per ora di oggi (con "adesso" al centro) e la tabella settimanale, con la città
 scelta sempre presente ed evidenziata e la stella sulla settimana migliore; tolti condizioni attuali, 15 giorni e testi.
 Nel pannello a schermo intero la linguetta Meteo contiene entrambe.
+
+Interfaccia tipo Google Maps (ottobre 2026): la mappa occupa tutto lo schermo; in alto ricerca (con tasto tema) e chip
+delle nazioni (REGIONI: per aggiungerne una basta un nuovo elemento); a destra in alto livelli (mappa con / senza icone)
+e filtri; a destra in basso posizione e zoom Città / Meteo; in basso il pannello con testata del luogo (nome, meteo,
+Esplora, Chiedi a Claude) e linguette Meteo/Foto da lontano, Curiosità/Cosa fare da vicino. Tolto "Mare e meduse".
+Foto: nel visore "Mostra sulla mappa" usa le coordinate del file su Commons; se mancano e la foto ritrae un luogo noto,
+lo cerca tra i luoghi noti e poi su OpenStreetMap ("stimata"); le foto di cibo senza coordinate non vanno sulla mappa.

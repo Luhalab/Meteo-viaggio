@@ -241,6 +241,8 @@ body.e-full{overflow:hidden}
 .ezs button{width:56px;height:56px;border:none;border-radius:14px;background:#fff;color:#142430;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:0;font:600 10.5px var(--sans)}
 .ezs button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ezs button.on{color:#2470b8}
+.ezs #eLoc{width:56px;height:56px;border-radius:50%;background:#fff;color:#2470b8}
+.ectl:not(.ezb) #eBg,.ectl:not(.ezb) #eFlt{border-radius:50%}
 .ectl.ezb{top:auto;bottom:28px;left:10px;right:auto;flex-direction:row}
 .ewrap.full .ectl.ezb{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:965;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
@@ -272,6 +274,43 @@ body.e-near .ectl .nr{display:flex}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
 .gone{display:none!important}
+/* ===== interfaccia tipo Google Maps: la mappa occupa tutto, ricerca e nazioni galleggiano sopra ===== */
+body.gm{overflow:hidden;--gmTop:calc(env(safe-area-inset-top,0px) + 122px)}
+body.gm header{position:fixed;left:0;right:0;top:0;z-index:1400;background:none;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 0;pointer-events:none}
+body.gm header>*{pointer-events:auto}
+body.gm .hrow{display:none}
+body.gm .search{margin:0;max-width:none}
+body.gm .search input{height:52px;border-radius:26px;padding:0 56px 0 46px;box-shadow:0 2px 6px rgba(0,0,0,.18),0 6px 18px rgba(0,0,0,.12);background:var(--card);color:var(--tx)}
+body.gm .search .ico{top:16px;left:16px}
+body.gm .search #themeBtn{position:absolute;right:6px;top:6px;width:40px;height:40px;min-width:0;border-radius:50%;background:var(--acc-soft);color:var(--acc)}
+body.gm .sugg{top:58px}
+.gchips{display:none}
+body.gm .gchips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-width:none;padding-bottom:4px}
+.gchips::-webkit-scrollbar{display:none}
+.gchips button{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:none;border-radius:18px;background:var(--card);color:var(--tx);font:500 14px var(--sans);box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer}
+.gchips button.on{background:var(--acc);color:#fff}
+body.gm #eFull,body.gm #eSeg,body.gm #eCustB,body.gm footer{display:none!important}
+body.gm .ewrap.full .ectl:not(.ezb){top:var(--gmTop)}
+body.gm .ewrap.full .ecomp{left:auto;right:10px;top:calc(var(--gmTop) + 112px)}
+body.gm .ewrap.full .erefetch,body.gm .ewrap.full .ehint{top:var(--gmTop)}
+body.gm .ewrap.full .erefetch.show ~ .ehint{top:calc(var(--gmTop) + 48px)}
+body.gm .ewrap.has-sheet .ectl.ezb,body.gm .ewrap.has-sheet .ezs{bottom:calc(var(--sheetH,70px) + 12px)}
+body.gm .ewrap.has-sheet .eopt,body.gm .ewrap.has-sheet .epill{bottom:calc(var(--sheetH,70px) + 68px)}
+body.gm .ewrap.has-sheet .ecard{bottom:calc(var(--sheetH,70px) + 10px)}
+body.gm .ewrap.full .eopt{max-height:calc(100% - var(--gmTop) - var(--sheetH,70px) - 90px)!important}
+/* testata del luogo dentro il pannello: nome, temperatura e due tasti */
+.shead{display:none}
+.card.tabs.sheet .shead{display:block;padding:0 16px 6px}
+.shead .ehero{margin:0 0 8px}
+.shead .ehero h2{font-size:22px}
+.shead .sbtn{display:flex;gap:8px}
+.shead .egoc,.shead .askcity{flex:1;min-width:0;margin:0;min-height:40px;padding:8px 10px;font-size:13px;border-radius:20px}
+.shead .askcity span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shead .egoc{white-space:nowrap}
+/* tasto "mostra sulla mappa" nel visore delle foto */
+.lbx .lmap{position:absolute;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top,0px));width:auto;height:40px;border-radius:20px;padding:0 16px;font:600 14px var(--sans);background:#fff;color:#142430}
+.lbx .lmap[hidden]{display:none}
+.ph-pin{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45);background:#ccc center/cover no-repeat;transform:translate(-50%,-50%);cursor:pointer}
 #cNow,#wxS .sub:not(#cTodoT),#cDays,#eWkBest,#eWkHint{display:none!important}
 #cTodoT{margin-top:2px}
 .guide .src{font-size:12.5px;color:var(--tx2);margin:2px 0 6px}
@@ -438,13 +477,16 @@ footer a{color:var(--tx2)}
     <button class="hbtn" id="themeBtn" aria-label="Cambia tema"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
   </div>
   <div class="search"><svg class="ic ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-    <input id="q" type="search" placeholder="Cerca una città" autocomplete="off" aria-label="Cerca una città">
+    <input id="q" type="search" placeholder="Cerca qui" autocomplete="off" aria-label="Cerca una città">
     <div class="sugg" id="sugg"></div></div>
+  <div class="gchips" id="eRegChips" role="group" aria-label="Nazione"></div>
 </header>
 
 <main>
   <!-- ======== ESPLORA ======== -->
   <section class="view on" id="vEsp">
+    <div id="eAnchor"></div>
+    <div class="shead" id="eSheetHead"></div>
     <div class="ehero" id="eHero" hidden><h2 id="eHName"></h2><div class="ew" id="eHW"></div></div>
     <div class="phs" id="ePhs" hidden><div class="phs-row" id="ePhsRow"></div><div class="phs-src">Foto dalla voce di Wikipedia · tocca per ingrandire</div></div>
     <button class="egoc" id="eGoC" hidden></button>
@@ -513,7 +555,7 @@ footer a{color:var(--tx2)}
     <details class="sec heritage gone" id="eMonS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10M9.5 21V10M14.5 21V10M19 21V10M2 10l10-6 10 6z"/></svg></span><span class="st" id="eMonT">Monumenti</span><span class="sn" id="eMonN"></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"><div id="eMon"></div></div></details>
     <details class="sec gone" id="eCurS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span><span class="st">Curiosità e leggende</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"></div></details>
     <details class="sec gone" id="eDoS" hidden><summary><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span><span class="st" id="eDoT">Cosa vedere e fare</span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="sb"></div></details>
-    <div class="lbx" id="eLbx" hidden role="dialog" aria-label="Foto"><button class="lx" id="eLbxX" aria-label="Chiudi">✕</button><button class="lp" id="eLbxP" aria-label="Foto precedente">‹</button><img id="eLbxImg" alt=""><button class="ln" id="eLbxN" aria-label="Foto successiva">›</button><div class="lc" id="eLbxCap"></div></div>
+    <div class="lbx" id="eLbx" hidden role="dialog" aria-label="Foto"><button class="lx" id="eLbxX" aria-label="Chiudi">✕</button><button class="lp" id="eLbxP" aria-label="Foto precedente">‹</button><img id="eLbxImg" alt=""><button class="ln" id="eLbxN" aria-label="Foto successiva">›</button><div class="lc" id="eLbxCap"></div><button class="lmap" id="eLbxMap" hidden></button></div>
     <button class="cust-btn" id="eCustB"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="var(--card)"/><circle cx="15" cy="12" r="2" fill="var(--card)"/><circle cx="8" cy="18" r="2" fill="var(--card)"/></svg>Personalizza la pagina</button>
     <div class="cust" id="eCust" hidden role="dialog" aria-label="Personalizza la pagina"><div class="sh"><h3>Personalizza la pagina</h3><p class="m">Scegli l'ordine dei blocchi e quali mostrare. Ciò che sta sopra la mappa la sposta quando appare o sparisce: per una mappa ferma, metti sopra solo i blocchi fissi.</p><div id="eCustL"></div><div class="acts"><button id="eCustR">Ripristina</button><button class="pr" id="eCustOk">Fatto</button></div></div></div>
     <footer>
@@ -590,7 +632,7 @@ async function loadRegion(id){
   for (const k in cityCache) delete cityCache[k];
   pending.clear();
   store.set('ss_reg', id);
-  $('regBtn').textContent = (REGIONI.find(x=>x.id===id)||{emoji:'🌍'}).emoji;
+  $('regBtn').textContent = (REGIONI.find(x=>x.id===id)||{emoji:'🌍'}).emoji; if (typeof regChips === 'function') regChips();
   $('q').placeholder = 'Cerca una città in '+j.nome;
   document.title = j.nome+' · Meteo e viaggio';
   $('hReg').textContent = j.nome;
@@ -766,6 +808,10 @@ $('meBtn').onclick = async () => {
   emap.setView([pos.lat,pos.lon], Math.max(emap.getZoom(), 16));
 };
 
+function regChips(){
+  $('eRegChips').innerHTML = REGIONI.map(r => '<button data-r="'+r.id+'" class="'+(REG && REG.id === r.id ? 'on' : '')+'">'+r.emoji+' '+esc(r.nome)+'</button>').join('');
+}
+$('eRegChips').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b && !(REG && REG.id === b.dataset.r)) loadRegion(b.dataset.r).then(regChips).catch(()=>{}); });
 $('regBtn').onclick = () => {
   const i = REGIONI.findIndex(r => REG && r.id===REG.id);
   const next = REGIONI[(i+1) % REGIONI.length];
@@ -1106,6 +1152,7 @@ let eTiles = null, eTileKind = '';
    'clean' = Esri World Street Map, strade e nomi senza le icone dei locali: così decidono i filtri
    Da zoom 12 le tile sono mostrate al doppio, per avere scritte più grandi. La scelta resta salvata. */
 let tileBase = store.get('mapBase', 'vector');
+if (tileBase === 'osm' || tileBase === 'clean'){ if (tileBase === 'clean') store.set('vt_flt', {}); tileBase = 'vector'; }   /* ora si parte sempre dalla vettoriale */
 function setETiles(force){
   if (tileBase === 'vector'){ if (eTileKind !== 'vector' || force) startVector(); return; }
   if (eTileKind === 'vector') stopVector();
@@ -1335,7 +1382,7 @@ function eClearCity(){
   if (!eCity) return;
   eCity = null; eCitySrc = ''; city = null; cw = null; eCityReq++; reqId++;
   ['wxS','cSeaS','ePhotoS','eMonS','eCurS','eDoS'].forEach(id => $(id).hidden = true);
-  ePhotoList = []; $('ePhs').hidden = true; eRouteStarts.clearLayers(); eOsmRoutes = [];
+  ePhotoList = []; $('ePhs').hidden = true; eRouteStarts.clearLayers(); eOsmRoutes = []; ePhotoPin.clearLayers();
   setTimeout(sheetSync, 0);
   $('eCard').classList.remove('show'); eSel = -1;
   eRenderHero();
@@ -1592,13 +1639,16 @@ function fltPanel(){
       : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso con tappe sulla mappa per '+esc(eCity.n)+'.' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
 }
 function bgPanel(){
-  $('eBgP').innerHTML = '<div class="fh">Sfondo</div>'+
-    [['vector','Vettoriale','scritte nitide, icone a scelta (consigliata)'],['osm','OpenStreetMap classica','con tutte le icone dei locali'],['clean','Senza icone dei locali','mappa stradale Esri']]
-      .map(b => '<button data-b="'+b[0]+'" class="bgr'+(tileBase === b[0] ? ' on' : '')+'"><span>'+b[1]+'<small>'+b[2]+'</small></span><i class="rd"></i></button>').join('')+
-    (tileBase === 'vector' ? '<div class="fh">Icone dello sfondo</div>'+Object.keys(VT_CATS).map(k => '<button data-v="'+k+'" class="'+(vtFlt[k] ? 'on' : '')+'"><span>'+esc(VT_CATS[k].t)+'</span><i></i></button>').join('')+
-      '<button data-vall="1" class="act"><span>Accendi tutte</span></button><button data-vnone="1" class="act"><span>Spegni tutte</span></button>'+
-      '<div class="fh">Scritte</div><button data-vbig="1" class="bgr'+(vtBig ? ' on' : '')+'"><span>Scritte grandi<small>nomi di vie e luoghi più leggibili</small></span><i></i></button>'
-      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">Icone a scelta e scritte grandi sono disponibili con lo sfondo vettoriale.</div>');
+  const noIc = tileBase === 'clean' || (tileBase === 'vector' && Object.values(vtFlt).every(v => !v));
+  $('eBgP').innerHTML = '<div class="fh">Mappa</div>'+
+    '<button data-ic="1" class="bgr'+(noIc ? '' : ' on')+'"><span>Con icone<small>ristoranti, negozi, musei, trasporti</small></span><i class="rd"></i></button>'+
+    '<button data-ic="0" class="bgr'+(noIc ? ' on' : '')+'"><span>Senza icone<small>solo strade, nomi e i punti dell\'app</small></span><i class="rd"></i></button>';
+}
+/* con la mappa vettoriale le icone si spengono tutte insieme; se il telefono non la regge uso le mappe classiche */
+function setIcons(on){
+  Object.keys(vtFlt).forEach(k => vtFlt[k] = on); store.set('vt_flt', vtFlt);
+  if (tileBase === 'vector') vtApply();
+  else { tileBase = on ? 'osm' : 'clean'; store.set('mapBase', tileBase); setETiles(true); }
 }
 function setFltP(o){ if (o){ fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
 function setBgP(o){ if (o){ bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
@@ -1606,6 +1656,8 @@ $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
 function panelClick(e){
   e.stopPropagation();          /* i pannelli si ridisegnano: senza questo si chiuderebbero da soli */
+  const ic = e.target.closest('button[data-ic]');
+  if (ic){ setIcons(ic.dataset.ic === '1'); bgPanel(); return; }
   const bb = e.target.closest('button[data-b]');
   if (bb){ if (bb.dataset.b !== tileBase){ tileBase = bb.dataset.b; store.set('mapBase', tileBase); setETiles(true); } bgPanel(); return; }
   const vb = e.target.closest('button[data-v],button[data-vall],button[data-vnone],button[data-vbig]');
@@ -1704,18 +1756,33 @@ const tabsSync = () => { $('eTabs').hidden = $('eCurS').hidden && $('eDoS').hidd
 /* Da vicino: curiosità e cose da fare. Da lontano (con una città scelta): meteo e foto. */
 function sheetSync(){
   const T = $('eTabs'), X = $('eWxT'), W = $('eWrap'), full = W.classList.contains('full');
-  const on1 = full && eNear && !T.hidden, on2 = full && !eNear && !!eCity;
+  const on1 = full && eNear && !T.hidden, on2 = full && !eNear;
   if (on1 && T.parentElement !== W){ W.appendChild(T); T.classList.add('sheet'); T.classList.remove('open'); $('eGrip').setAttribute('aria-expanded', false); }
   if (!on1 && T.parentElement === W){ T.classList.remove('sheet', 'open'); applyLayout(); }
   if (on2 && X.parentElement !== W){
     $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPm').appendChild($('eWeek')); $('eWxPf').appendChild($('ePhs'));
     W.appendChild(X); X.hidden = false; X.classList.add('sheet'); X.classList.remove('open'); $('eGrip2').setAttribute('aria-expanded', false); }
-  if (on2){ $('eWxTf').hidden = $('ePhs').hidden; }
+  if (on2){ $('eWxTf').hidden = $('ePhs').hidden || !eCity; if ($('eWxTf').hidden && !$('eWxPf').hidden) document.querySelector('#eWxT [data-w=m]').click(); }
   if (!on2 && X.parentElement === W){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eTabs').after(X); applyLayout(); }
   W.classList.toggle('has-sheet', on1 || on2);
+  /* la testata del luogo (nome, meteo, Esplora, Chiedi a Claude) va nel pannello attivo, sopra le linguette */
+  const act = on1 ? T : on2 ? X : null, H = $('eSheetHead');
+  if (act && document.body.classList.contains('gm')){
+    if (H.parentElement !== act) act.insertBefore(H, act.querySelector('.tbar'));
+    if (!H.contains($('eHero'))){ H.appendChild($('eHero')); const r = document.createElement('div'); r.className = 'sbtn'; r.append($('eGoC'), $('eAskCity')); H.appendChild(r); }
+    H.hidden = !eCity;
+  }
+  sheetH();
+}
+/* altezza del pannello chiuso: serve per alzare i tasti della mappa sopra di lui */
+function sheetH(){
+  const S = document.querySelector('.card.tabs.sheet'); if (!S) return;
+  const h = S.classList.contains('open') ? (S.dataset.ch || 70) : S.offsetHeight;
+  if (!S.classList.contains('open')) S.dataset.ch = h;
+  $('eWrap').style.setProperty('--sheetH', h+'px');
 }
 function sheetOpen(o){
-  if (o) setTimeout(centerNow, 60);
+  if (o) setTimeout(centerNow, 60); else setTimeout(sheetH, 30);
   document.querySelectorAll('.card.tabs.sheet').forEach(T => { T.classList.toggle('open', o); T.querySelector('.grip').setAttribute('aria-expanded', o); });
 }
 $('eGrip').onclick = () => sheetOpen(!$('eTabs').classList.contains('open'));
@@ -1993,12 +2060,54 @@ async function photosFrom(dom, name){
 }
 let ePhotoList = [], lbxI = 0, lbxList = [];
 function drawPhotos(){}            /* le foto non stanno più sulla mappa */
+/* Dove è stata scattata una foto: 1) coordinate del file su Wikimedia Commons;
+   2) se mancano e la foto mostra un monumento o un luogo noto, provo a trovarlo (tra i luoghi già noti, poi su OpenStreetMap);
+   le foto di cibo senza coordinate non vanno sulla mappa. */
+const PH_FOOD = /cibo|piatt|pasta|cous.?cous|busiat|dolc|gelat|granit|cannol|arancin|\bpane\b|pizz|pesce|frutti di mare|food|dish|cuisine|dessert|ristorant|restaurant|trattori|\bbar\b|caff|cocktail|vino|wine|mercato del pesce/i;
+const PH_PLACE = /chies|cattedral|duomo|santuari|basilic|torr|castell|faro|palazz|piazz|porto|spiaggi|riserv|muse|tonnar|villa|teatr|fontan|bastion|porta |convent|monaster|baia|cala |isol|monte|grott|tempi|church|tower|castle|lighthouse|beach|square|harbou?r|cathedral|palace|museum|bay/i;
+const phLocCache = {};
+async function locatePhoto(ph){
+  if (phLocCache[ph.page] !== undefined) return phLocCache[ph.page];
+  let r = null;
+  try {
+    const j = await (await fetch('https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&prop=coordinates&titles='+encodeURIComponent('File:'+ph.file.replace(/_/g,' ')))).json();
+    const pg = j.query && j.query.pages && Object.values(j.query.pages)[0];
+    const co = pg && pg.coordinates && pg.coordinates[0];
+    if (co) r = { lat: co.lat, lon: co.lon, exact: true };
+  } catch(e){}
+  const c = eCity;
+  if (!r && c){
+    const fname = ph.file.replace(/\.[a-z]+$/i,'').replace(/_/g,' ').replace(/\b(IMG|DSC|DSCN|P)\s?\d+\b|\b\d{4,}\b/gi,'').trim();
+    const txt = ph.title+' '+fname;
+    if (!PH_FOOD.test(txt) && PH_PLACE.test(txt)){
+      for (const q of [ph.title, fname]){
+        const name = q.replace(new RegExp('\\b(a|di|in)?\\s*'+((c.ref||c).n).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i'), '').replace(/[,.;:].*$/,'').trim().slice(0, 70);
+        if (name.length < 4 || !PH_PLACE.test(name)) continue;
+        const g = (await knownPlace(name, c)) || (await geocode(name, c));
+        if (g){ r = { lat: g.lat, lon: g.lon, exact: false }; break; }
+      }
+    }
+  }
+  return phLocCache[ph.page] = r;
+}
+const ePhotoPin = L.layerGroup().addTo(emap);
+function showPhotoOnMap(ph, loc){
+  $('eLbx').hidden = true; ePhotoPin.clearLayers();
+  L.marker([loc.lat, loc.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="ph-pin" style="background-image:url(\''+ph.thumb.replace(/'/g,'%27')+'\')"></div>' }), zIndexOffset:1500 })
+    .on('click', () => showCard('<div class="ch"><span class="meta">'+(loc.exact ? 'Dove è stata scattata' : 'Posizione stimata dal soggetto della foto')+'</span><button class="x" aria-label="Chiudi">✕</button></div>'+
+      '<img class="ph-big" src="'+esc(ph.thumb)+'" alt="'+esc(ph.title)+'"><h3>'+esc(ph.title)+'</h3><div class="acts"><a href="'+esc(ph.page)+'" target="_blank" rel="noopener">Autore e licenza</a></div>')).addTo(ePhotoPin);
+  emap.setView([loc.lat, loc.lon], loc.exact ? 17 : 16, { animate:true });
+}
 function lbxShow(i, list){
   if (list) lbxList = list;
   const ph = lbxList[i]; if (!ph) return; lbxI = i;
   $('eLbxImg').src = ph.thumb; $('eLbxImg').alt = ph.title;
   $('eLbxCap').innerHTML = esc(ph.title)+'<small>'+esc([ph.author, ph.lic].filter(Boolean).join(' · '))+' · <a href="'+esc(ph.page)+'" target="_blank" rel="noopener">fonte</a> · '+(i+1)+'/'+lbxList.length+'</small>';
   $('eLbx').hidden = false;
+  const btn = $('eLbxMap'); btn.hidden = true;
+  locatePhoto(ph).then(loc => { if (!loc || lbxList[lbxI] !== ph || $('eLbx').hidden) return;
+    btn.textContent = loc.exact ? '📍 Mostra sulla mappa' : '📍 Mostra sulla mappa (stimata)'; btn.hidden = false;
+    btn.onclick = () => showPhotoOnMap(ph, loc); });
 }
 $('eLbxX').onclick = () => { $('eLbx').hidden = true; };
 $('eLbxP').onclick = () => lbxShow((lbxI - 1 + lbxList.length) % lbxList.length);
@@ -2022,7 +2131,8 @@ async function eLoadPhotos(c, my){
 function askCityClaude(c){
   shareToClaude(msgCity(c));
 }
-function renderAskBtn(){
+function renderAskBtn(){ renderAskBtn0(); if (document.body.classList.contains('gm')) $('eAskCityT').textContent = 'Chiedi a Claude'; }
+function renderAskBtn0(){
   if (eCity && eCity.virt){ const v = eCity;
     $('eAskCityT').textContent = 'Chiedi a Claude di aggiungere punti e curiosità qui intorno';
     $('eAskCity').onclick = () => shareToClaude(msgHere({lat: v.lat, lon: v.lon})); return; }
@@ -2057,8 +2167,8 @@ let pageOrder = store.get('pageOrder', PAGE_DEF).filter(k => PAGE_BLOCKS[k]);
 PAGE_DEF.forEach(k => { if (!pageOrder.includes(k)) pageOrder.push(k); });
 let pageHide = store.get('pageHide', []);
 function applyLayout(){
-  let at = $('eHero');
-  pageOrder.forEach(k => PAGE_BLOCKS[k].ids.forEach(id => { const el = $(id); if (!el || el.closest('.card.tabs.sheet')) return;   /* ciò che sta nel pannello resta lì */
+  let at = $('eHero').closest('#eSheetHead') ? $('eAnchor') : $('eHero');
+  pageOrder.forEach(k => PAGE_BLOCKS[k].ids.forEach(id => { const el = $(id); if (!el || el.closest('.card.tabs.sheet') || el.closest('#eSheetHead')) return;   /* ciò che sta nel pannello resta lì */
     at.after(el); at = el; el.classList.toggle('uhide', pageHide.includes(k) && !PAGE_BLOCKS[k].fixed); }));
   setTimeout(() => { emap.invalidateSize(); centerNow(); }, 80);
 }
@@ -2086,12 +2196,12 @@ function renderGoBtn(){
   const b = $('eGoC'); b.hidden = !eCity;
   if (!eCity) return;
   b.innerHTML = eNear ? '<svg viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 1 0-1-8.9A6 6 0 0 0 5 12a3.5 3.5 0 0 0 .5 7z"/></svg>Torna al meteo'
-                      : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Esplora '+esc(eCity.virt ? 'questa zona' : eCity.n);
+                      : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Esplora'+(document.body.classList.contains('gm') ? '' : ' '+esc(eCity.virt ? 'questa zona' : eCity.n));
   b.onclick = () => { const c = eCity; if (!c) return;
     if (eNear) emap.flyTo([c.lat, c.lon], 11); else emap.flyTo([c.lat, c.lon], 15); };
 }
 function eRenderHero(){
-  renderAskBtn(); renderGoBtn();
+  renderAskBtn(); renderGoBtn(); if (typeof sheetSync === 'function') setTimeout(sheetSync, 0);
   if (!eCity){ $('eHero').hidden = true; return; }
   $('eHero').hidden = false; $('eHName').textContent = eCity.n;
   if (eCity.virt){ $('eHW').innerHTML = '<span class="muted">'+String(eCity.dist.toFixed(1)).replace('.', ',')+' km dal centro</span>'+
@@ -2433,6 +2543,21 @@ function eOnRegion(j, dentro){
 /* ================= NAVIGAZIONE ================= */
 function route(){ renderAskBtn(); setTimeout(() => { emap.invalidateSize(); eRefreshWx(); }, 50); }
 
+/* ================= INTERFACCIA TIPO GOOGLE MAPS =================
+   La mappa occupa tutto lo schermo; sopra: ricerca e nazioni; a destra in alto: livelli (sfondo) e filtri;
+   a destra in basso: posizione e zoom Città / Meteo; in basso il pannello con meteo e foto o curiosità e cose da fare. */
+(function gmInit(){
+  document.body.classList.add('gm');
+  const top = document.querySelector('.ectl:not(.ezb)');
+  top.append($('eBg'), $('eFlt'));               /* livelli e filtri in alto a destra, come su Google Maps */
+  $('eZs').prepend($('eLoc'));                    /* la posizione sopra i tasti di zoom */
+  document.querySelector('.search').appendChild($('themeBtn'));
+  $('eWrap').classList.add('full'); document.body.classList.add('e-full');
+  eLayerMode = 'wx';
+  regChips();
+  setTimeout(() => { emap.invalidateSize(); sheetSync(); }, 80);
+  window.addEventListener('resize', () => setTimeout(sheetH, 100));
+})();
 /* ================= AVVIO ================= */
 (async function start(){
   try{ await loadRegion(await pickRegion()); }
