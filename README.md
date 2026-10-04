@@ -108,3 +108,4 @@ lo cerca tra i luoghi noti e poi su OpenStreetMap ("stimata"); le foto di cibo s
 Pannello a tre posizioni (chiuso, metà, tutto lo schermo) che segue il dito come su Google Maps: al rilascio va sulla posizione più vicina, con un gesto veloce sulla successiva; dal contenuto in cima si trascina giù, le righe orizzontali scorrono normalmente.
 Tabella: 7 o 15 giorni (la stella della città migliore usa la media sul periodo scelto); toccando una città la si sceglie
 (mappa e ora per ora seguono), toccando un giorno (cella o intestazione) l'ora per ora mostra quel giorno.
+Ora per ora: solo le ore 6, 8, 10 … 22, più l'ora attuale ("adesso"). Pannello animato (anche all'apertura da chiuso), trascinamento aggiornato una volta per fotogramma.

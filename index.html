@@ -380,7 +380,7 @@ body.gm .ewrap.full .eopt{max-height:calc(100% - var(--gmTop) - var(--sheetH,70p
 .card.tabs.sheet .grip span{width:42px;height:5px;border-radius:3px;background:var(--line)}
 .card.tabs.sheet:not(.open) .tbody{display:none}
 .card.tabs.sheet.dragging .tbody{display:block;flex:1;max-height:none;overflow:hidden}
-.ewrap.full .card.tabs.sheet{transition:height .22s ease}
+.ewrap.full .card.tabs.sheet{will-change:height}
 @media (prefers-reduced-motion:reduce){.ewrap.full .card.tabs.sheet{transition:none}}
 .card.tabs.sheet.open{height:52%}
 .ewrap.full .card.tabs.sheet.max{height:calc(100% - env(safe-area-inset-top,0px) - 6px);border-radius:14px 14px 0 0}
@@ -1007,7 +1007,9 @@ function renderTodo(){
   const idx = cw.htime.map((t,i)=>[t,i]).filter(x=>x[0].startsWith(day)).map(x=>x[1]);
   if (!idx.length){ $('cTodo').innerHTML='<span class="muted">Dettaglio ora per ora disponibile solo per i primi giorni.</span>'; return; }
   const H=cw.hourly, nowH=new Date().getHours(), oggi=selDay===0;
-  $('cTodo').innerHTML='<div class="hours">'+idx.map(i=>{
+  /* solo le ore che servono per organizzare la giornata: 6, 8, 10 … 22, più l'ora attuale */
+  const sel = idx.filter(i => { const hh = +cw.htime[i].slice(11,13); return (hh >= 6 && hh <= 22 && hh % 2 === 0) || (oggi && hh === nowH); });
+  $('cTodo').innerHTML='<div class="hours">'+(sel.length ? sel : idx).map(i=>{
     const hh=+cw.htime[i].slice(11,13), t=H.temperature_2m[i], pp=H.precipitation_probability[i], mm=H.precipitation[i];
     const cls = oggi && hh===nowH ? ' now' : '';
     return '<div class="hr'+cls+'"><div class="h">'+(oggi&&hh===nowH?'adesso':String(hh).padStart(2,'0')+':00')+'</div>'+
@@ -1834,11 +1836,24 @@ let eKeepCity = false;
 emap.on('moveend', () => { if (eKeepCity){ eKeepCity = false; setTimeout(cityVisible, 50); } });
 /* tre posizioni del pannello: 0 chiuso, 1 metà schermo, 2 tutto lo schermo */
 function sheetState(){ const S = document.querySelector('.card.tabs.sheet'); return !S ? 0 : S.classList.contains('max') ? 2 : S.classList.contains('open') ? 1 : 0; }
+/* altezze delle tre posizioni per un pannello */
+function sheetHeights(T){ const W = $('eWrap').clientHeight; return [ +(T.dataset.ch || 70), Math.round(W * 0.52), W - 6 ]; }
+/* porto il pannello alla posizione n con un'animazione morbida (anche partendo da chiuso) */
 function sheetSet(n){
   n = Math.max(0, Math.min(2, n));
-  if (n) setTimeout(centerNow, 60); else setTimeout(sheetH, 30);
-  if (n === 1) setTimeout(cityVisible, 320);
-  document.querySelectorAll('.card.tabs.sheet').forEach(T => { T.classList.toggle('open', n > 0); T.classList.toggle('max', n === 2); T.querySelector('.grip').setAttribute('aria-expanded', n > 0); });
+  if (n) setTimeout(centerNow, 60); else setTimeout(sheetH, 320);
+  if (n === 1) setTimeout(cityVisible, 340);
+  document.querySelectorAll('.card.tabs.sheet').forEach(T => {
+    const from = T.getBoundingClientRect().height, to = sheetHeights(T)[n];
+    clearTimeout(T._anim);
+    T.classList.add('dragging');                         /* il contenuto resta visibile durante l'animazione */
+    T.style.transition = 'none'; T.style.height = from + 'px';
+    T.getBoundingClientRect();                            /* forzo il punto di partenza */
+    T.style.transition = 'height .28s cubic-bezier(.2,.8,.2,1)'; T.style.height = to + 'px';
+    T.classList.toggle('open', n > 0); T.classList.toggle('max', n === 2);
+    T.querySelector('.grip').setAttribute('aria-expanded', n > 0);
+    T._anim = setTimeout(() => { T.style.transition = ''; T.style.height = ''; T.classList.remove('dragging'); }, 300);
+  });
   document.body.classList.toggle('sheet-max', n === 2);
 }
 function sheetOpen(o){ sheetSet(o ? Math.max(sheetState(), 1) : 0); }
@@ -1860,7 +1875,8 @@ document.querySelector('#eTabs .tbar').addEventListener('click', e => {
   const T = $(id); let g = null;
   const scroller = () => T.querySelector('.tbody');
   /* altezze delle tre posizioni */
-  const hs = () => { const W = $('eWrap').clientHeight; return [ +(T.dataset.ch || 70), Math.round(W * 0.52), W - 6 ]; };
+  const hs = () => sheetHeights(T);
+  let raf = 0, want = null;
   /* come su Google Maps: il pannello segue il dito, poi si ferma sulla posizione più vicina
      (o su quella successiva se il gesto è veloce) */
   function start(x, y, target){
@@ -1877,25 +1893,26 @@ document.querySelector('#eTabs .tbar').addEventListener('click', e => {
     if (!g.mine){
       const mine = !g.inBody || (dy < 0 && g.st < 2) || (dy > 0 && g.top <= 0);
       if (!mine) return;
-      g.mine = true; T.classList.add('dragging'); T.style.transition = 'none';
+      g.mine = true; clearTimeout(T._anim); T.classList.add('dragging'); T.style.transition = 'none';
     }
     if (ev && ev.cancelable) ev.preventDefault();
     const H = hs(), now = Date.now();
     g.v = (y - g.ly) / Math.max(1, now - g.lt); g.ly = y; g.lt = now;     /* velocità (px/ms, positiva verso il basso) */
-    T.style.height = Math.max(H[0], Math.min(H[2], g.h - dy)) + 'px';
+    want = Math.max(H[0], Math.min(H[2], g.h - dy));
+    if (!raf) raf = requestAnimationFrame(() => { raf = 0; if (want != null) T.style.height = want + 'px'; });   /* un aggiornamento per fotogramma */
   }
   function end(){
     if (!g) return; const d = g; g = null;
     if (!d.mine) return;
     sheetSwiped = Date.now();
-    const H = hs(), cur = T.getBoundingClientRect().height;
+    const H = hs(), cur = want != null ? want : T.getBoundingClientRect().height;
     let n;
     n = H.map((h, i) => [Math.abs(h - cur), i]).sort((p, q) => p[0] - q[0])[0][1];      /* la posizione più vicina */
     if (Math.abs(d.v) > 0.5){                                                             /* gesto veloce: la prossima nella sua direzione */
       const next = d.v < 0 ? H.findIndex(h => h > cur + 10) : H.map((h, i) => h < cur - 10 ? i : -1).filter(i => i >= 0).pop();
       if (next != null && next >= 0) n = next;
     }
-    T.style.transition = ''; T.style.height = ''; T.classList.remove('dragging');
+    cancelAnimationFrame(raf); raf = 0; want = null;
     sheetSet(n);
   }
   T.addEventListener('touchstart', e => { if (!T.classList.contains('sheet') || e.touches.length !== 1){ g = null; return; } start(e.touches[0].clientX, e.touches[0].clientY, e.target); }, { passive:true });
