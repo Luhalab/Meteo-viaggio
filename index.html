@@ -379,6 +379,8 @@ body.gm .ewrap.full .eopt{max-height:calc(100% - var(--gmTop) - var(--sheetH,70p
 .card.tabs.sheet .grip span{width:42px;height:5px;border-radius:3px;background:var(--line)}
 .card.tabs.sheet:not(.open) .tbody{display:none}
 .card.tabs.sheet.open{height:52%}
+.ewrap.full .card.tabs.sheet.max{height:calc(100% - env(safe-area-inset-top,0px) - 6px);border-radius:14px 14px 0 0}
+body.sheet-max.gm header{display:none}
 .card.tabs.sheet.open .tbody{flex:1;max-height:none}
 .ewrap.has-sheet .ectl.ezb,.ewrap.has-sheet .ezs{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .ewrap.has-sheet .eopt{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
@@ -424,6 +426,10 @@ body.gm .ewrap.full .eopt{max-height:calc(100% - var(--gmTop) - var(--sheetH,70p
 .wkt .cn{position:sticky;left:0;z-index:1;background:var(--card);text-align:left;padding-left:16px;padding-right:8px;font-weight:600;font-size:13.5px;min-width:100px;max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkt th.cn{font-weight:500;font-size:11.5px}
 .wkt tr.r{cursor:pointer}
+.wkd{margin:6px 0 2px}
+.wkt th[data-i]{cursor:pointer}
+.wkt th.sd{color:var(--acc);font-weight:700}
+.wkt td.sd{box-shadow:inset 0 0 0 2px var(--acc);border-radius:8px}
 .wktog{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:none;padding:0;color:var(--tx);font:inherit;text-align:left;cursor:pointer}
 .wktog b{font-size:15.5px;display:block}
 .wktog .si{width:34px;height:34px;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
@@ -541,6 +547,7 @@ footer a{color:var(--tx2)}
     <div class="card wk" id="eWeek" hidden>
       <div class="wkh"><button class="wktog" id="eWkTog" aria-expanded="true" aria-controls="eWkB1 eWkB2"><span class="si"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11M15 9v11"/></svg></span><span style="flex:1"><b id="eWeekH">La settimana nelle città sulla mappa</b><span class="wkcs" id="eWkCS"></span></span><svg class="ic chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="wkbody" id="eWkB1">
+        <div class="wkm wkd" id="eWkDays"><button data-d="7">7 giorni</button><button data-d="15">15 giorni</button></div>
         <div class="wkm" id="eWkMode"><button data-m="auto" class="on">Sulla mappa</button><button data-m="search">Cerca</button><button data-m="pick">Scegli</button></div>
         <span class="muted" id="eWkHint"></span>
         <div class="wks" id="eWkS" hidden><input id="eWkQ" type="search" placeholder="Aggiungi una città da confrontare" autocomplete="off" aria-label="Aggiungi una città da confrontare"><div class="sugg" id="eWkSugg"></div></div>
@@ -743,7 +750,7 @@ function fetchMissing(list){
     for (let k=0; k<list.length; k+=80){
       const chunk = list.slice(k,k+80); chunk.forEach(c => pending.add(c.n));
       try {
-        const j = await openMeteo('latitude='+chunk.map(c=>c.lat).join(',')+'&longitude='+chunk.map(c=>c.lon).join(',')+'&daily='+MAP_DV.join(',')+'&forecast_days=7');
+        const j = await openMeteo('latitude='+chunk.map(c=>c.lat).join(',')+'&longitude='+chunk.map(c=>c.lon).join(',')+'&daily='+MAP_DV.join(',')+'&forecast_days=15');
         const arr = Array.isArray(j) ? j : [j];
         arr.forEach((r,i) => { mapData[chunk[i].n] = normalize(r, MAP_DV); });
       } catch(e) { chunk.forEach(c => pending.delete(c.n)); showMapError(); }
@@ -836,7 +843,7 @@ const CITY_DV=['weather_code','temperature_2m_max','temperature_2m_min','precipi
 const CITY_HV=['temperature_2m','apparent_temperature','precipitation_probability','precipitation','weather_code','wind_speed_10m'];
 const CITY_CV=['temperature_2m','relative_humidity_2m','apparent_temperature','weather_code','wind_speed_10m','wind_direction_10m','pressure_msl'];
 const cityCache={}, wikiCache={};
-let city=null, cw=null, selDay=0, reqId=0;
+let city=null, cw=null, selDay=0, reqId=0, pendingDay=null;
 
 function wikiSummary(lang,title){const k=lang+':'+title; if(!wikiCache[k]) wikiCache[k]=fetch('https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title.replace(/ /g,'_'))).then(r=>r.ok?r.json():null).catch(()=>null); return wikiCache[k];}
 
@@ -851,7 +858,7 @@ const dayName = (w, i) => i===0?'oggi':i===1?'domani':new Date(w.time[i]+'T12:00
 function openCity(c){
   if (typeof c === 'string') c = byName[c]; if (!c) return;
   if (city && city.n===c.n && city.lat===c.lat) return;
-  city=c; selDay=0; cw=null; const my=++reqId;
+  city=c; selDay = pendingDay != null ? pendingDay : 0; pendingDay = null; cw=null; const my=++reqId;
   $('wxS').hidden = false; $('cTitle').textContent = 'Meteo '+placeA(c);
   $('cNow').innerHTML = '<span class="muted"><span class="spin"></span>Scarico il meteo…</span>';
   $('cDays').innerHTML=''; $('cVerdict').innerHTML=''; $('cTodo').innerHTML='';
@@ -1204,6 +1211,7 @@ let eVisible = [];
    'search' = le città cercate: la mappa mostra solo quelle e si adatta per inquadrarle
    'pick'   = le città scelte tenendo premuto sulla mappa (mappa libera) */
 const WK_MAX = 14;
+let wkDays = store.get('wkDays', 7) === 15 ? 15 : 7;
 let wkMode = 'auto', wkSearch = store.get('wkSearch', []), wkPick = store.get('wkPick', []);
 const wkList = () => (wkMode === 'search' ? wkSearch : wkPick).map(n => byName[n]).filter(Boolean);
 const WK_TITLE = { auto:'La settimana nelle città sulla mappa', search:'La settimana nelle città cercate', pick:'La settimana nelle città scelte' };
@@ -1281,7 +1289,7 @@ function weekBest(list){
   const ok = list.filter(c => mapData[c.n]);
   if (ok.length < 2 || ok.length < list.length) return null;
   let best = null;
-  ok.forEach(c => { const d = mapData[c.n].daily, n = Math.min(7, d.weather_code.length);
+  ok.forEach(c => { const d = mapData[c.n].daily, n = Math.min(wkDays, d.weather_code.length);
     let sc = 0, sun = 0, dry = 0, mm = 0; const tx = [];
     for (let i = 0; i < n; i++){ const r = d.precipitation_sum[i] || 0, k = d.weather_code[i];
       sc += dayScore(k, r, d.temperature_2m_max[i]); mm += r;
@@ -1316,7 +1324,7 @@ function eRenderWeek(){
   $('eWkBest').hidden = true;
   box.hidden = false;
   $('eStart').hidden = !(auto && !eCity && !list.length);
-  $('eWeekH').textContent = WK_TITLE[wkMode];
+  $('eWeekH').textContent = wkDays === 15 ? WK_TITLE[wkMode].replace('La settimana', 'I prossimi 15 giorni') : WK_TITLE[wkMode];
   $('eWkHint').textContent = WK_HINT[wkMode];
   /* etichette delle città scelte, con la × per toglierle */
   const arr = wkMode === 'search' ? wkSearch : wkPick;
@@ -1333,9 +1341,10 @@ function eRenderWeek(){
     return;
   }
   const ref = list.map(c => mapData[c.n]).find(Boolean);
-  const days = ref ? ref.time : [];
+  const days = ref ? ref.time.slice(0, wkDays) : [];
+  $('eWkDays').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.d === wkDays));
   const best = weekBest(list), bb = $('eWkBest');
-  $('eWkCS').textContent = best ? 'Settimana migliore: '+best.c.n : list.length+' città in tabella';
+  $('eWkCS').textContent = best ? (wkDays === 15 ? 'Migliori 15 giorni: ' : 'Settimana migliore: ')+best.c.n : list.length+' città in tabella';
   if (best){
     const g = x => x === 1 ? '1 giorno' : x + ' giorni';
     bb.innerHTML = 'Settimana migliore: <b>'+esc(best.c.n)+'</b><br>'+
@@ -1346,24 +1355,34 @@ function eRenderWeek(){
     bb.hidden = false;
     bb.onclick = () => { const c = best.c; eSelectCity(c, {src:'tap'}); emap.flyTo([c.lat, c.lon], Math.max(emap.getZoom(), 11)); window.scrollTo({top:0, behavior:'smooth'}); };
   }
-  let h = '<table><thead><tr><th class="cn">Città</th>'+days.map((t,i) => '<th>'+dayLabel(t,i).replace('Domani','Dom.')+'</th>').join('')+'</tr></thead><tbody>';
+  const sdOn = c => selC && selC.n === c.n;          /* giorno scelto: evidenziato nella riga della città scelta */
+  let h = '<table><thead><tr><th class="cn">Città</th>'+days.map((t,i) => '<th data-i="'+i+'" class="'+(selC && i === selDay ? 'sd' : '')+'">'+dayLabel(t,i).replace('Domani','Dom.')+'</th>').join('')+'</tr></thead><tbody>';
   list.forEach(c => {
     const d = mapData[c.n];
     h += '<tr class="r'+(selC && selC.n === c.n ? ' sel' : '')+'" data-n="'+esc(c.n)+'"><td class="cn">'+(best && best.c === c ? '<span class="bst" aria-label="Settimana migliore">★</span>' : '')+esc(c.n)+'</td>';
     if (!d){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
-    d.time.forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
-      h += '<td><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
+    d.time.slice(0, wkDays).forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
+      h += '<td data-i="'+i+'" class="'+(sdOn(c) && i === selDay ? 'sd' : '')+'"><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
            '<div class="tn">'+(tn==null?'':Math.round(tn)+'°')+'</div>'+(r>=0.5?'<div class="rr">'+(r<10?r.toFixed(1):Math.round(r))+' mm</div>':'')+'</td>'; });
     h += '</tr>';
   });
   $('eWeekT').innerHTML = h+'</tbody></table>';
-  $('eWeekT').querySelectorAll('tr.r').forEach(tr => tr.onclick = () => {
+  /* tocco su una città: la scelgo (la mappa la mostra, l'ora per ora diventa la sua);
+     tocco su un giorno: l'ora per ora mostra quel giorno */
+  $('eWeekT').querySelectorAll('tr.r').forEach(tr => tr.onclick = e => {
     const c = byName[tr.dataset.n]; if (!c) return;
-    eSelectCity(c, {src:'tap'}); emap.flyTo([c.lat, c.lon], Math.max(emap.getZoom(), 11));
-    window.scrollTo({top:0, behavior:'smooth'});
+    const td = e.target.closest('td[data-i]'), di = td ? +td.dataset.i : null;
+    const cur = eCity && !eCity.virt && eCity.n === c.n;
+    if (cur){ if (di != null && di !== selDay){ selDay = di; renderTodo(); eRenderWeek(); } cityVisible(); return; }
+    pendingDay = di;
+    eSelectCity(c, {src:'tap'});
+    if (document.body.classList.contains('gm')) emap.flyTo([c.lat, c.lon], Math.min(Math.max(emap.getZoom(), 9), 12));
+    else { emap.flyTo([c.lat, c.lon], Math.max(emap.getZoom(), 11)); window.scrollTo({top:0, behavior:'smooth'}); }
   });
+  $('eWeekT').querySelectorAll('th[data-i]').forEach(th => th.onclick = () => { if (!city) return; selDay = +th.dataset.i; renderTodo(); eRenderWeek(); });
 }
 $('eWkMode').querySelectorAll('button').forEach(b => b.onclick = () => setWkMode(b.dataset.m));
+$('eWkDays').querySelectorAll('button').forEach(b => b.onclick = () => { wkDays = +b.dataset.d; store.set('wkDays', wkDays); eRenderWeek(); });
 /* ricerca dentro la tabella (modalità Cerca) */
 const wq = $('eWkQ'), wsugg = $('eWkSugg');
 wq.addEventListener('input', () => {
@@ -1809,13 +1828,18 @@ function cityVisible(){
 }
 let eKeepCity = false;
 emap.on('moveend', () => { if (eKeepCity){ eKeepCity = false; setTimeout(cityVisible, 50); } });
-function sheetOpen(o){
-  if (o) setTimeout(centerNow, 60); else setTimeout(sheetH, 30);
-  setTimeout(cityVisible, 320);
-  document.querySelectorAll('.card.tabs.sheet').forEach(T => { T.classList.toggle('open', o); T.querySelector('.grip').setAttribute('aria-expanded', o); });
+/* tre posizioni del pannello: 0 chiuso, 1 metà schermo, 2 tutto lo schermo */
+function sheetState(){ const S = document.querySelector('.card.tabs.sheet'); return !S ? 0 : S.classList.contains('max') ? 2 : S.classList.contains('open') ? 1 : 0; }
+function sheetSet(n){
+  n = Math.max(0, Math.min(2, n));
+  if (n) setTimeout(centerNow, 60); else setTimeout(sheetH, 30);
+  if (n === 1) setTimeout(cityVisible, 320);
+  document.querySelectorAll('.card.tabs.sheet').forEach(T => { T.classList.toggle('open', n > 0); T.classList.toggle('max', n === 2); T.querySelector('.grip').setAttribute('aria-expanded', n > 0); });
+  document.body.classList.toggle('sheet-max', n === 2);
 }
-$('eGrip').onclick = () => sheetOpen(!$('eTabs').classList.contains('open'));
-$('eGrip2').onclick = () => sheetOpen(!$('eWxT').classList.contains('open'));
+function sheetOpen(o){ sheetSet(o ? Math.max(sheetState(), 1) : 0); }
+$('eGrip').onclick = () => sheetSet(sheetState() ? 0 : 1);
+$('eGrip2').onclick = () => sheetSet(sheetState() ? 0 : 1);
 /* nel pannello: toccare la linguetta già scelta chiude; un'altra linguetta la apre; trascinare giù o su chiude o apre */
 let sheetSwiped = 0;
 document.querySelector('#eTabs .tbar').addEventListener('click', e => {
@@ -1827,7 +1851,7 @@ document.querySelector('#eTabs .tbar').addEventListener('click', e => {
   const T = $(id); let y0 = null;
   T.addEventListener('pointerdown', e => { if (T.classList.contains('sheet') && e.target.closest('.grip,.tbar')) y0 = e.clientY; });
   window.addEventListener('pointerup', e => { if (y0 == null) return; const dy = e.clientY - y0; y0 = null;
-    if (Math.abs(dy) > 40){ sheetSwiped = Date.now(); sheetOpen(dy < 0); } });
+    if (Math.abs(dy) > 40){ sheetSwiped = Date.now(); sheetSet(sheetState() + (dy < 0 ? 1 : -1)); } });   /* su: un gradino in più; giù: uno in meno */
 });
 document.querySelector('#eWxT .tbar').addEventListener('click', e => {
   const b = e.target.closest('button[data-w]'); if (!b || Date.now() - sheetSwiped < 400) return;

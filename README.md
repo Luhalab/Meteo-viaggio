@@ -105,3 +105,6 @@ e filtri; a destra in basso posizione e zoom Città / Meteo; in basso il pannell
 Esplora, Chiedi a Claude) e linguette Meteo/Foto da lontano, Curiosità/Cosa fare da vicino. "Mare e meduse" è una scelta nel pannello Livelli (solo da lontano, solo dove c'è il mare).
 Foto: nel visore "Mostra sulla mappa" usa le coordinate del file su Commons; se mancano e la foto ritrae un luogo noto,
 lo cerca tra i luoghi noti e poi su OpenStreetMap ("stimata"); le foto di cibo senza coordinate non vanno sulla mappa.
+Pannello a tre posizioni: chiuso, metà, tutto lo schermo (trascinando su un gradino alla volta, giù per tornare indietro).
+Tabella: 7 o 15 giorni (la stella della città migliore usa la media sul periodo scelto); toccando una città la si sceglie
+(mappa e ora per ora seguono), toccando un giorno (cella o intestazione) l'ora per ora mostra quel giorno.
