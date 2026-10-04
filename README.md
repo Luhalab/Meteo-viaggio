@@ -102,6 +102,6 @@ Nel pannello a schermo intero la linguetta Meteo contiene entrambe.
 Interfaccia tipo Google Maps (ottobre 2026): la mappa occupa tutto lo schermo; in alto ricerca (con tasto tema) e chip
 delle nazioni (REGIONI: per aggiungerne una basta un nuovo elemento); a destra in alto livelli (mappa con / senza icone)
 e filtri; a destra in basso posizione e zoom Città / Meteo; in basso il pannello con testata del luogo (nome, meteo,
-Esplora, Chiedi a Claude) e linguette Meteo/Foto da lontano, Curiosità/Cosa fare da vicino. Tolto "Mare e meduse".
+Esplora, Chiedi a Claude) e linguette Meteo/Foto da lontano, Curiosità/Cosa fare da vicino. "Mare e meduse" è una scelta nel pannello Livelli (solo da lontano, solo dove c'è il mare).
 Foto: nel visore "Mostra sulla mappa" usa le coordinate del file su Commons; se mancano e la foto ritrae un luogo noto,
 lo cerca tra i luoghi noti e poi su OpenStreetMap ("stimata"); le foto di cibo senza coordinate non vanno sulla mappa.

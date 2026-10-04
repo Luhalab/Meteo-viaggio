@@ -1645,7 +1645,10 @@ function bgPanel(){
   const noIc = tileBase === 'clean' || (tileBase === 'vector' && Object.values(vtFlt).every(v => !v));
   $('eBgP').innerHTML = '<div class="fh">Mappa</div>'+
     '<button data-ic="1" class="bgr'+(noIc ? '' : ' on')+'"><span>Con icone<small>ristoranti, negozi, musei, trasporti</small></span><i class="rd"></i></button>'+
-    '<button data-ic="0" class="bgr'+(noIc ? ' on' : '')+'"><span>Senza icone<small>solo strade, nomi e i punti dell\'app</small></span><i class="rd"></i></button>';
+    '<button data-ic="0" class="bgr'+(noIc ? ' on' : '')+'"><span>Senza icone<small>solo strade, nomi e i punti dell\'app</small></span><i class="rd"></i></button>'+
+    (REG && REG.mare ? '<div class="fh">Sulla mappa, da lontano</div>'+
+      '<button data-ly="wx" class="bgr'+(eLayerMode === 'wx' ? ' on' : '')+'"><span>Meteo delle città</span><i class="rd"></i></button>'+
+      '<button data-ly="sea" class="bgr'+(eLayerMode === 'sea' ? ' on' : '')+'"><span>Mare e meduse<small>onde, temperatura dell\'acqua e avvistamenti di meduse</small></span><i class="rd"></i></button>' : '');
 }
 /* con la mappa vettoriale le icone si spengono tutte insieme; se il telefono non la regge uso le mappe classiche */
 function setIcons(on){
@@ -1659,6 +1662,8 @@ $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
 function panelClick(e){
   e.stopPropagation();          /* i pannelli si ridisegnano: senza questo si chiuderebbero da soli */
+  const ly = e.target.closest('button[data-ly]');
+  if (ly){ const b = $('eSeg').querySelector('[data-l='+ly.dataset.ly+']'); if (b) b.click(); if (ly.dataset.ly === 'sea' && eNear) emap.flyTo(emap.getCenter(), 10); bgPanel(); return; }
   const ic = e.target.closest('button[data-ic]');
   if (ic){ setIcons(ic.dataset.ic === '1'); bgPanel(); return; }
   const bb = e.target.closest('button[data-b]');
