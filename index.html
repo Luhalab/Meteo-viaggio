@@ -1243,6 +1243,9 @@ function eRefreshWx(){
   else {
     /* in modalità Scegli le città scelte restano sempre visibili, le altre si diradano come al solito */
     const fixed = wkMode === 'pick' ? wkList().filter(c => b.contains([c.lat, c.lon])) : [];
+    /* la città scelta si vede sempre, anche se a questo zoom sarebbe troppo piccola */
+    const selC = eCity && !eCity.virt && byName[eCity.n];
+    if (selC && b.contains([selC.lat, selC.lon]) && !fixed.includes(selC)) fixed.unshift(selC);
     const fixedSet = new Set(fixed.map(c => c.n));
     want = fixed.slice(); placed = fixed.map(c => emap.latLngToContainerPoint([c.lat, c.lon]));
     cand = COMUNI.filter(c => !fixedSet.has(c.n) && minZoom(c) <= Math.floor(z+0.01) && b.contains([c.lat,c.lon]))
@@ -1751,19 +1754,23 @@ document.querySelector('#eTabs .tbar').addEventListener('click', e => {
   document.querySelectorAll('#eTabs .tbar button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
   $('eCur').hidden = b.dataset.t !== 'cur'; $('eDo').hidden = b.dataset.t !== 'do'; $('eTabB').scrollTop = 0;
 });
-const tabsSync = () => { $('eTabs').hidden = $('eCurS').hidden && $('eDoS').hidden; sheetSync(); };
+const tabsSync = () => { if (!$('eTabs').classList.contains('sheet')) $('eTabs').hidden = $('eCurS').hidden && $('eDoS').hidden; sheetSync(); };
 /* pannello a metà schermo nella mappa a schermo intero */
 /* Da vicino: curiosità e cose da fare. Da lontano (con una città scelta): meteo e foto. */
 function sheetSync(){
   const T = $('eTabs'), X = $('eWxT'), W = $('eWrap'), full = W.classList.contains('full');
-  const on1 = full && eNear && !T.hidden, on2 = full && !eNear;
-  if (on1 && T.parentElement !== W){ W.appendChild(T); T.classList.add('sheet'); T.classList.remove('open'); $('eGrip').setAttribute('aria-expanded', false); }
-  if (!on1 && T.parentElement === W){ T.classList.remove('sheet', 'open'); applyLayout(); }
-  if (on2 && X.parentElement !== W){
-    $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPm').appendChild($('eWeek')); $('eWxPf').appendChild($('ePhs'));
-    W.appendChild(X); X.hidden = false; X.classList.add('sheet'); X.classList.remove('open'); $('eGrip2').setAttribute('aria-expanded', false); }
-  if (on2){ $('eWxTf').hidden = $('ePhs').hidden || !eCity; if ($('eWxTf').hidden && !$('eWxPf').hidden) document.querySelector('#eWxT [data-w=m]').click(); }
-  if (!on2 && X.parentElement === W){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eTabs').after(X); applyLayout(); }
+  /* da vicino sempre il pannello curiosità / cose da fare (anche mentre carica), da lontano sempre meteo / foto */
+  const on1 = full && eNear, on2 = full && !eNear;
+  if (on1){ T.hidden = false;
+    if (!T.classList.contains('sheet')){ W.appendChild(T); T.classList.add('sheet'); T.classList.remove('open'); $('eGrip').setAttribute('aria-expanded', false); } }
+  else if (T.classList.contains('sheet')){ T.classList.remove('sheet', 'open'); T.hidden = $('eCurS').hidden && $('eDoS').hidden; applyLayout(); }
+  if (on2){
+    if (!X.classList.contains('sheet')){
+      $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPm').appendChild($('eWeek')); $('eWxPf').appendChild($('ePhs'));
+      W.appendChild(X); X.hidden = false; X.classList.add('sheet'); X.classList.remove('open'); $('eGrip2').setAttribute('aria-expanded', false); }
+    $('eWxTf').hidden = $('ePhs').hidden || !eCity;
+    if ($('eWxTf').hidden && !$('eWxPf').hidden) document.querySelector('#eWxT [data-w=m]').click();
+  } else if (X.classList.contains('sheet')){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eAnchor').after(X); applyLayout(); }
   W.classList.toggle('has-sheet', on1 || on2);
   /* la testata del luogo (nome, meteo, Esplora, Chiedi a Claude) va nel pannello attivo, sopra le linguette */
   const act = on1 ? T : on2 ? X : null, H = $('eSheetHead');
@@ -1781,8 +1788,25 @@ function sheetH(){
   if (!S.classList.contains('open')) S.dataset.ch = h;
   $('eWrap').style.setProperty('--sheetH', h+'px');
 }
+/* se il pannello copre la città scelta, sposto la mappa perché resti visibile nello spazio libero sopra il pannello */
+function cityVisible(){
+  if (!eCity || !document.body.classList.contains('gm')) return;
+  const S = document.querySelector('.card.tabs.sheet'); if (!S) return;
+  const w = $('eWrap').getBoundingClientRect();
+  /* sotto ricerca, nazioni e avvisi in alto */
+  const top = Math.max(...[$('eRegChips'), document.querySelector('.ehint'), document.querySelector('.erefetch')]
+    .filter(e => e && e.offsetParent && getComputedStyle(e).visibility !== 'hidden' && getComputedStyle(e).opacity !== '0').map(e => e.getBoundingClientRect().bottom - w.top)) + 16;
+  const bottom = S.getBoundingClientRect().top - w.top - 20;
+  if (bottom - top < 60) return;
+  const p = emap.latLngToContainerPoint([eCity.lat, eCity.lon]);
+  if (p.y < top + 30 || p.y > bottom - 30 || p.x < 30 || p.x > w.width - 30)
+    emap.panBy([p.x - w.width / 2, p.y - (top + bottom) / 2], { animate:true });
+}
+let eKeepCity = false;
+emap.on('moveend', () => { if (eKeepCity){ eKeepCity = false; setTimeout(cityVisible, 50); } });
 function sheetOpen(o){
   if (o) setTimeout(centerNow, 60); else setTimeout(sheetH, 30);
+  setTimeout(cityVisible, 320);
   document.querySelectorAll('.card.tabs.sheet').forEach(T => { T.classList.toggle('open', o); T.querySelector('.grip').setAttribute('aria-expanded', o); });
 }
 $('eGrip').onclick = () => sheetOpen(!$('eTabs').classList.contains('open'));
@@ -2216,7 +2240,8 @@ function eSelectCity(c, opts){
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c;
   if (!same) $('eStart').hidden = true;
-  if (!same){ if (!(opts && opts.noArea)){ clearRoutes(); eRouteStarts.clearLayers(); }   /* spostando la mappa il percorso resta */
+  if (!same){ if (opts.src === 'search' || opts.src === 'tap'){ eKeepCity = true; setTimeout(cityVisible, 400); }   /* città appena scelta: deve restare visibile */
+    if (!(opts && opts.noArea)){ clearRoutes(); eRouteStarts.clearLayers(); }   /* spostando la mappa il percorso resta */
     const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
     openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
   if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
