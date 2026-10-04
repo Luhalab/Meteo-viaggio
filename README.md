@@ -109,3 +109,9 @@ Pannello a tre posizioni (chiuso, metà, tutto lo schermo) che segue il dito com
 Tabella: 7 o 15 giorni (la stella della città migliore usa la media sul periodo scelto); toccando una città la si sceglie
 (mappa e ora per ora seguono), toccando un giorno (cella o intestazione) l'ora per ora mostra quel giorno.
 Ora per ora: solo le ore 6, 8, 10 … 22, più l'ora attuale ("adesso"). Pannello animato (anche all'apertura da chiuso), trascinamento aggiornato una volta per fotogramma.
+
+Linguetta "Eventi" (accanto a Curiosità e Cosa fare): eventi nei prossimi 15 giorni entro 15 km, da custom-points.json
+("kind": "evento", con "inizio", "fine" AAAA-MM-GG, "luogo", coordinate, "extract", "fonti") e da Wikidata (eventi con data
+e coordinate); poi le feste tradizionali dalla guida Wikivoyage (date indicative). Il tasto "Cerca eventi con Claude" manda
+il messaggio "[Meteo e viaggio: eventi]" all'altra chat, che li cerca su comune, pro loco, regione e siti di eventi.
+Gli eventi non compaiono come punti fissi sulla mappa (solo con "Mostra sulla mappa").
