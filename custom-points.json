@@ -899,5 +899,47 @@
         "url": "https://www.finishers.com/course/triathlon-san-vito-lo-capo"
       }
     ]
+  },
+  {
+    "title": "Festival Opera Lirica Siciliana",
+    "lat": 38.02634,
+    "lon": 12.88006,
+    "kind": "evento",
+    "inizio": "2026-10-12",
+    "fine": "2026-10-18",
+    "luogo": "Teatro Apollo Anton Rocco Guadagno, Corso Bernardo Mattarella 15, Castellammare del Golfo",
+    "extract": "Una settimana dedicata alla lirica nel piccolo teatro della città, intitolato al direttore d'orchestra Anton Rocco Guadagno, nato a Castellammare nel 1923. L'evento rientra tra i «grandi eventi» del cartellone 2026 del Comune; il programma dettagliato va verificato sui canali ufficiali del Comune e della Pro Loco.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Comune di Castellammare del Golfo – Cartellone Grandi Eventi 2026",
+        "url": "https://www.comune.castellammare.tp.it/vivere-il-comune/eventi/cartellone-grandi-eventi-2026/"
+      },
+      {
+        "t": "Trapanisi.it",
+        "url": "https://www.trapanisi.it/castellammare-del-golfo-una-stagione-di-eventi-fino-a-novembre/"
+      },
+      {
+        "t": "Teatri in Sicilia (Balarm)",
+        "url": "https://www.balarm.it/luoghi/teatro-apollo-anton-rocco-guadagno-castellammare-del-golfo-2897"
+      }
+    ]
+  },
+  {
+    "title": "Voci di Sicilia – concerti e opera al Teatro Apollo",
+    "lat": 38.02634,
+    "lon": 12.88006,
+    "kind": "evento",
+    "inizio": "2026-10-13",
+    "fine": "2026-10-18",
+    "luogo": "Teatro Apollo Anton Rocco Guadagno, Corso Bernardo Mattarella 15, Castellammare del Golfo",
+    "extract": "Prima edizione della rassegna di OperaOggi APS: concerti il 13 (ore 19) e il 14 ottobre (ore 18), prove aperte dell'Opera Studio dal 14 al 16 e, il 17 alle 21, l'opera in un atto «La Monacella della Fontana» del siciliano Giuseppe Mulè. Ingresso libero; la replica del 18 ottobre è a Palermo, all'Auditorium Rai.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Amica News (Radio Amica)",
+        "url": "https://www.radioamica.it/voci-di-sicilia-dal-13-al-18-ottobre-concerti-masterclass-e-opera-lirica-tra-castellammare-del-golfo-e-palermo/"
+      }
+    ]
   }
 ]
