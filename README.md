@@ -86,3 +86,10 @@ Pagina personalizzabile (tasto "Personalizza la pagina" in fondo): ordine e visi
 Chiedi a Claude, Mappa, Meteo/Mare, Foto, schede Curiosità/Cosa fare, Meteo, Settimana (salvati sul telefono).
 L'ordine predefinito tiene sopra la mappa solo blocchi che non cambiano con lo zoom, così la mappa non salta.
 Tolto il riquadro di giudizio della giornata ("Tempo incerto…") dalla sezione meteo.
+
+Zoom: due tasti in basso a destra, "Città" (zoom 16) e "Meteo" (zoom 9), centrati sulla città scelta o sulla posizione.
+Curiosità e consigli chiusi di default, con le fonti (campo "fonti": [{"t","url"}] o "url"; altrimenti "cerca su Wikipedia").
+"Cosa vedere e fare": foto della guida Wikivoyage, sentieri segnati da OpenStreetMap (relazioni route=hiking/foot,
+con tracciato vero, anche nei filtri dei percorsi), testi Wikivoyage e consigli di Claude, con fonti.
+A schermo intero e da vicino, curiosità e cose da fare diventano un pannello in basso: chiuso mostra le linguette,
+aperto occupa metà schermo.

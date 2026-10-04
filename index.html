@@ -177,7 +177,7 @@ body:not(.e-near) #eTabs{display:none!important}
 .egoc{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 10px;padding:11px 14px;border:1px solid transparent;border-radius:14px;background:var(--sea);color:#fff;font:600 14.5px var(--sans);cursor:pointer}
 .egoc[hidden]{display:none}
 .egoc svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-body.e-near .egoc{background:var(--card);color:var(--sea);border:1px solid var(--line)}
+body.e-near .egoc{background:var(--card);color:var(--acc);border:1px solid var(--line)}
 .ehero{display:flex;align-items:flex-end;gap:12px;margin:2px 2px 12px}
 .ehero h2{flex:1;margin:0;font-family:var(--serif);font-size:28px;font-weight:600;letter-spacing:-.015em;line-height:1.05}
 .ehero .ew{font-size:14px;color:var(--tx2);text-align:right;white-space:nowrap}
@@ -236,14 +236,11 @@ body.e-full{overflow:hidden}
 .ecard ol.rt li.miss{color:var(--tx2);text-decoration:line-through}
 .ewrap.locked #emap,.ewrap.locked #emap *{touch-action:none}
 /* zoom a cursore, in basso a sinistra */
-.ezs{position:absolute;right:10px;bottom:28px;z-index:900;width:44px;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:22px;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);padding:2px 0;touch-action:none;user-select:none}
+.ezs{position:absolute;right:10px;bottom:28px;z-index:900;display:flex;flex-direction:column;gap:8px}
 .ewrap.full .ezs{bottom:calc(28px + env(safe-area-inset-bottom,0px))}
-.ezs button{width:44px;height:40px;border:none;background:none;color:#142430;font:500 24px/1 var(--sans);cursor:pointer;padding:0}
-.ezs .zt{position:relative;width:44px;height:170px;cursor:pointer;touch-action:none}
-.ezs .zt::before{content:'';position:absolute;left:50%;top:6px;bottom:6px;width:4px;margin-left:-2px;border-radius:2px;background:#d6dde2}
-.ezs .zf{position:absolute;left:50%;bottom:6px;width:4px;margin-left:-2px;border-radius:2px;background:#2470b8}
-.ezs .zk{position:absolute;left:50%;width:22px;height:22px;margin:0 0 -11px -11px;border-radius:50%;background:#fff;border:2px solid #2470b8;box-shadow:0 1px 4px rgba(20,36,48,.3)}
-.ezs .zt:focus-visible{outline:2px solid #2470b8;outline-offset:2px;border-radius:8px}
+.ezs button{width:56px;height:56px;border:none;border-radius:14px;background:#fff;color:#142430;box-shadow:0 1px 3px rgba(20,36,48,.25),0 4px 12px rgba(20,36,48,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:0;font:600 10.5px var(--sans)}
+.ezs button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ezs button.on{color:#2470b8}
 .ectl.ezb{top:auto;bottom:28px;left:10px;right:auto;flex-direction:row}
 .ewrap.full .ectl.ezb{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .epill{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:965;background:#16211c;color:#f4efde;border:none;border-radius:999px;padding:11px 18px;font:500 13.5px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
@@ -275,6 +272,14 @@ body.e-near .ectl .nr{display:flex}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
 .gone{display:none!important}
+.guide .src{font-size:12.5px;color:var(--tx2);margin:2px 0 6px}
+.guide .osr{padding:8px 0;border-top:1px solid var(--line)}
+.guide .osr:first-of-type{border-top:none}
+.guide .osr small{display:block;color:var(--tx2);font-size:12.5px}
+.guide .osr p{margin:4px 0}
+.dophs{margin:8px 0 2px}
+.dophs img{height:96px!important;width:130px!important}
+.guide .src a{color:var(--acc)}
 #cVerdict{display:none}
 .uhide{display:none!important}
 /* personalizza la pagina */
@@ -320,9 +325,22 @@ body.e-near .ectl .nr{display:flex}
 .lbx .lc a{color:#9cc7ff}
 /* curiosità e cose da fare in due schede, con altezza limitata: la mappa resta in vista */
 .card.tabs{padding:0;overflow:hidden}
+/* a schermo intero (e da vicino) le schede diventano un pannello in basso: chiuso mostra solo le linguette, aperto metà schermo */
+.card.tabs .grip{display:none}
+.ewrap.full .card.tabs.sheet{position:absolute;left:0;right:0;bottom:0;z-index:975;margin:0;border-radius:18px 18px 0 0;box-shadow:0 -6px 22px rgba(0,0,0,.28);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.card.tabs.sheet .grip{display:flex;justify-content:center;width:100%;border:none;background:none;padding:8px 0 2px;cursor:pointer}
+.card.tabs.sheet .grip span{width:42px;height:5px;border-radius:3px;background:var(--line)}
+.card.tabs.sheet:not(.open) .tbody{display:none}
+.card.tabs.sheet.open{height:52%}
+.card.tabs.sheet.open .tbody{flex:1;max-height:none}
+.ewrap.has-sheet .ectl.ezb,.ewrap.has-sheet .ezs{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+.ewrap.has-sheet .eopt{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
+.ewrap.has-sheet .epill{bottom:calc(152px + env(safe-area-inset-bottom,0px))}
+.ewrap.has-sheet .leaflet-control-attribution{display:none}
+.ewrap.has-sheet .ecard{bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:980}
 .tbar{display:flex;border-bottom:1px solid var(--line)}
 .tbar button{flex:1;padding:13px 8px;border:none;background:none;font:600 14px var(--sans);color:var(--tx2);border-bottom:2.5px solid transparent;cursor:pointer}
-.tbar button.on{color:var(--sea);border-bottom-color:var(--sea)}
+.tbar button.on{color:var(--acc);border-bottom-color:var(--acc)}
 .tbody{max-height:min(48vh,440px);overflow:auto;padding:4px 16px 12px;overscroll-behavior:contain}
 /* foto sulla mappa */
 .ph-mk{width:38px;height:38px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.4);background:#ccc center/cover no-repeat;transform:translate(-50%,-50%);cursor:pointer}
@@ -439,9 +457,8 @@ footer a{color:var(--tx2)}
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
       <div class="ezs" id="eZs" role="group" aria-label="Zoom della mappa">
-        <button id="eZp" aria-label="Ingrandisci">+</button>
-        <div class="zt" id="eZt" role="slider" aria-label="Livello di zoom" aria-orientation="vertical" tabindex="0"><div class="zf" id="eZf"></div><div class="zk" id="eZk"></div></div>
-        <button id="eZm" aria-label="Rimpicciolisci">−</button>
+        <button id="eZc" aria-label="Zoom sulla città"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V9l5-3v15M10 21V4l9 4v13M13 10h3M13 14h3M13 18h3"/></svg><span>Città</span></button>
+        <button id="eZw" aria-label="Zoom sul meteo della zona"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 1 0-1-8.9A6 6 0 0 0 5 12a3.5 3.5 0 0 0 .5 7z"/></svg><span>Meteo</span></button>
       </div>
       <button class="ecomp" id="eComp" aria-label="Riporta il nord in alto" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l4 9h-8z" fill="#c0392b"/><path d="M12 21l-4-9h8z" fill="#8a96a0"/></svg><b>N</b></button>
       <div class="eopt" id="eOptP" hidden>
@@ -460,6 +477,7 @@ footer a{color:var(--tx2)}
     </div>
     <div class="legend" id="eLegend"></div>
     <div class="card tabs" id="eTabs" hidden>
+      <button class="grip" id="eGrip" aria-label="Apri o chiudi curiosità e cose da fare" aria-expanded="false"><span></span></button>
       <div class="tbar" role="tablist"><button role="tab" data-t="cur" class="on" aria-selected="true">Curiosità e leggende</button><button role="tab" data-t="do" aria-selected="false" id="eDoTab">Cosa vedere e fare</button></div>
       <div class="tbody" id="eTabB"><div class="guide" id="eCur"></div><div class="guide" id="eDo" hidden></div></div>
     </div>
@@ -1293,7 +1311,7 @@ function eClearCity(){
   if (!eCity) return;
   eCity = null; eCitySrc = ''; city = null; cw = null; eCityReq++; reqId++;
   ['wxS','cSeaS','ePhotoS','eMonS','eCurS','eDoS'].forEach(id => $(id).hidden = true);
-  ePhotoList = []; $('ePhs').hidden = true; eRouteStarts.clearLayers();
+  ePhotoList = []; $('ePhs').hidden = true; eRouteStarts.clearLayers(); eOsmRoutes = [];
   $('eCard').classList.remove('show'); eSel = -1;
   eRenderHero();
   if (wkMode === 'search') wkFit();
@@ -1618,6 +1636,7 @@ function eShowItem(i, fly){
     if (eSel === i && s && s.extract && $('eCardTx')) $('eCardTx').textContent = s.extract; });
 }
 function showCard(html){
+  sheetOpen(false);
   const c = $('eCard'); c.innerHTML = html; c.classList.add('show'); c.scrollTop = 0;
   const x = c.querySelector('.x'); if (x) x.onclick = () => { c.classList.remove('show'); eSel = -1; drawArt(); renderMon(); };
 }
@@ -1655,7 +1674,19 @@ document.querySelector('#eTabs .tbar').addEventListener('click', e => {
   document.querySelectorAll('#eTabs .tbar button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
   $('eCur').hidden = b.dataset.t !== 'cur'; $('eDo').hidden = b.dataset.t !== 'do'; $('eTabB').scrollTop = 0;
 });
-const tabsSync = () => { $('eTabs').hidden = $('eCurS').hidden && $('eDoS').hidden; };
+const tabsSync = () => { $('eTabs').hidden = $('eCurS').hidden && $('eDoS').hidden; sheetSync(); };
+/* pannello a metà schermo nella mappa a schermo intero */
+function sheetSync(){
+  const T = $('eTabs'), W = $('eWrap');
+  const on = W.classList.contains('full') && eNear && !T.hidden;
+  if (on && T.parentElement !== W){ W.appendChild(T); T.classList.add('sheet'); T.classList.remove('open'); $('eGrip').setAttribute('aria-expanded', false); }
+  if (!on && T.parentElement === W){ T.classList.remove('sheet', 'open'); applyLayout(); }
+  W.classList.toggle('has-sheet', on);
+}
+function sheetOpen(o){ const T = $('eTabs'); if (!T.classList.contains('sheet')) return; T.classList.toggle('open', o); $('eGrip').setAttribute('aria-expanded', o); }
+$('eGrip').onclick = () => sheetOpen(!$('eTabs').classList.contains('open'));
+document.querySelector('#eTabs .tbar').addEventListener('click', () => sheetOpen(true));
+L.DomEvent.disableClickPropagation($('eTabs')); L.DomEvent.disableScrollPropagation($('eTabs'));
 new MutationObserver(tabsSync).observe($('eCurS'), { attributes:true, attributeFilter:['hidden'] });
 new MutationObserver(tabsSync).observe($('eDoS'), { attributes:true, attributeFilter:['hidden'] });
 const PIN_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
@@ -1675,6 +1706,15 @@ function gotoPoint(lat, lon){
   if (!eLoading && eArea && haversine(lat, lon, eArea.lat, eArea.lon) < eArea.radius * 0.8) showPendingItem();
 }
 $('eCur').addEventListener('click', e => { const b = e.target.closest('[data-goto]'); if (!b) return; const [la, lo] = b.dataset.goto.split(',').map(Number); gotoPoint(la, lo); });
+/* fonti di una voce di Claude: campo "fonti" (lista di {t, url}) o "url"; altrimenti una ricerca su Wikipedia */
+function srcLinks(p, c){
+  const LG = (REG&&REG.wikiLang)||'it';
+  let f = Array.isArray(p.fonti) ? p.fonti.filter(x => x && x.url) : [];
+  if (!f.length && p.url) f = [{ t: p.url.replace(/^https?:\/\/(www\.)?/,'').split('/')[0], url: p.url }];
+  const links = f.length ? f.map(x => '<a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.t || 'fonte')+'</a>').join(' · ')
+    : '<a href="https://'+LG+'.wikipedia.org/w/index.php?search='+encodeURIComponent(p.title+' '+((c.ref||c).n))+'" target="_blank" rel="noopener">cerca su Wikipedia</a>';
+  return '<div class="src">'+(f.length ? 'Fonti: ' : 'Approfondisci: ')+links+'</div>';
+}
 async function eLoadCur(c, my){
   const LG = (REG&&REG.wikiLang)||'it';
   const all = await customAll(), precise = customPrecise(all);
@@ -1682,9 +1722,9 @@ async function eLoadCur(c, my){
   if (eWpCache[c.n] === undefined) eWpCache[c.n] = (guideCache[c.n] && guideCache[c.n].wp !== undefined) ? guideCache[c.n].wp : await extracts(LG+'.wikipedia.org', c.n);
   if (my !== eCityReq) return;
   const base = 'https://'+LG+'.wikipedia.org/wiki/'+encodeURIComponent(c.n.replace(/ /g,'_'));
-  const blocks = custom.map(p => '<details open><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
+  const blocks = custom.map(p => '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
       (precise(p) ? '<button class="rt-btn" data-goto="'+p.lat+','+p.lon+'">'+PIN_IC+'Mostra sulla mappa</button><br>' : '')+
-      '<span class="tag-cu">Aggiunto da Claude</span></details>')
+      srcLinks(p, c)+'<span class="tag-cu">Aggiunto da Claude</span></details>')
     .concat(eWpCache[c.n] ? guideBlocks(eWpCache[c.n], CUR_SEC, base, 'Wikipedia', 900) : []);
   $('eCurS').hidden=false;
   $('eCur').innerHTML = (blocks.length ? blocks.join('') : '<span class="muted">Ancora nessuna curiosità per '+esc(c.n)+'.</span>')+
@@ -1700,23 +1740,59 @@ const DO_SEC = [
   {re:/dove mangiare|essen|^eat$/i, t:'Dove mangiare'}
 ];
 const eWvCache = {};
+/* Sentieri e itinerari segnati (CAI, parchi, enti locali) mappati su OpenStreetMap: hanno il tracciato vero */
+const osmRtCache = {};
+let eOsmRoutes = [];
+async function osmRoutes(c){
+  const k = c.lat.toFixed(3)+','+c.lon.toFixed(3);
+  if (osmRtCache[k]) return osmRtCache[k];
+  const q = '[out:json][timeout:25];relation["type"="route"]["route"~"^(hiking|foot|walking)$"](around:9000,'+c.lat+','+c.lon+');out tags geom 20;';
+  const r = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data='+encodeURIComponent(q) });
+  if (!r.ok) throw 0;
+  const j = await r.json();
+  return osmRtCache[k] = (j.elements || []).map(el => {
+    const t = el.tags || {}, title = t.name || (t.ref ? 'Sentiero '+t.ref : null); if (!title) return null;
+    const lines = (el.members || []).filter(m => m.type === 'way' && m.geometry).map(m => m.geometry.map(g => [g.lat, g.lon]));
+    if (!lines.length) return null;
+    return { osm:true, id:'osm|'+el.id, title, lines, url:'https://www.openstreetmap.org/relation/'+el.id, web: t.website || t.url || null,
+      sub: ['Sentiero segnato', t.operator, t.distance ? String(t.distance).replace('.', ',')+' km' : null, t.ref && t.name ? 'n. '+t.ref : null].filter(Boolean).join(' · '),
+      desc: t.description || t['description:it'] || '' };
+  }).filter(Boolean).slice(0, 12);
+}
 async function eLoadDo(c, my){
   const LG = (REG&&REG.wikiLang)||'it';
   const mine = (await customAll()).filter(p => p.kind === 'da-fare' && p.lat != null && km(c.lat,c.lon,p.lat,p.lon) <= 8);
-  if (eWvCache[c.n] === undefined) eWvCache[c.n] = await extracts(LG+'.wikivoyage.org', c.n);
+  const name = (c.ref || c).n;
+  const [wv, osm, wph] = await Promise.all([
+    eWvCache[c.n] !== undefined ? eWvCache[c.n] : extracts(LG+'.wikivoyage.org', c.n).catch(() => null),
+    osmRoutes(c).catch(() => []),
+    photosFrom(LG+'.wikivoyage.org', name).catch(() => [])
+  ]);
+  eWvCache[c.n] = wv;
   if (my !== eCityReq) return;
+  eOsmRoutes = osm; eDoPhotos = wph;
   const base = 'https://'+LG+'.wikivoyage.org/wiki/'+encodeURIComponent(c.n.replace(/ /g,'_'));
   const blocks = mine.map(p => { const rs = routeOf(p);
     return '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
       (rs ? '<button class="rt-btn" data-stops="'+esc(JSON.stringify(rs))+'">'+RT_IC+'Mostra il percorso sulla mappa</button><br>' : '')+
-      '<span class="tag-cu">Consiglio di Claude</span></details>'; })
-    .concat(eWvCache[c.n] ? guideBlocks(eWvCache[c.n], DO_SEC, base, 'Wikivoyage', 1200) : []);
+      srcLinks(p, c)+'<span class="tag-cu">Consiglio di Claude</span></details>'; })
+    .concat(osm.length ? ['<details><summary>Sentieri segnati ('+osm.length+')</summary>'+osm.map((r, i) =>
+      '<div class="osr"><b>'+esc(r.title)+'</b><small>'+esc(r.sub)+'</small>'+(r.desc ? '<p>'+esc(short(r.desc, 300))+'</p>' : '')+
+      '<button class="rt-btn" data-osm="'+i+'">'+RT_IC+'Mostra sulla mappa</button>'+
+      '<div class="src">Fonti: <a href="'+esc(r.url)+'" target="_blank" rel="noopener">OpenStreetMap</a>'+(r.web ? ' · <a href="'+esc(r.web)+'" target="_blank" rel="noopener">sito del sentiero</a>' : '')+'</div></div>').join('')+'</details>'] : [])
+    .concat(wv ? guideBlocks(wv, DO_SEC, base, 'Wikivoyage', 1200) : []);
   $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n; setTimeout(routesChanged, 0);
-  $('eDo').innerHTML = blocks.length ? blocks.join('')+'<div class="muted" style="margin-top:8px;font-size:11.5px">Testi di Wikivoyage (CC BY-SA) e consigli di Claude</div>'
+  const phs = wph.length ? '<div class="phs-row dophs">'+wph.map((p, i) => '<button data-di="'+i+'" aria-label="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="" loading="lazy"></button>').join('')+'</div>'+
+    '<div class="src" style="margin:0 0 6px">Foto dalla guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a></div>' : '';
+  $('eDo').innerHTML = blocks.length ? phs+blocks.join('')+'<div class="muted" style="margin-top:8px;font-size:11.5px">Fonti: guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a> (CC BY-SA), sentieri da OpenStreetMap, consigli di Claude</div>'
     : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>';
 }
 
-$('eDo').addEventListener('click', e => { const b = e.target.closest('.rt-btn'); if (b) showRoute(JSON.parse(b.dataset.stops), b, !!b.dataset.ch); });
+let eDoPhotos = [];
+$('eDo').addEventListener('click', e => {
+  const ph = e.target.closest('[data-di]'); if (ph){ lbxShow(+ph.dataset.di, eDoPhotos); return; }
+  const o = e.target.closest('[data-osm]'); if (o){ const r = eOsmRoutes[+o.dataset.osm]; if (r){ const i = routesHere().findIndex(x => x.id === r.id); toggleRoute(r, i < 0 ? 0 : i, true); } return; }
+  const b = e.target.closest('.rt-btn[data-stops]'); if (b) showRoute(JSON.parse(b.dataset.stops), b, !!b.dataset.ch); });
 
 /* Mostra un percorso: cerco i luoghi su OpenStreetMap (Nominatim) vicino alla città e li unisco con un percorso a piedi */
 const eRoute = L.layerGroup().addTo(emap);
@@ -1730,12 +1806,26 @@ function routesHere(){
     const det = b.closest('details'), claude = det && det.querySelector('.tag-cu');
     const title = claude ? det.querySelector('summary').textContent : names[0]+' → '+names[names.length-1];
     return { id: title+'|'+names.join('|'), title, sub: (claude ? 'Consiglio di Claude · ' : 'Wikivoyage · ')+names.length+' tappe', stops: st, ch: !!b.dataset.ch };
-  });
+  }).concat(eOsmRoutes);
 }
 function clearRoutes(){ eRoute.clearLayers(); eRoutesOn.clear(); }
+function drawOsmRoute(r, col, card){
+  const lay = L.layerGroup().addTo(eRoute); eRoutesOn.set(r.id, lay);
+  r.lines.forEach(ll => { L.polyline(ll, { color:'#fff', weight:7, opacity:.9, interactive:false }).addTo(lay);
+    L.polyline(ll, { color: col, weight:4, opacity:.95, interactive:false }).addTo(lay); });
+  emap.fitBounds(L.latLngBounds([].concat(...r.lines)).pad(0.1), { maxZoom:16 });
+  if (!$('eFltP').hidden) fltPanel();
+  if (!card) return;
+  showCard('<div class="ch"><span class="meta">'+esc(r.sub)+'</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(r.title)+'</h3>'+
+    (r.desc ? '<p>'+esc(short(r.desc, 400))+'</p>' : '')+
+    '<div class="acts"><button id="eRtClr">Togli il percorso</button><a href="'+esc(r.url)+'" target="_blank" rel="noopener">OpenStreetMap</a>'+(r.web ? '<a href="'+esc(r.web)+'" target="_blank" rel="noopener">Sito</a>' : '')+'</div>');
+  $('eRtClr').onclick = () => { eRoute.removeLayer(lay); eRoutesOn.delete(r.id); $('eCard').classList.remove('show'); if (!$('eFltP').hidden) fltPanel(); };
+}
 function toggleRoute(r, i, card){
   if (eRoutesOn.has(r.id)){ eRoute.removeLayer(eRoutesOn.get(r.id)); eRoutesOn.delete(r.id); if (!$('eFltP').hidden) fltPanel(); return; }
-  showRoute(r.stops, null, r.ch, { id: r.id, color: ROUTE_COLORS[i % ROUTE_COLORS.length], card, title: r.title });
+  const col = ROUTE_COLORS[i % ROUTE_COLORS.length];
+  if (r.osm){ drawOsmRoute(r, col, card); return; }
+  showRoute(r.stops, null, r.ch, { id: r.id, color: col, card, title: r.title });
 }
 /* partenza di ogni percorso come pallino blu sulla mappa: toccandolo il percorso compare */
 function drawRouteStarts(){ eRouteStarts.clearLayers(); }   /* le partenze sulla mappa non servono: bastano i filtri */
@@ -1823,10 +1913,11 @@ async function showRoute(stops, btn, churches, opt){
    sulla città (la foto principale per prima): sono quasi sempre vedute, monumenti e scorci significativi.
    Le mostro solo nel modo meteo, in una striscia sotto la mappa; toccandole si ingrandiscono. */
 const PH_SKIP = /stemma|coat.of.arms|gonfalone|bandiera|flag|mappa|\bmap\b|locator|location|localizzazione|posizione|logo|icon|disambig|symbol|simbolo|firma|signature|grafico|chart|diagram|pianta|\bplan\b|cartina|carta /i;
-async function photoList(c){
-  const name = (c.virt ? c.ref : c).n;
-  if (photoCache[name]) return photoCache[name];
-  const LG = (REG&&REG.wikiLang)||'it', api = 'https://'+LG+'.wikipedia.org/w/api.php?origin=*&format=json&redirects=1&titles='+encodeURIComponent(name);
+async function photoList(c){ return photosFrom(((REG&&REG.wikiLang)||'it')+'.wikipedia.org', (c.virt ? c.ref : c).n); }
+async function photosFrom(dom, name){
+  const ck = dom+'|'+name;
+  if (photoCache[ck]) return photoCache[ck];
+  const api = 'https://'+dom+'/w/api.php?origin=*&format=json&redirects=1&titles='+encodeURIComponent(name);
   const [a, b] = await Promise.all([
     fetch(api+'&action=query&prop=pageimages&piprop=name').then(r => r.json()).catch(() => ({})),
     fetch(api+'&action=query&generator=images&gimlimit=80&prop=imageinfo&iiprop=url%7Csize%7Cmime%7Cextmetadata&iiurlwidth=900').then(r => r.json()).catch(() => ({}))
@@ -1845,24 +1936,25 @@ async function photoList(c){
       author: strip(m.Artist && m.Artist.value).slice(0, 60), lic: strip(m.LicenseShortName && m.LicenseShortName.value) };
   }).filter(Boolean);
   if (lead){ const i = list.findIndex(x => x.file === lead.replace(/ /g,'_')); if (i > 0) list.unshift(list.splice(i, 1)[0]); }
-  return photoCache[name] = list.slice(0, 20);
+  return photoCache[ck] = list.slice(0, 20);
 }
-let ePhotoList = [], lbxI = 0;
+let ePhotoList = [], lbxI = 0, lbxList = [];
 function drawPhotos(){}            /* le foto non stanno più sulla mappa */
-function lbxShow(i){
-  const ph = ePhotoList[i]; if (!ph) return; lbxI = i;
+function lbxShow(i, list){
+  if (list) lbxList = list;
+  const ph = lbxList[i]; if (!ph) return; lbxI = i;
   $('eLbxImg').src = ph.thumb; $('eLbxImg').alt = ph.title;
-  $('eLbxCap').innerHTML = esc(ph.title)+'<small>'+esc([ph.author, ph.lic].filter(Boolean).join(' · '))+' · <a href="'+esc(ph.page)+'" target="_blank" rel="noopener">fonte</a> · '+(i+1)+'/'+ePhotoList.length+'</small>';
+  $('eLbxCap').innerHTML = esc(ph.title)+'<small>'+esc([ph.author, ph.lic].filter(Boolean).join(' · '))+' · <a href="'+esc(ph.page)+'" target="_blank" rel="noopener">fonte</a> · '+(i+1)+'/'+lbxList.length+'</small>';
   $('eLbx').hidden = false;
 }
 $('eLbxX').onclick = () => { $('eLbx').hidden = true; };
-$('eLbxP').onclick = () => lbxShow((lbxI - 1 + ePhotoList.length) % ePhotoList.length);
-$('eLbxN').onclick = () => lbxShow((lbxI + 1) % ePhotoList.length);
+$('eLbxP').onclick = () => lbxShow((lbxI - 1 + lbxList.length) % lbxList.length);
+$('eLbxN').onclick = () => lbxShow((lbxI + 1) % lbxList.length);
 document.addEventListener('keydown', e => { if ($('eLbx').hidden) return; if (e.key === 'Escape') $('eLbx').hidden = true; if (e.key === 'ArrowLeft') $('eLbxP').click(); if (e.key === 'ArrowRight') $('eLbxN').click(); });
 let lbxX = null;            /* scorrere col dito per cambiare foto */
 $('eLbx').addEventListener('pointerdown', e => { lbxX = e.clientX; });
 $('eLbx').addEventListener('pointerup', e => { if (lbxX == null) return; const dx = e.clientX - lbxX; lbxX = null; if (Math.abs(dx) > 50) (dx < 0 ? $('eLbxN') : $('eLbxP')).click(); });
-$('ePhsRow').addEventListener('click', e => { const im = e.target.closest('[data-i]'); if (im) lbxShow(+im.dataset.i); });
+$('ePhsRow').addEventListener('click', e => { const im = e.target.closest('[data-i]'); if (im) lbxShow(+im.dataset.i, ePhotoList); });
 async function eLoadPhotos(c, my){
   ePhotoList = []; $('ePhs').hidden = true; $('ePhsRow').innerHTML = '';
   let list = [];
@@ -1996,7 +2088,7 @@ emap.on('zoomend moveend', () => {
   const near = emap.getZoom() >= NEAR_Z;
   setETiles();
   if (near !== eNear){
-    eNear = near; document.body.classList.toggle('e-near', near); renderGoBtn();
+    eNear = near; document.body.classList.toggle('e-near', near); renderGoBtn(); sheetSync();
     if (near){ emap.addLayer(eArt); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
     else { emap.removeLayer(eArt); $('eCard').classList.remove('show'); $('eRefetch').classList.remove('show');
            if (eLayerMode==='sea'){ eSea.addTo(emap); eJelly.addTo(emap); } }
@@ -2021,6 +2113,7 @@ $('eFull').onclick = () => {
   $('eFull').innerHTML = svgIc(f ? 'x' : 'full'); $('eFull').setAttribute('aria-label', f ? 'Esci da schermo intero' : 'Schermo intero');
   setTimeout(() => emap.invalidateSize(), 80);
   if (!f){ setOpt(false); setLock(false); setWake(false); }
+  sheetSync();
 };
 
 /* ---------- posizione, rotazione e opzioni della mappa ---------- */
@@ -2108,37 +2201,14 @@ function setLock(on){
   optSync(); pillSync();
 }
 
-/* zoom a cursore (in basso a destra): va da zoom 9, i dintorni, al massimo.
-   Il pallino si sposta del movimento del dito (non salta dove tocchi), in modo continuo. + e − ai lati per un passo alla volta. */
-const ZS_MIN = 9, ZS_PX = 26;          /* 26 px di dito per ogni livello di zoom */
-const zt = $('eZt');
-const zsMax = () => emap.getMaxZoom();
-function zsSync(){
-  const mx = zsMax(), f = Math.max(0, Math.min(1, (emap.getZoom() - ZS_MIN) / (mx - ZS_MIN)));
-  const h = zt.clientHeight - 12;
-  $('eZk').style.bottom = (6 + f * h) + 'px'; $('eZf').style.height = (f * h) + 'px';
-  zt.setAttribute('aria-valuenow', Math.round(emap.getZoom())); zt.setAttribute('aria-valuemin', ZS_MIN); zt.setAttribute('aria-valuemax', mx);
-}
-emap.on('zoom zoomend', zsSync); zsSync();
-/* trascinando, lo zoom cambia in modo continuo (niente scatti); al rilascio si assesta sul mezzo livello più vicino */
-let zsStart = null, zsRaf = 0, zsWant = null;
-zt.addEventListener('pointerdown', e => { e.preventDefault(); zt.setPointerCapture(e.pointerId);
-  zsStart = { y: e.clientY, z: Math.max(ZS_MIN, emap.getZoom()), snap: emap.options.zoomSnap };
-  emap.options.zoomSnap = 0; });
-zt.addEventListener('pointermove', e => {
-  if (!zsStart) return;
-  zsWant = Math.max(ZS_MIN, Math.min(zsMax(), zsStart.z + (zsStart.y - e.clientY) / ZS_PX));
-  if (!zsRaf) zsRaf = requestAnimationFrame(() => { zsRaf = 0; emap.setZoom(zsWant, { animate:false }); });
-});
-function zsEnd(){
-  if (!zsStart) return;
-  emap.options.zoomSnap = zsStart.snap; zsStart = null;
-  const z = Math.round(emap.getZoom() * 2) / 2; if (z !== emap.getZoom()) emap.setZoom(z);
-}
-['pointerup','pointercancel'].forEach(t => zt.addEventListener(t, zsEnd));
-zt.addEventListener('keydown', e => { if (e.key === 'ArrowUp') emap.zoomIn(); else if (e.key === 'ArrowDown' && emap.getZoom() > ZS_MIN) emap.zoomOut(); });
-$('eZp').onclick = () => emap.zoomIn();
-$('eZm').onclick = () => { const z = emap.getZoom(); if (z > ZS_MIN) emap.setZoom(Math.max(ZS_MIN, Math.ceil(z) - 1)); };
+/* due tasti di zoom: "Città" (vicino, dettagli) e "Meteo" (dintorni, meteo delle città).
+   Centro: la città scelta, altrimenti la tua posizione, altrimenti il centro della mappa. Lo zoom con due dita resta. */
+const ZOOM_CITY = 16, ZOOM_WX = 9;
+const zCenter = () => eCity ? [eCity.lat, eCity.lon] : userPos ? [userPos.lat, userPos.lon] : emap.getCenter();
+$('eZc').onclick = () => emap.flyTo(zCenter(), ZOOM_CITY);
+$('eZw').onclick = () => emap.flyTo(zCenter(), ZOOM_WX);
+function zsSync(){ $('eZc').classList.toggle('on', eNear); $('eZw').classList.toggle('on', !eNear); }
+emap.on('zoomend', zsSync); zsSync();
 L.DomEvent.disableClickPropagation($('eZs')); L.DomEvent.disableScrollPropagation($('eZs'));
 
 /* schermo sempre acceso */
