@@ -272,6 +272,8 @@ body.e-near .ectl .nr{display:flex}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
 .gone{display:none!important}
+#cNow,#wxS .sub:not(#cTodoT),#cDays,#eWkBest,#eWkHint{display:none!important}
+#cTodoT{margin-top:2px}
 .guide .src{font-size:12.5px;color:var(--tx2);margin:2px 0 6px}
 .guide .osr{padding:8px 0;border-top:1px solid var(--line)}
 .guide .osr:first-of-type{border-top:none}
@@ -956,8 +958,8 @@ function renderTodo(){
       '<div class="t"'+(cls?'':' style="color:'+tcol(t)+'"')+'>'+(t==null?'–':Math.round(t))+'°</div>'+
       '<div class="p">'+(mm>=0.1?'💧'+mm.toFixed(1)+' mm':(pp!=null?pp+'%':'&nbsp;'))+'</div>'+
       '<div class="m">💨 '+Math.round(H.wind_speed_10m[i]||0)+'</div></div>';
-  }).join('')+'</div><div class="muted" style="margin-top:6px;font-size:11.5px">Scorri per vedere tutte le ore · 💧 pioggia prevista, altrimenti probabilità</div>';
-  if (oggi) setTimeout(function(){ const n=$('cTodo').querySelector('.hr.now'); if(n){ /* scorro solo la fila delle ore, non la pagina */ const box=n.parentElement, a=n.getBoundingClientRect(), b=box.getBoundingClientRect(); box.scrollLeft += (a.left+a.width/2)-(b.left+b.width/2); } },50);
+  }).join('')+'</div>';
+  if (oggi) setTimeout(centerNow, 50);
 }
 /* =====================================================================
    ESPLORA — una sola mappa: da lontano il meteo delle città,
@@ -1247,9 +1249,20 @@ function wkSetOpen(o){
 }
 $('eWkTog').onclick = () => wkSetOpen($('eWeek').classList.contains('closed'));
 wkSetOpen(store.get('wkOpen', true));
+/* porta "adesso" al centro della fila delle ore (scorrendo solo la fila, non la pagina);
+   la richiamo anche quando la fila diventa visibile, perché da nascosta non ha misure */
+function centerNow(){
+  const n = $('cTodo').querySelector('.hr.now'); if (!n || !n.offsetWidth) return;
+  const box = n.parentElement, a = n.getBoundingClientRect(), b = box.getBoundingClientRect();
+  box.scrollLeft += (a.left + a.width/2) - (b.left + b.width/2);
+}
+$('wxS').addEventListener('toggle', () => setTimeout(centerNow, 30));
+window.addEventListener('resize', () => setTimeout(centerNow, 100));
 function eRenderWeek(){
   const box = $('eWeek'), auto = wkMode === 'auto';
-  const list = auto ? eVisible.slice(0, WK_MAX) : wkList();
+  let list = auto ? eVisible.slice(0, WK_MAX) : wkList();
+  const selC = eCity && (eCity.virt ? eCity.ref : byName[eCity.n]);
+  if (auto && selC && !list.includes(selC)) list = [selC].concat(list.slice(0, WK_MAX - 1));
   $('eWkBest').hidden = true;
   box.hidden = false;
   $('eStart').hidden = !(auto && !eCity && !list.length);
@@ -1286,7 +1299,7 @@ function eRenderWeek(){
   let h = '<table><thead><tr><th class="cn">Città</th>'+days.map((t,i) => '<th>'+dayLabel(t,i).replace('Domani','Dom.')+'</th>').join('')+'</tr></thead><tbody>';
   list.forEach(c => {
     const d = mapData[c.n];
-    h += '<tr class="r'+(eCity && eCity.n === c.n ? ' sel' : '')+'" data-n="'+esc(c.n)+'"><td class="cn">'+(best && best.c === c ? '<span class="bst" aria-label="Settimana migliore">★</span>' : '')+esc(c.n)+'</td>';
+    h += '<tr class="r'+(selC && selC.n === c.n ? ' sel' : '')+'" data-n="'+esc(c.n)+'"><td class="cn">'+(best && best.c === c ? '<span class="bst" aria-label="Settimana migliore">★</span>' : '')+esc(c.n)+'</td>';
     if (!d){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
     d.time.forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
       h += '<td><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
@@ -1695,13 +1708,14 @@ function sheetSync(){
   if (on1 && T.parentElement !== W){ W.appendChild(T); T.classList.add('sheet'); T.classList.remove('open'); $('eGrip').setAttribute('aria-expanded', false); }
   if (!on1 && T.parentElement === W){ T.classList.remove('sheet', 'open'); applyLayout(); }
   if (on2 && X.parentElement !== W){
-    $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPf').appendChild($('ePhs'));
+    $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPm').appendChild($('eWeek')); $('eWxPf').appendChild($('ePhs'));
     W.appendChild(X); X.hidden = false; X.classList.add('sheet'); X.classList.remove('open'); $('eGrip2').setAttribute('aria-expanded', false); }
   if (on2){ $('eWxTf').hidden = $('ePhs').hidden; }
   if (!on2 && X.parentElement === W){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eTabs').after(X); applyLayout(); }
   W.classList.toggle('has-sheet', on1 || on2);
 }
 function sheetOpen(o){
+  if (o) setTimeout(centerNow, 60);
   document.querySelectorAll('.card.tabs.sheet').forEach(T => { T.classList.toggle('open', o); T.querySelector('.grip').setAttribute('aria-expanded', o); });
 }
 $('eGrip').onclick = () => sheetOpen(!$('eTabs').classList.contains('open'));
@@ -2046,7 +2060,7 @@ function applyLayout(){
   let at = $('eHero');
   pageOrder.forEach(k => PAGE_BLOCKS[k].ids.forEach(id => { const el = $(id); if (!el || el.closest('.card.tabs.sheet')) return;   /* ciò che sta nel pannello resta lì */
     at.after(el); at = el; el.classList.toggle('uhide', pageHide.includes(k) && !PAGE_BLOCKS[k].fixed); }));
-  setTimeout(() => emap.invalidateSize(), 50);
+  setTimeout(() => { emap.invalidateSize(); centerNow(); }, 80);
 }
 function custList(){
   $('eCustL').innerHTML = pageOrder.map((k, i) => { const b = PAGE_BLOCKS[k], on = !pageHide.includes(k);

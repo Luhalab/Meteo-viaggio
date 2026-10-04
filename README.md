@@ -95,3 +95,6 @@ A schermo intero e da vicino, curiosità e cose da fare diventano un pannello in
 aperto occupa metà schermo.
 A schermo intero e da lontano, con una città scelta, il pannello in basso ha "Meteo" e "Foto".
 Nei pannelli: toccare la linguetta già scelta chiude, un'altra linguetta apre; si possono anche trascinare su e giù.
+Meteo essenziale: solo la fila ora per ora di oggi (con "adesso" al centro) e la tabella settimanale, con la città
+scelta sempre presente ed evidenziata e la stella sulla settimana migliore; tolti condizioni attuali, 15 giorni e testi.
+Nel pannello a schermo intero la linguetta Meteo contiene entrambe.
