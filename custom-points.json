@@ -849,5 +849,55 @@
         "lon": 12.82107
       }
     ]
+  },
+  {
+    "title": "Tempu Ri Capuna 2026",
+    "lat": 38.17603,
+    "lon": 12.73411,
+    "kind": "evento",
+    "inizio": "2026-10-09",
+    "fine": "2026-10-11",
+    "luogo": "Piazza Santuario e Via Venza, San Vito Lo Capo",
+    "extract": "Tre giorni dedicati alla lampuga, il pesce «capone» che si pesca nel golfo tra fine estate e autunno. Degustazioni in Via Venza, cooking show, incontri, asta del pesce e spettacoli serali in Piazza Santuario; dal molo sopraflutto partono le uscite di pescaturismo.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "TP24",
+        "url": "https://tp24.it/2026/09/25/tempo-libero/tempu-ri-capuna-2026-a-san-vito-lo-capo-tre-giorni-dedicati-al-pesce-capone/239846"
+      },
+      {
+        "t": "I Love San Vito Lo Capo (calendario Comune)",
+        "url": "https://ilovesanvitolocapo.it/cosa-fare/eventi/"
+      },
+      {
+        "t": "West of Sicily",
+        "url": "https://www.westofsicily.com/it/eventi/san-vito-lo-capo/san-vito-lo-capo-un-mare-di-eventi-2026-il-programma-degli-appuntamenti"
+      }
+    ]
+  },
+  {
+    "title": "Triathlon Sprint San Vito Lo Capo (18ª edizione)",
+    "lat": 38.1721,
+    "lon": 12.7343,
+    "kind": "evento",
+    "inizio": "2026-10-17",
+    "fine": "2026-10-18",
+    "luogo": "San Vito Lo Capo (golfo e centro)",
+    "extract": "Diciottesima edizione del Memorial Roberto Miceli - Trofeo Magna Grecia: nuoto nelle acque del golfo, bici su circuiti cittadini e corsa tra le vie del borgo. Sono previste anche gare per bambini e junior; la distanza sprint è di circa 750 m di nuoto, 20 km di bici e 5 km di corsa.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "I Love San Vito Lo Capo (calendario Comune)",
+        "url": "https://ilovesanvitolocapo.it/cosa-fare/eventi/"
+      },
+      {
+        "t": "TrainerDay",
+        "url": "https://trainerday.com/events/it/triathlon-san-vito-lo-capo-2026"
+      },
+      {
+        "t": "Finishers",
+        "url": "https://www.finishers.com/course/triathlon-san-vito-lo-capo"
+      }
+    ]
   }
 ]
