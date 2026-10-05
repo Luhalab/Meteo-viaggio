@@ -917,7 +917,8 @@ function showAddr(p){
   emap.setView([p.lat, p.lon], Math.max(emap.getZoom(), 17), { animate:true });
   if (nav){
     showCard('<div class="ch"><span class="meta">Risultato della ricerca</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.n)+'</h3>'+
-      '<div class="dtools"><button data-u="a">Usa come partenza</button><button data-u="via">Aggiungi come tappa</button><button data-u="b">Usa come arrivo</button></div>');
+      '<div class="dtools"><button data-u="a">Usa come partenza</button><button data-u="via">Aggiungi come tappa</button><button data-u="b">Usa come arrivo</button><button data-go="1">Nuove indicazioni fin qui</button></div>');
+    $('eCard').querySelector('[data-go]').onclick = () => { eAddrL.clearLayers(); dirOpen({ lat:p.lat, lng:p.lon }); };
     $('eCard').querySelectorAll('[data-u]').forEach(b => b.onclick = () => { const k = b.dataset.u, pt = { lat:p.lat, lon:p.lon, n:p.n };
       if (k === 'via') nav.via.push(pt); else nav[k] = pt; nav.pick = null; eAddrL.clearLayers(); dirCard(); dirCalc(); });
   } else {
