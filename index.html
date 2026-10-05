@@ -274,6 +274,24 @@ body.e-near .ectl .nr{display:flex}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
 .gone{display:none!important}
+/* menu della pressione prolungata e indicazioni */
+.lpm{position:absolute;z-index:990;width:220px;background:var(--card);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.28);padding:4px;overflow:hidden}
+.lpm[hidden]{display:none}
+.lpm button{display:block;width:100%;text-align:left;border:none;background:none;color:var(--tx);padding:12px;font:500 14.5px var(--sans);border-radius:10px;cursor:pointer}
+.lpm button+button{border-top:1px solid var(--line)}
+.dir-pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:translate(-50%,-100%) rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);color:#fff;font:700 13px/24px var(--sans);text-align:center}
+.dir-pin span{display:block;transform:rotate(45deg)}
+.dir-ab{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px}
+.dir-ab button{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:12px;padding:9px 10px;font:500 14px var(--sans);text-align:left;cursor:pointer}
+.dir-ab button.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-soft)}
+.dir-ab i{flex:none;width:22px;height:22px;border-radius:50%;color:#fff;font:700 12px/22px var(--sans);font-style:normal;text-align:center}
+.dir-ab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dgps{border:none;background:none;color:var(--acc);font:500 13px var(--sans);padding:0 0 8px;cursor:pointer}
+.dmodes{display:flex;gap:8px}
+.dmode{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:12px;padding:8px 6px;cursor:pointer;font:500 13px var(--sans)}
+.dmode span{font-size:20px}
+.dmode small{color:var(--tx2);font-size:12.5px}
+.dmode.on{border-color:var(--acc);background:var(--acc-soft)}
 /* ===== interfaccia tipo Google Maps: la mappa occupa tutto, ricerca e nazioni galleggiano sopra ===== */
 body.gm{overflow:hidden;--gmTop:calc(env(safe-area-inset-top,0px) + 122px)}
 body.gm header{position:fixed;left:0;right:0;top:0;z-index:1400;background:none;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 0;pointer-events:none}
@@ -538,6 +556,7 @@ footer a{color:var(--tx2)}
       </div>
       <div class="eopt eflt" id="eFltP" hidden></div>
       <div class="eopt eflt" id="eBgP" hidden></div>
+      <div class="lpm" id="eLpm" hidden></div>
       <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
       <div class="ecard" id="eCard"></div>
@@ -1427,7 +1446,7 @@ function eClearCity(){
   else eRefreshWx();
 }
 emap.on('click', () => {
-  if (Date.now() - lpFired < 900) return;
+  if (Date.now() - lpFired < 900 || (nav && (nav.pick || $('eCard').classList.contains('show')))) return;
   if ($('eCard').classList.contains('show')){ $('eCard').classList.remove('show'); eSel = -1; drawArt(); renderMon(); setHint(); return; }
   if (eNear || locked) return;          /* da vicino o a mappa bloccata un tocco non fa saltare via */
   if (eCity) eClearCity();
@@ -1439,30 +1458,127 @@ const emapEl = $('emap');
 function lpCancel(){ clearTimeout(lpT); lpT = null; }
 emapEl.addEventListener('pointerdown', e => {
   if (!e.isPrimary){ lpCancel(); return; }               /* due dita = zoom, non selezione */
-  if (eNear || wkMode === 'search' || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
   lpPt = {x:e.clientX, y:e.clientY}; lpCancel();
   lpT = setTimeout(() => { lpT = null; eLongPress(lpPt); }, 550);
 }, true);
 emapEl.addEventListener('pointermove', e => { if (lpT && Math.hypot(e.clientX-lpPt.x, e.clientY-lpPt.y) > 10) lpCancel(); }, true);
 ['pointerup','pointercancel'].forEach(t => emapEl.addEventListener(t, lpCancel, true));
-emapEl.addEventListener('contextmenu', e => { if (!eNear) e.preventDefault(); });
+emapEl.addEventListener('contextmenu', e => e.preventDefault());
+/* pressione prolungata: da vicino apre subito le indicazioni fino al punto;
+   da lontano un piccolo menu: confrontare il meteo della città lì vicino, oppure indicazioni fin lì */
 function eLongPress(p){
-  if (eNear || wkMode === 'search') return;
-  const r = emapEl.getBoundingClientRect(), cp = L.point(p.x - r.left, p.y - r.top);
+  const r = emapEl.getBoundingClientRect(), cp = L.point(p.x - r.left, p.y - r.top), ll = emap.containerPointToLatLng(cp);
+  lpFired = Date.now();
+  try { if (navigator.vibrate) navigator.vibrate(20); } catch(e){}
+  if (eNear || wkMode === 'search'){ dirOpen(ll); return; }
   let best = null, bd = 48;
   for (const n in eMk){ const c = byName[n]; if (!c) continue;
     const d = cp.distanceTo(emap.latLngToContainerPoint([c.lat, c.lon])); if (d < bd){ bd = d; best = c; } }
-  if (!best){ const ll = emap.containerPointToLatLng(cp), nc = nearestComune(ll.lat, ll.lng);
-    if (nc && km(ll.lat, ll.lng, nc.lat, nc.lon) <= 6) best = nc; }
+  if (!best){ const nc = nearestComune(ll.lat, ll.lng); if (nc && km(ll.lat, ll.lng, nc.lat, nc.lon) <= 6) best = nc; }
+  lpMenu(cp, ll, best);
+}
+function lpMenu(cp, ll, best){
+  const m = $('eLpm'), had = best && wkPick.includes(best.n);
+  m.innerHTML = (best ? '<button data-a="wx">'+(had ? 'Togli '+esc(best.n)+' dal confronto meteo' : 'Confronta il meteo di '+esc(best.n))+'</button>' : '')+
+    '<button data-a="dir">Indicazioni fin qui</button>';
+  const W = $('eWrap').getBoundingClientRect();
+  m.style.left = Math.min(Math.max(10, cp.x - 110), W.width - 230) + 'px'; m.style.top = Math.min(cp.y + 12, W.height - 130) + 'px';
+  m.hidden = false;
+  m.onclick = e => { const b = e.target.closest('[data-a]'); if (!b) return; m.hidden = true;
+    if (b.dataset.a === 'dir') dirOpen(ll); else pickCity(best); };
+}
+document.addEventListener('pointerdown', e => { if (!$('eLpm').hidden && !e.target.closest('#eLpm')) $('eLpm').hidden = true; }, true);
+function pickCity(best){
   if (!best) return;
-  lpFired = Date.now();
   if (wkMode !== 'pick') setWkMode('pick');
   const had = wkPick.includes(best.n);
   if (!wkToggle(wkPick, best.n)){ wkFlash('Puoi confrontare al massimo '+WK_MAX+' città'); return; }
-  try { if (navigator.vibrate) navigator.vibrate(20); } catch(e){}
   wkFlash((had ? 'Tolta: ' : 'Aggiunta: ') + best.n);
   eRefreshWx();
 }
+
+/* ---------- INDICAZIONI: da A a B in auto e a piedi ----------
+   A = la tua posizione (modificabile), B = il punto premuto. Percorsi da routing.openstreetmap.de (dati OpenStreetMap). */
+const eDir = L.layerGroup().addTo(emap);
+var nav = null;          /* { a:{lat,lon,n}, b:{lat,lon,n}, res:{car,foot}, mode, pick } */
+const dirPin = (t, col) => L.divIcon({ className:'', iconSize:[0,0], html:'<div class="dir-pin" style="background:'+col+'"><span>'+t+'</span></div>' });
+async function placeName(ll){
+  const pl = placeAt(ll.lat, ll.lon != null ? ll.lon : ll.lng);
+  let n = pl ? pl.n : 'Punto sulla mappa';
+  try {
+    const j = await (await fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=17&accept-language=it&lat='+ll.lat+'&lon='+(ll.lon != null ? ll.lon : ll.lng))).json();
+    const a = j.address || {}, via = a.road || a.pedestrian || a.square || a.path;
+    if (j.name || via) n = (j.name || via) + (a.village || a.town || a.city ? ', '+(a.village || a.town || a.city) : '');
+  } catch(e){}
+  return n;
+}
+function dirOpen(ll){
+  ePhotoPin && ePhotoPin.clearLayers();
+  const b = { lat: ll.lat, lon: ll.lng != null ? ll.lng : ll.lon, n: 'Cerco il nome…' };
+  nav = { a: userPos ? { lat: userPos.lat, lon: userPos.lon, n: 'La tua posizione', gps: true } : null, b, res: {}, mode: 'car', pick: userPos ? null : 'a' };
+  placeName(b).then(n => { if (nav && nav.b === b){ b.n = n; dirCard(); } });
+  dirCalc(); dirCard();
+}
+async function dirCalc(){
+  eDir.clearLayers(); if (!nav) return;
+  const d = nav; d.res = {};
+  if (d.a) L.marker([d.a.lat, d.a.lon], { icon: dirPin('A', '#2f7d4f'), zIndexOffset:1600 }).addTo(eDir);
+  if (d.b) L.marker([d.b.lat, d.b.lon], { icon: dirPin('B', '#c0392b'), zIndexOffset:1600 }).addTo(eDir);
+  if (!d.a || !d.b){ dirCard(); return; }
+  const pts = d.a.lon+','+d.a.lat+';'+d.b.lon+','+d.b.lat;
+  const get = async (prof, svc) => { try {
+    const j = await (await fetch('https://routing.openstreetmap.de/routed-'+svc+'/route/v1/'+prof+'/'+pts+'?overview=full&geometries=geojson')).json();
+    const r = j.routes && j.routes[0]; return r ? { km: r.distance / 1000, min: r.duration / 60, line: r.geometry.coordinates.map(x => [x[1], x[0]]) } : 'x';
+  } catch(e){ return 'x'; } };
+  d.res.car = 'wait'; d.res.foot = 'wait'; dirCard();
+  const [car, foot] = await Promise.all([get('driving', 'car'), get('foot', 'foot')]);
+  if (nav !== d) return;
+  d.res.car = car; d.res.foot = foot;
+  /* a piedi uso 4,5 km/h se il servizio non dà una durata realistica */
+  if (foot && foot !== 'x' && !(foot.min >= foot.km * 8)) foot.min = foot.km / 4.5 * 60;
+  dirDraw(true); dirCard();
+}
+function dirDraw(fit){
+  if (!nav) return;
+  eDir.eachLayer(l => { if (l instanceof L.Polyline) eDir.removeLayer(l); });
+  const r = nav.res[nav.mode]; if (!r || typeof r === 'string') return;
+  const col = nav.mode === 'car' ? '#2470b8' : '#2f7d4f';
+  L.polyline(r.line, { color:'#fff', weight:9, opacity:.9, interactive:false }).addTo(eDir);
+  L.polyline(r.line, { color: col, weight:6, opacity:.95, dashArray: nav.mode === 'foot' ? '2 10' : null, lineCap:'round', interactive:false }).addTo(eDir);
+  if (fit) emap.fitBounds(L.latLngBounds(r.line).pad(0.15), { maxZoom:17, paddingBottomRight:[0, 120] });
+}
+const fmtKm = k => k < 1 ? Math.round(k * 1000 / 10) * 10 + ' m' : (k < 10 ? k.toFixed(1) : Math.round(k)).toString().replace('.', ',') + ' km';
+const fmtMin = m => m < 60 ? Math.max(1, Math.round(m)) + ' min' : Math.floor(m / 60) + ' h ' + String(Math.round(m % 60)).padStart(2, '0');
+function dirCard(){
+  if (!nav) return;
+  const d = nav, opt = (k, ic, lab) => { const r = d.res[k];
+    const txt = !d.a ? '—' : r === 'wait' ? 'calcolo…' : (!r || r === 'x') ? 'non disponibile' : fmtMin(r.min)+' · '+fmtKm(r.km);
+    return '<button class="dmode'+(d.mode === k ? ' on' : '')+'" data-m="'+k+'"><span>'+ic+'</span><b>'+lab+'</b><small>'+txt+'</small></button>'; };
+  const gm = d.a && d.b ? 'https://www.google.com/maps/dir/?api=1&origin='+d.a.lat+','+d.a.lon+'&destination='+d.b.lat+','+d.b.lon+'&travelmode='+(d.mode === 'car' ? 'driving' : 'walking') : null;
+  showCard('<div class="ch"><span class="meta">Indicazioni</span><button class="x" aria-label="Chiudi">✕</button></div>'+
+    '<div class="dir-ab"><button data-p="a" class="'+(d.pick === 'a' ? 'on' : '')+'"><i style="background:#2f7d4f">A</i><span>'+(d.pick === 'a' ? 'Tocca la mappa per la partenza' : esc(d.a ? d.a.n : 'Scegli la partenza'))+'</span></button>'+
+    '<button data-p="b" class="'+(d.pick === 'b' ? 'on' : '')+'"><i style="background:#c0392b">B</i><span>'+(d.pick === 'b' ? 'Tocca la mappa per l\'arrivo' : esc(d.b ? d.b.n : 'Scegli l\'arrivo'))+'</span></button></div>'+
+    (d.a && !d.a.gps && userPos ? '<button class="dgps" data-gps="1">Parti dalla tua posizione</button>' : '')+
+    '<div class="dmodes">'+opt('car', '🚗', 'Auto')+opt('foot', '🚶', 'A piedi')+'</div>'+
+    '<div class="acts">'+(gm ? '<a href="'+gm+'" target="_blank" rel="noopener">Apri in Google Maps</a>' : '')+'</div>'+
+    '<div class="src" style="font-size:11.5px;color:var(--tx2)">Percorsi: routing.openstreetmap.de, dati © OpenStreetMap</div>');
+  const c = $('eCard');
+  c.querySelector('.x').onclick = dirClose;
+  c.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { d.pick = d.pick === b.dataset.p ? null : b.dataset.p; dirCard();
+    if (d.pick) wkFlash(d.pick === 'a' ? 'Tocca la mappa dove parti' : 'Tocca la mappa dove arrivi'); });
+  c.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { d.mode = b.dataset.m; dirDraw(true); dirCard(); });
+  const g = c.querySelector('[data-gps]'); if (g) g.onclick = () => { d.a = { lat: userPos.lat, lon: userPos.lon, n: 'La tua posizione', gps: true }; d.pick = null; dirCalc(); };
+}
+function dirClose(){ nav = null; eDir.clearLayers(); $('eCard').classList.remove('show'); }
+/* in modalità "scegli il punto", un tocco sulla mappa imposta partenza o arrivo */
+emap.on('click', e => {
+  if (!nav || !nav.pick || Date.now() - lpFired < 900) return;
+  const k = nav.pick, pt = { lat: e.latlng.lat, lon: e.latlng.lng, n: 'Cerco il nome…' };
+  nav[k] = pt; nav.pick = null;
+  placeName(pt).then(n => { if (nav && nav[k] === pt){ pt.n = n; dirCard(); } });
+  dirCalc();
+});
 
 /* ---------- punti d'interesse da lontano (zoom 11–13): piccoli punti dorati da Wikipedia ---------- */
 let eDotKey = '', eDotTimer = null;
@@ -1649,7 +1765,7 @@ async function loadArea(lat, lon, radius){
   let found = v[0].slice();
   [v[1], v[2], v[3], v[4]].forEach(list => { found = found.concat(list.filter(o => !found.some(w => haversine(o.lat,o.lon,w.lat,w.lon) < 40))); });
   eItems = found.concat(v[5]).sort((a,b) => a.dist - b.dist);
-  eSel = -1; $('eCard').classList.remove('show');
+  eSel = -1; if (!nav) $('eCard').classList.remove('show');   /* le indicazioni restano aperte */
   drawArt(); renderMon();
   setHint();
   showPendingItem();
@@ -2443,7 +2559,7 @@ emap.on('zoomend moveend', () => {
   if (near !== eNear){
     eNear = near; document.body.classList.toggle('e-near', near); renderGoBtn(); sheetSync();
     if (near){ emap.addLayer(eArt); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
-    else { emap.removeLayer(eArt); $('eCard').classList.remove('show'); $('eRefetch').classList.remove('show');
+    else { emap.removeLayer(eArt); if (!nav) $('eCard').classList.remove('show'); $('eRefetch').classList.remove('show');
            if (eLayerMode==='sea'){ eSea.addTo(emap); eJelly.addTo(emap); } }
     $('eSeg').style.display = (!near && REG && REG.mare) ? '' : 'none';
     eRenderLegend();

@@ -115,3 +115,8 @@ Linguetta "Eventi" (accanto a Curiosità e Cosa fare): eventi nei prossimi 15 gi
 e coordinate); poi le feste tradizionali dalla guida Wikivoyage (date indicative). Il tasto "Cerca eventi con Claude" manda
 il messaggio "[Meteo e viaggio: eventi]" all'altra chat, che li cerca su comune, pro loco, regione e siti di eventi.
 Gli eventi non compaiono come punti fissi sulla mappa (solo con "Mostra sulla mappa").
+
+Indicazioni: tenendo premuto sulla mappa. Da vicino si aprono subito; da lontano compare un piccolo menu
+("Confronta il meteo di …" / "Indicazioni fin qui"). Partenza = posizione GPS (modificabile toccando A e poi la mappa),
+arrivo = punto premuto (modificabile allo stesso modo). Auto e a piedi calcolati insieme (routing.openstreetmap.de),
+nomi dei punti da Nominatim, "Apri in Google Maps" per la navigazione.
