@@ -140,3 +140,4 @@ una volta, tile della mappa salvate (fino a ~4000) e aggiornate in background. L
 (riusate per 30 minuti, offline fino a un giorno), monumenti per zona (3 giorni senza richiedere, poi aggiornati),
 testi di Wikipedia/Wikivoyage, foto e sentieri (7 giorni); pulizia automatica dopo 14 giorni. Riaprendo entro 12 ore
 riparte dall'ultima zona e città.
+Riapertura come Google Maps: la mappa nasce già nell'ultima zona e zoom (salvati a ogni spostamento e quando esci dall'app), poi torna la città scelta; senza limite di tempo. Il salto automatico sulla posizione GPS avviene solo la prima volta.

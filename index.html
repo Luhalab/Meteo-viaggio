@@ -698,8 +698,10 @@ async function loadRegion(id){
   document.title = j.nome+' · Meteo e viaggio';
   $('hReg').textContent = j.nome;
   const dentro = userPos && userPos.lat>=j.bounds[0][0] && userPos.lat<=j.bounds[1][0] && userPos.lon>=j.bounds[0][1] && userPos.lon<=j.bounds[1][1];
-  eOnRegion(j, dentro);
-  if (!restoreView()) gpsAuto();
+  const keep = firstRegion && LAST_VIEW && LAST_VIEW.reg === id; firstRegion = false;
+  eOnRegion(j, dentro, keep);
+  if (keep) restoreView(); else gpsAuto();
+  viewReady = true;
   if (j.mare){ loadMarine(); loadJelly(); }
 }
 
@@ -1149,7 +1151,9 @@ let eLoading = false, eCity = null, eItems = [], eArea = null, eNear = false, eS
 const CAN_ROT = typeof L.Map.prototype.setBearing === 'function';
 const emap = L.map('emap', Object.assign({ minZoom:5, maxZoom:20, zoomSnap:0.5, zoomDelta:1, zoomControl:false },
   CAN_ROT ? { rotate:true, rotateControl:false, shiftKeyRotate:false, touchRotate: store.get('mapRot2', false), bearing:0 } : {}));
-emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
+const LAST_VIEW = store.get('lastView', null);
+if (LAST_VIEW && LAST_VIEW.lat != null) emap.setView([LAST_VIEW.lat, LAST_VIEW.lon], LAST_VIEW.z, { animate:false });   /* come Google Maps: riapri dove eri */
+else emap.fitBounds([[36.62,11.9],[38.45,15.66]]);
 /* Sfondo OpenStreetMap a ogni zoom. Le scritte delle tile OSM sono piccole sui telefoni:
    da zoom 12 in su uso le tile del livello precedente mostrate al doppio (512 px),
    così nomi di strade e luoghi diventano leggibili. Da lontano restano normali,
@@ -2122,7 +2126,9 @@ function cityVisible(){
     emap.panBy([p.x - w.width / 2, p.y - (top + bottom) / 2], { animate:true });
 }
 let eKeepCity = false;
-emap.on('moveend', () => { clearTimeout(saveViewT); saveViewT = setTimeout(saveView, 800); });
+emap.on('moveend', () => { clearTimeout(saveViewT); saveViewT = setTimeout(saveView, 500); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveView(); });
+window.addEventListener('pagehide', saveView);
 emap.on('moveend', () => { if (eKeepCity){ eKeepCity = false; setTimeout(cityVisible, 50); } });
 /* tre posizioni del pannello: 0 chiuso, 1 metà schermo, 2 tutto lo schermo */
 function sheetState(){ const S = document.querySelector('.card.tabs.sheet'); return !S ? 0 : S.classList.contains('max') ? 2 : S.classList.contains('open') ? 1 : 0; }
@@ -2991,17 +2997,17 @@ function startCompass(){
 /* all'apertura, con il GPS già consentito: mostro subito le informazioni del posto in cui sei */
 var gpsAutoDone = false;
 /* ultima vista (zona della mappa e città scelta): riaprendo l'app entro 12 ore riparto da lì */
+var viewReady = false, firstRegion = true;
 function saveView(){
+  if (!viewReady) return;
   const c = emap.getCenter();
   store.set('lastView', { reg: REG && REG.id, lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: emap.getZoom(),
     city: eCity ? (eCity.virt ? { v:1, lat: eCity.lat, lon: eCity.lon } : eCity.n) : null, t: Date.now() });
 }
 let saveViewT = null;
 function restoreView(){
-  const v = store.get('lastView', null);
-  if (!v || !REG || v.reg !== REG.id || Date.now() - v.t > 12 * 3600e3) return false;
-  gpsAutoDone = true;
-  emap.setView([v.lat, v.lon], v.z, { animate:false });
+  const v = LAST_VIEW; if (!v) return false;
+  gpsAutoDone = true;                       /* niente salto automatico sul GPS: resti dove eri */
   const c = v.city ? (typeof v.city === 'string' ? byName[v.city] : placeAt(v.city.lat, v.city.lon)) : null;
   if (c) eSelectCity(c, { noArea: true });
   return true;
@@ -3060,11 +3066,11 @@ $('eCam').onchange = () => {
 };
 
 /* ---------- cambio regione ---------- */
-function eOnRegion(j, dentro){
+function eOnRegion(j, dentro, keep){
   emap.setMaxBounds(L.latLngBounds(j.bounds).pad(0.4));
   eWx.clearLayers(); for (const k in eMk) delete eMk[k];
   if (eCity && !byName[eCity.n]){ eCity = null; city = null; cw = null; $('wxS').hidden = true; $('cSeaS').hidden = true; eRenderHero(); }
-  if (dentro) emap.setView([userPos.lat, userPos.lon], 10); else emap.fitBounds(j.bounds);
+  if (keep) {} else if (dentro) emap.setView([userPos.lat, userPos.lon], 10); else emap.fitBounds(j.bounds);
   if (!j.mare){ eLayerMode = 'wx'; $('eSeg').querySelectorAll('button').forEach((b,i) => b.classList.toggle('on', i===0)); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
   $('eSeg').style.display = (j.mare && !eNear) ? '' : 'none';
   drawEMe(); eRenderLegend(); eRefreshWx(); setHint();
