@@ -1814,7 +1814,7 @@ document.addEventListener('visibilitychange', async () => {
    sulla mappa metto solo quelli legati a un luogo preciso, cioè con coordinate che non condividono con altri. */
 function customPrecise(all){
   const k = p => p.lat.toFixed(4)+','+p.lon.toFixed(4), n = {};
-  all.forEach(p => { if (p.lat != null && p.kind) n[k(p)] = (n[k(p)] || 0) + 1; });
+  all.forEach(p => { if (p.lat != null && (p.kind === 'curiosita' || p.kind === 'da-fare')) n[k(p)] = (n[k(p)] || 0) + 1; });   /* gli eventi non contano */
   return p => p.lat != null && (!p.kind || n[k(p)] === 1);
 }
 async function fetchCustomPoints(lat, lon, radius){
@@ -1825,26 +1825,39 @@ async function fetchCustomPoints(lat, lon, radius){
 }
 
 /* ---------- carica i monumenti di un'area (come Cicerone) ---------- */
+/* Monumenti della zona da sei fonti. Ognuna ha un tempo massimo (una fonte lenta non blocca le altre)
+   e i punti compaiono man mano che arrivano, senza aspettare la più lenta. */
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), ms))]);
 async function loadArea(lat, lon, radius, retry){
   radius = radius || 2000; const my = ++eReq; eArea = {lat, lon, radius}; eLoading = true;
   $('eRefetch').classList.remove('show');
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
-  const r = await Promise.allSettled([ fetchWikiItems(lat, lon, radius), fetchOverpassItems(lat, lon, radius),
-    fetchSwissHeritageItems(lat, lon, radius), fetchWfsItems(lat, lon, radius, WFS_ER),
-    fetchWfsItems(lat, lon, radius, WFS_LIG), fetchCustomPoints(lat, lon, radius) ]);
-  if (my !== eReq) return;
-  eLoading = false;
-  const v = r.map(x => x.status === 'fulfilled' ? x.value : []);
-  /* scarto i doppioni (stesso luogo da più fonti); i punti scritti a mano restano sempre */
-  let found = v[0].slice();
-  [v[1], v[2], v[3], v[4]].forEach(list => { found = found.concat(list.filter(o => !found.some(w => haversine(o.lat,o.lon,w.lat,w.lon) < 40))); });
-  eItems = found.concat(v[5]).sort((a,b) => a.dist - b.dist);
-  if (!eItems.length && !retry && r.some(x => x.status === 'rejected'))      /* una fonte non ha risposto: riprovo tra poco */
-    setTimeout(() => { if (my === eReq) loadArea(lat, lon, radius, true); }, 2500);
-  eSel = -1; if (!nav) $('eCard').classList.remove('show');   /* le indicazioni restano aperte */
-  drawArt(); renderMon();
-  setHint();
-  showPendingItem();
+  const srcs = [ () => fetchWikiItems(lat, lon, radius), () => fetchOverpassItems(lat, lon, radius),
+    () => fetchSwissHeritageItems(lat, lon, radius), () => fetchWfsItems(lat, lon, radius, WFS_ER),
+    () => fetchWfsItems(lat, lon, radius, WFS_LIG), () => fetchCustomPoints(lat, lon, radius) ];
+  const TMAX = [12000, 25000, 10000, 10000, 10000, 8000];
+  const vals = srcs.map(() => []), st = srcs.map(() => 'wait');
+  let first = true;
+  const render = () => {
+    if (my !== eReq) return;
+    /* scarto i doppioni (stesso luogo da più fonti); i punti scritti a mano restano sempre */
+    let found = vals[0].slice();
+    [vals[1], vals[2], vals[3], vals[4]].forEach(list => { found = found.concat(list.filter(o => !found.some(w => haversine(o.lat,o.lon,w.lat,w.lon) < 40))); });
+    const keepSel = eSel >= 0 && eItems[eSel] ? eItems[eSel] : null;
+    eItems = found.concat(vals[5]).sort((a,b) => a.dist - b.dist);
+    if (first){ first = false; eSel = -1; if (!nav) $('eCard').classList.remove('show'); }      /* le indicazioni restano aperte */
+    else if (keepSel) eSel = eItems.indexOf(keepSel);
+    const done = st.every(x => x !== 'wait');
+    if (done || eItems.length) eLoading = !done && !eItems.length;
+    drawArt(); renderMon();
+    if (done){ eLoading = false; setHint(); showPendingItem();
+      if (!eItems.length && !retry && st.some(x => x === 'ko'))      /* una fonte non ha risposto: riprovo tra poco */
+        setTimeout(() => { if (my === eReq) loadArea(lat, lon, radius, true); }, 2500); }
+    else if (eItems.length) setHint();
+  };
+  await Promise.all(srcs.map((f, i) => withTimeout(Promise.resolve().then(f), TMAX[i])
+    .then(v => { vals[i] = v || []; st[i] = 'ok'; }, () => { st[i] = 'ko'; })
+    .then(render)));
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
 const FLT_ALL = ['mon','claude','storie','foto','percorsi'];
