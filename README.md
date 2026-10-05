@@ -120,3 +120,10 @@ Indicazioni: tenendo premuto sulla mappa. Da vicino si aprono subito; da lontano
 ("Confronta il meteo di …" / "Indicazioni fin qui"). Partenza = posizione GPS (modificabile toccando A e poi la mappa),
 arrivo = punto premuto (modificabile allo stesso modo). Auto e a piedi calcolati insieme (routing.openstreetmap.de),
 nomi dei punti da Nominatim, "Apri in Google Maps" per la navigazione.
+Indicazioni: la mappa non si sposta da sola (tasto "Mostra tutto"); tappe intermedie ("+ Aggiungi tappa", poi tocco sulla
+mappa; mentre scegli la scheda si nasconde); "Salva percorso" li salva sul telefono (localStorage "myRoutes") e li mostra
+nei filtri della zona ("Il mio percorso", eliminabili). Ricerca: oltre ai comuni, "Cerca … come via o luogo" (Nominatim
+vicino alla città o alla zona); dal risultato: indicazioni fin lì, o partenza/tappa/arrivo se le indicazioni sono aperte.
+Locali a richiesta: chip Ristoranti, Bar, Gelaterie, Hotel accanto alle nazioni (Overpass, al massimo 40 nella zona,
+si aggiornano spostando la mappa, spariscono toccando di nuovo il chip); scheda con orari, telefono, link a Google
+(foto e recensioni), TripAdvisor e "Indicazioni fin qui".
