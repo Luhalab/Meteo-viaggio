@@ -128,3 +128,4 @@ Locali a richiesta: chip Ristoranti, Bar, Gelaterie, Hotel accanto alle nazioni 
 si aggiornano spostando la mappa, spariscono toccando di nuovo il chip); scheda con orari, telefono, link a Google
 (foto e recensioni), TripAdvisor e "Indicazioni fin qui".
 Locali: prima dalle tile vettoriali già scaricate (nessuna richiesta), altrimenti Overpass con server di riserva (kumi.systems, private.coffee); orari e telefono chiesti a OpenStreetMap solo toccando il locale. Con un chip acceso monumenti e punti di Claude si nascondono.
+Chip dei locali ridotti a Ristoranti e Bar e gelaterie, presi solo dalla mappa vettoriale (online solo se la vettoriale manca). Spegnendo il chip i monumenti tornano (ricaricati se mancano); se una fonte dei monumenti non risponde e non c'è nulla, l'app riprova da sola una volta.

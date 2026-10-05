@@ -1825,7 +1825,7 @@ async function fetchCustomPoints(lat, lon, radius){
 }
 
 /* ---------- carica i monumenti di un'area (come Cicerone) ---------- */
-async function loadArea(lat, lon, radius){
+async function loadArea(lat, lon, radius, retry){
   radius = radius || 2000; const my = ++eReq; eArea = {lat, lon, radius}; eLoading = true;
   $('eRefetch').classList.remove('show');
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
@@ -1839,6 +1839,8 @@ async function loadArea(lat, lon, radius){
   let found = v[0].slice();
   [v[1], v[2], v[3], v[4]].forEach(list => { found = found.concat(list.filter(o => !found.some(w => haversine(o.lat,o.lon,w.lat,w.lon) < 40))); });
   eItems = found.concat(v[5]).sort((a,b) => a.dist - b.dist);
+  if (!eItems.length && !retry && r.some(x => x.status === 'rejected'))      /* una fonte non ha risposto: riprovo tra poco */
+    setTimeout(() => { if (my === eReq) loadArea(lat, lon, radius, true); }, 2500);
   eSel = -1; if (!nav) $('eCard').classList.remove('show');   /* le indicazioni restano aperte */
   drawArt(); renderMon();
   setHint();
@@ -2952,9 +2954,7 @@ async function overpass(q, ms){
 /* ---------- locali a richiesta (come Google Maps): compaiono solo toccando il chip, spariscono toccandolo di nuovo ---------- */
 const POIC = {
   rist:  { t:'Ristoranti', e:'🍴', c:'#c0662b', vt:['restaurant','fast_food'], q:'nwr["amenity"~"^(restaurant|fast_food)$"]' },
-  bar:   { t:'Bar',        e:'☕', c:'#8a5a2b', vt:['cafe','bar','beer'], q:'nwr["amenity"~"^(cafe|bar|pub)$"]' },
-  gel:   { t:'Gelaterie',  e:'🍦', c:'#c2417a', vt:['ice_cream'], q:'nwr["amenity"="ice_cream"];nwr["shop"="ice_cream"];nwr["cuisine"~"ice_cream"]' },
-  hotel: { t:'Hotel',      e:'🏨', c:'#2f5fa0', vt:['lodging'], q:'nwr["tourism"~"^(hotel|guest_house|bed_and_breakfast|hostel)$"]' }
+  bar:   { t:'Bar e gelaterie', e:'☕', c:'#8a5a2b', vt:['cafe','bar','beer','ice_cream'], q:'nwr["amenity"~"^(cafe|bar|pub|ice_cream)$"]' }
 };
 const POI_TYPE = { restaurant:'Ristorante', fast_food:'Cibo veloce', cafe:'Caffè', bar:'Bar', pub:'Pub', ice_cream:'Gelateria',
   hotel:'Hotel', guest_house:'Affittacamere', bed_and_breakfast:'B&B', hostel:'Ostello' };
@@ -2982,7 +2982,7 @@ async function poiLoad(){
   poiBox = emap.getBounds().pad(0.4);
   const q = '[out:json][timeout:20];('+POIC[k].q.split(';').map(x => x+'('+bb+');').join('')+');out center tags 120;';
   let els = vtPois(k, b);                     /* la mappa vettoriale ha già i locali della zona: nessuna attesa */
-  if (!els.length){
+  if (!els.length && !(vtGL && vtGL.isStyleLoaded())){   /* online solo se la mappa vettoriale non c'è: opzione leggera */
     try { els = ((await overpass(q, 12000)).elements || []).map(el => ({ t: el.tags || {}, lat: el.lat != null ? el.lat : el.center && el.center.lat, lon: el.lon != null ? el.lon : el.center && el.center.lon, id: el.type+'/'+el.id })); }
     catch(e){ wkFlash('Non riesco a caricare i locali: riprova tra poco'); return; }
   }
@@ -3024,6 +3024,7 @@ function poiCard(o){
 function poiSet(k){
   poiOn = poiOn === k ? null : k; ePoiL.clearLayers(); poiList = []; poiBox = null; regChips();
   document.body.classList.toggle('poi-on', !!poiOn);      /* mentre cerchi locali, monumenti e punti di Claude si nascondono */
+  if (!poiOn){ drawArt(); setHint(); if (eNear && !eItems.length && !eLoading){ const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); } return; }
   if (!poiOn) return;
   if (emap.getZoom() < 14){ const c = eCity ? [eCity.lat, eCity.lon] : emap.getCenter(); emap.setView(c, 15, { animate:true }); setTimeout(poiLoad, 600); }
   else poiLoad();
