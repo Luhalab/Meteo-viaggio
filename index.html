@@ -235,6 +235,7 @@ body.e-full{overflow:hidden}
 .rt-btn{display:inline-flex;align-items:center;gap:6px;margin:4px 0 2px;border:1px solid var(--acc);background:var(--acc-soft);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);cursor:pointer}
 .rt-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .rt-btn.busy{opacity:.6;pointer-events:none}
+.rt-btn.on{background:var(--acc);color:#fff}
 .gp{margin:0 0 8px}
 .rt-n{width:24px;height:24px;border-radius:50%;background:#2470b8;color:#fff;border:2px solid #fff;font:700 12px/20px var(--sans);text-align:center;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.35)}
 .ecard ol.rt{margin:6px 0 4px 20px;padding:0;font-size:13.5px;line-height:1.5}
@@ -2426,7 +2427,10 @@ let eDoPhotos = [];
 $('eDo').addEventListener('click', e => {
   const ph = e.target.closest('[data-di]'); if (ph){ lbxShow(+ph.dataset.di, eDoPhotos); return; }
   const o = e.target.closest('[data-osm]'); if (o){ const r = eOsmRoutes[+o.dataset.osm]; if (r){ const i = routesHere().findIndex(x => x.id === r.id); toggleRoute(r, i < 0 ? 0 : i, true); } return; }
-  const b = e.target.closest('.rt-btn[data-stops]'); if (b) showRoute(JSON.parse(b.dataset.stops), b, !!b.dataset.ch); });
+  const b = e.target.closest('.rt-btn[data-stops]'); if (!b) return;
+  const r = routeFromBtn(b), list = routesHere(), i = list.findIndex(x => x.id === r.id);
+  if (eRoutesOn.has(r.id) || i >= 0) toggleRoute(i >= 0 ? list[i] : r, Math.max(0, i), true);
+  else showRoute(r.stops, b, r.ch, { id: r.id, title: r.title }); });
 
 /* Mostra un percorso: cerco i luoghi su OpenStreetMap (Nominatim) vicino alla città e li unisco con un percorso a piedi */
 const eRoute = L.layerGroup().addTo(emap);
@@ -2434,13 +2438,26 @@ const eRouteStarts = L.layerGroup();          /* sulla mappa solo da vicino */
 const eRoutesOn = new Map();          /* id -> livello del percorso disegnato */
 /* percorsi della città scelta: tutti quelli che hanno il tasto nella scheda "Cosa vedere e fare"
    (consigli di Claude con tappe e paragrafi di Wikivoyage con "da X a Y") */
+/* lo stesso percorso ha lo stesso identificativo sia nel pannello Filtri sia nella scheda "Cosa fare" */
+function routeFromBtn(b){
+  const st = JSON.parse(b.dataset.stops), names = st.map(x => typeof x === 'string' ? x : x.n);
+  const det = b.closest('details'), claude = det && det.querySelector('.tag-cu');
+  const title = claude ? det.querySelector('summary').textContent : names[0]+' → '+names[names.length-1];
+  return { id: title+'|'+names.join('|'), title, sub: (claude ? 'Consiglio di Claude · ' : 'Wikivoyage · ')+names.length+' tappe', stops: st, ch: !!b.dataset.ch };
+}
 function routesHere(){
-  return [...document.querySelectorAll('#eDo .rt-btn[data-stops]')].filter(b => JSON.parse(b.dataset.stops).filter(x => x && x.lat != null).length >= 2).map(b => {
-    const st = JSON.parse(b.dataset.stops), names = st.map(x => typeof x === 'string' ? x : x.n);
-    const det = b.closest('details'), claude = det && det.querySelector('.tag-cu');
-    const title = claude ? det.querySelector('summary').textContent : names[0]+' → '+names[names.length-1];
-    return { id: title+'|'+names.join('|'), title, sub: (claude ? 'Consiglio di Claude · ' : 'Wikivoyage · ')+names.length+' tappe', stops: st, ch: !!b.dataset.ch };
-  }).concat(eOsmRoutes).concat(myRoutesHere());
+  return [...document.querySelectorAll('#eDo .rt-btn[data-stops]')].filter(b => JSON.parse(b.dataset.stops).filter(x => x && x.lat != null).length >= 2).map(routeFromBtn)
+    .concat(eOsmRoutes).concat(myRoutesHere());
+}
+/* aggiorno pannello Filtri e tasti nella scheda: acceso / spento in tutti e due i posti */
+function routesUI(){
+  if (!$('eFltP').hidden) fltPanel();
+  document.querySelectorAll('#eDo .rt-btn[data-stops], #eDo .rt-btn[data-osm]').forEach(b => {
+    if (b.classList.contains('busy')) return;
+    const id = b.dataset.osm != null ? (eOsmRoutes[+b.dataset.osm] || {}).id : routeFromBtn(b).id, on = eRoutesOn.has(id);
+    b.classList.toggle('on', on);
+    b.innerHTML = RT_IC + (on ? 'Togli il percorso dalla mappa' : (b.dataset.osm != null ? 'Mostra sulla mappa' : 'Mostra il percorso sulla mappa'));
+  });
 }
 function myRList(){
   const L0 = myRoutes();
@@ -2473,28 +2490,28 @@ function myRoutesHere(){
   return myRoutes().filter(r => r.stops.some(p => km(c.lat, c.lon, p.lat, p.lon) <= 20))
     .map(r => ({ id: 'my|'+r.id, myId: r.id, title: r.title, sub: 'Il mio percorso · '+r.stops.length+' tappe', stops: r.stops, mine: true }));
 }
-function clearRoutes(){ eRoute.clearLayers(); eRoutesOn.clear(); }
+function clearRoutes(){ eRoute.clearLayers(); eRoutesOn.clear(); if (typeof routesUI === 'function') routesUI(); }
 function drawOsmRoute(r, col, card){
   const lay = L.layerGroup().addTo(eRoute); eRoutesOn.set(r.id, lay);
   r.lines.forEach(ll => { L.polyline(ll, { color:'#fff', weight:7, opacity:.9, interactive:false }).addTo(lay);
     L.polyline(ll, { color: col, weight:4, opacity:.95, interactive:false }).addTo(lay); });
   emap.fitBounds(L.latLngBounds([].concat(...r.lines)).pad(0.1), { maxZoom:16 });
-  if (!$('eFltP').hidden) fltPanel();
+  routesUI();
   if (!card) return;
   showCard('<div class="ch"><span class="meta">'+esc(r.sub)+'</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(r.title)+'</h3>'+
     (r.desc ? '<p>'+esc(short(r.desc, 400))+'</p>' : '')+
     '<div class="acts"><button id="eRtClr">Togli il percorso</button><a href="'+esc(r.url)+'" target="_blank" rel="noopener">OpenStreetMap</a>'+(r.web ? '<a href="'+esc(r.web)+'" target="_blank" rel="noopener">Sito</a>' : '')+'</div>');
-  $('eRtClr').onclick = () => { eRoute.removeLayer(lay); eRoutesOn.delete(r.id); $('eCard').classList.remove('show'); if (!$('eFltP').hidden) fltPanel(); };
+  $('eRtClr').onclick = () => { eRoute.removeLayer(lay); eRoutesOn.delete(r.id); $('eCard').classList.remove('show'); routesUI(); };
 }
 function toggleRoute(r, i, card){
-  if (eRoutesOn.has(r.id)){ eRoute.removeLayer(eRoutesOn.get(r.id)); eRoutesOn.delete(r.id); if (!$('eFltP').hidden) fltPanel(); return; }
+  if (eRoutesOn.has(r.id)){ eRoute.removeLayer(eRoutesOn.get(r.id)); eRoutesOn.delete(r.id); routesUI(); return; }
   const col = ROUTE_COLORS[i % ROUTE_COLORS.length];
   if (r.osm){ drawOsmRoute(r, col, card); return; }
   showRoute(r.stops, null, r.ch, { id: r.id, color: col, card, title: r.title });
 }
 /* partenza di ogni percorso come pallino blu sulla mappa: toccandolo il percorso compare */
 function drawRouteStarts(){ eRouteStarts.clearLayers(); }   /* le partenze sulla mappa non servono: bastano i filtri */
-function routesChanged(){ drawRouteStarts(); if (!$('eFltP').hidden) fltPanel(); }
+function routesChanged(){ drawRouteStarts(); routesUI(); }
 const geoMem = {};
 async function geocode(q, c){
   const key = 'geo:'+q+'|'+c.lat.toFixed(2)+','+c.lon.toFixed(2);
@@ -2562,7 +2579,7 @@ async function showRoute(stops, btn, churches, opt){
     if (!line) info = 'Collegamento in linea d\'aria: il percorso a piedi non è disponibile ora';
   }
   ok.forEach((p, k) => L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="rt-n" style="background:'+col+'">'+(k+1)+'</div>' }), zIndexOffset:1000 }).addTo(lay));
-  if (!$('eFltP').hidden) fltPanel();
+  routesUI();
   if (opt.card !== false) window.scrollTo({ top:0, behavior:'smooth' });
   if (ok.length >= 2) emap.fitBounds(L.latLngBounds(ok.map(p => [p.lat, p.lon])).pad(0.25), { maxZoom:17 }); else emap.setView([ok[0].lat, ok[0].lon], 17);
   if (opt.card === false) return;
@@ -2570,7 +2587,7 @@ async function showRoute(stops, btn, churches, opt){
     (info ? '<p>'+esc(info)+'</p>' : '')+'<ol class="rt">'+names.map((s,i) => pts[i] ? '<li>'+esc(s)+'</li>' : '<li class="miss">'+esc(s)+' (non trovato)</li>').join('')+'</ol>'+
     '<div class="acts"><button id="eRtClr">Togli il percorso</button>'+(ok.length >= 2 ? '<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+ok[0].lat+','+ok[0].lon+
       '&destination='+ok[ok.length-1].lat+','+ok[ok.length-1].lon+(ok.length > 2 ? '&waypoints='+ok.slice(1,-1).map(p => p.lat+','+p.lon).join('%7C') : '')+'">Apri in Google Maps</a>' : '')+'</div>');
-  $('eRtClr').onclick = () => { eRoute.removeLayer(lay); eRoutesOn.delete(id); $('eCard').classList.remove('show'); if (!$('eFltP').hidden) fltPanel(); };
+  $('eRtClr').onclick = () => { eRoute.removeLayer(lay); eRoutesOn.delete(id); $('eCard').classList.remove('show'); routesUI(); };
 }
 
 /* ---------- foto della città ----------
