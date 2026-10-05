@@ -127,3 +127,4 @@ vicino alla città o alla zona); dal risultato: indicazioni fin lì, o partenza/
 Locali a richiesta: chip Ristoranti, Bar, Gelaterie, Hotel accanto alle nazioni (Overpass, al massimo 40 nella zona,
 si aggiornano spostando la mappa, spariscono toccando di nuovo il chip); scheda con orari, telefono, link a Google
 (foto e recensioni), TripAdvisor e "Indicazioni fin qui".
+Locali: prima dalle tile vettoriali già scaricate (nessuna richiesta), altrimenti Overpass con server di riserva (kumi.systems, private.coffee); orari e telefono chiesti a OpenStreetMap solo toccando il locale. Con un chip acceso monumenti e punti di Claude si nascondono.

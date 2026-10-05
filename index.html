@@ -315,6 +315,7 @@ body.gm .gchips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-w
 .gchips::-webkit-scrollbar{display:none}
 .gchips button{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:none;border-radius:18px;background:var(--card);color:var(--tx);font:500 14px var(--sans);box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer}
 .gchips button.on{background:var(--acc);color:#fff}
+body.poi-on .c-dot{display:none}
 .gchips .gsep{flex:none;width:1px;margin:6px 2px;background:rgba(0,0,0,.18)}
 .poi{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(20,36,48,.35);cursor:pointer}
 .dtools a.lnk{border:1px solid var(--line);background:var(--card);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);text-decoration:none}
@@ -1722,7 +1723,7 @@ async function fetchOverpassItems(lat, lon, radius){
   const a = '(around:'+radius+','+lat+','+lon+');';
   const query = '[out:json][timeout:25];(node["historic"]'+a+'way["historic"]'+a+'relation["historic"]'+a+
     'node["tourism"="artwork"]'+a+'node["amenity"="place_of_worship"]'+a+'way["amenity"="place_of_worship"]'+a+');out center tags;';
-  const res = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data='+encodeURIComponent(query) });
+  const res = { ok:true, json: () => overpass(query, 20000) };
   const data = await res.json();
   return (data.elements||[]).map(el => {
     const la = el.lat != null ? el.lat : (el.center && el.center.lat), lo = el.lon != null ? el.lon : (el.center && el.center.lon);
@@ -2246,7 +2247,7 @@ async function osmRoutes(c){
   const k = c.lat.toFixed(3)+','+c.lon.toFixed(3);
   if (osmRtCache[k]) return osmRtCache[k];
   const q = '[out:json][timeout:25];relation["type"="route"]["route"~"^(hiking|foot|walking)$"](around:9000,'+c.lat+','+c.lon+');out tags geom 20;';
-  const r = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data='+encodeURIComponent(q) });
+  const r = { ok:true, json: () => overpass(q, 20000) };
   if (!r.ok) throw 0;
   const j = await r.json();
   return osmRtCache[k] = (j.elements || []).map(el => {
@@ -2938,28 +2939,56 @@ function eOnRegion(j, dentro){
 /* ================= NAVIGAZIONE ================= */
 function route(){ renderAskBtn(); setTimeout(() => { emap.invalidateSize(); eRefreshWx(); }, 50); }
 
+/* Overpass: provo il server principale e, se è occupato o lento, due server di riserva */
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
+async function overpass(q, ms){
+  for (const u of OVERPASS){
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms || 12000);
+    try { const r = await fetch(u, { method:'POST', body:'data='+encodeURIComponent(q), signal: ctl.signal }); clearTimeout(t);
+      if (r.ok) return await r.json(); } catch(e){ clearTimeout(t); }
+  }
+  throw new Error('overpass');
+}
 /* ---------- locali a richiesta (come Google Maps): compaiono solo toccando il chip, spariscono toccandolo di nuovo ---------- */
 const POIC = {
-  rist:  { t:'Ristoranti', e:'🍴', c:'#c0662b', q:'nwr["amenity"~"^(restaurant|fast_food)$"]' },
-  bar:   { t:'Bar',        e:'☕', c:'#8a5a2b', q:'nwr["amenity"~"^(cafe|bar|pub)$"]' },
-  gel:   { t:'Gelaterie',  e:'🍦', c:'#c2417a', q:'nwr["amenity"="ice_cream"];nwr["shop"="ice_cream"];nwr["cuisine"~"ice_cream"]' },
-  hotel: { t:'Hotel',      e:'🏨', c:'#2f5fa0', q:'nwr["tourism"~"^(hotel|guest_house|bed_and_breakfast|hostel)$"]' }
+  rist:  { t:'Ristoranti', e:'🍴', c:'#c0662b', vt:['restaurant','fast_food'], q:'nwr["amenity"~"^(restaurant|fast_food)$"]' },
+  bar:   { t:'Bar',        e:'☕', c:'#8a5a2b', vt:['cafe','bar','beer'], q:'nwr["amenity"~"^(cafe|bar|pub)$"]' },
+  gel:   { t:'Gelaterie',  e:'🍦', c:'#c2417a', vt:['ice_cream'], q:'nwr["amenity"="ice_cream"];nwr["shop"="ice_cream"];nwr["cuisine"~"ice_cream"]' },
+  hotel: { t:'Hotel',      e:'🏨', c:'#2f5fa0', vt:['lodging'], q:'nwr["tourism"~"^(hotel|guest_house|bed_and_breakfast|hostel)$"]' }
 };
 const POI_TYPE = { restaurant:'Ristorante', fast_food:'Cibo veloce', cafe:'Caffè', bar:'Bar', pub:'Pub', ice_cream:'Gelateria',
   hotel:'Hotel', guest_house:'Affittacamere', bed_and_breakfast:'B&B', hostel:'Ostello' };
 let poiOn = null, poiBox = null, poiT = null, poiList = [];
 const ePoiL = L.layerGroup().addTo(emap);
+/* locali dalle tile vettoriali già scaricate (livello "poi" di OpenMapTiles), solo nella zona visibile */
+function vtPois(k, b){
+  if (!vtGL || !vtGL.isStyleLoaded()) return [];
+  const lay = vtGL.getStyle().layers.find(l => l['source-layer'] === 'poi'); if (!lay) return [];
+  let fs = [];
+  try { fs = vtGL.querySourceFeatures(lay.source, { sourceLayer:'poi' }); } catch(e){ return []; }
+  const seen = new Set(), out = [];
+  fs.forEach(f => { const p = f.properties || {}; if (!POIC[k].vt.includes(p.class) || !p.name || f.geometry.type !== 'Point') return;
+    const [lon, lat] = f.geometry.coordinates; if (!b.contains([lat, lon])) return;
+    const key = p.name+'|'+lat.toFixed(4)+','+lon.toFixed(4); if (seen.has(key)) return; seen.add(key);
+    const sub = p.subclass || p.class;
+    const t = { name: p['name:it'] || p.name };
+    if (k === 'hotel') t.tourism = sub; else if (sub === 'ice_cream') t.amenity = 'ice_cream'; else t.amenity = ['restaurant','fast_food','cafe','bar','pub'].includes(sub) ? sub : p.class === 'beer' ? 'pub' : p.class;
+    out.push({ t, lat, lon, id: null, vt: true }); });
+  return out;
+}
 async function poiLoad(){
   if (!poiOn) return;
   const k = poiOn, b = emap.getBounds().pad(0.15), bb = b.getSouth()+','+b.getWest()+','+b.getNorth()+','+b.getEast();
   poiBox = emap.getBounds().pad(0.4);
   const q = '[out:json][timeout:20];('+POIC[k].q.split(';').map(x => x+'('+bb+');').join('')+');out center tags 120;';
-  let els = [];
-  try { const r = await fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:'data='+encodeURIComponent(q) }); els = (await r.json()).elements || []; }
-  catch(e){ wkFlash('Non riesco a caricare i locali: riprova tra poco'); return; }
+  let els = vtPois(k, b);                     /* la mappa vettoriale ha già i locali della zona: nessuna attesa */
+  if (!els.length){
+    try { els = ((await overpass(q, 12000)).elements || []).map(el => ({ t: el.tags || {}, lat: el.lat != null ? el.lat : el.center && el.center.lat, lon: el.lon != null ? el.lon : el.center && el.center.lon, id: el.type+'/'+el.id })); }
+    catch(e){ wkFlash('Non riesco a caricare i locali: riprova tra poco'); return; }
+  }
   if (poiOn !== k) return;
   const ctr = emap.getCenter();
-  poiList = els.map(el => ({ t: el.tags || {}, lat: el.lat != null ? el.lat : el.center && el.center.lat, lon: el.lon != null ? el.lon : el.center && el.center.lon, id: el.type+'/'+el.id }))
+  poiList = els
     .filter(o => o.lat != null && o.t.name).map(o => Object.assign(o, { d: haversine(ctr.lat, ctr.lng, o.lat, o.lon) }))
     .sort((a, b2) => a.d - b2.d).slice(0, 40);              /* al massimo 40, i più vicini: la mappa resta leggibile */
   ePoiL.clearLayers();
@@ -2968,7 +2997,16 @@ async function poiLoad(){
     .on('click', () => poiCard(o)).addTo(ePoiL));
   if (!poiList.length) wkFlash('Nessun locale trovato in questa zona');
 }
+async function poiDetails(o){
+  if (!o.vt || o.full) return;
+  o.full = true;
+  try {
+    const j = await overpass('[out:json][timeout:10];nwr(around:60,'+o.lat+','+o.lon+')["name"="'+o.t.name.replace(/"/g,'\\"')+'"];out tags center 1;', 9000);
+    const el = (j.elements || [])[0]; if (el){ o.t = Object.assign({}, el.tags, o.t); o.id = el.type+'/'+el.id; }
+  } catch(e){}
+}
 function poiCard(o){
+  if (o.vt && !o.full){ poiDetails(o).then(() => { if ($('eCard').classList.contains('show') && $('eCard').querySelector('h3') && $('eCard').querySelector('h3').textContent === o.t.name) poiCard(o); }); }
   const t = o.t, town = (placeAt(o.lat, o.lon) || {}).n || '', where = (t['addr:street'] ? t['addr:street']+(t['addr:housenumber'] ? ' '+t['addr:housenumber'] : '')+', ' : '')+town.replace(/^Vicino a /, '');
   const typ = POI_TYPE[t.amenity] || POI_TYPE[t.tourism] || (t.shop === 'ice_cream' ? 'Gelateria' : 'Locale');
   const qq = encodeURIComponent(t.name+' '+town.replace(/^Vicino a /, ''));
@@ -2980,11 +3018,12 @@ function poiCard(o){
     '<div class="dtools"><a class="lnk" href="https://www.google.com/maps/search/?api=1&query='+qq+'" target="_blank" rel="noopener">Foto e recensioni su Google</a>'+
     '<a class="lnk" href="https://www.tripadvisor.it/Search?q='+qq+'" target="_blank" rel="noopener">TripAdvisor</a>'+
     '<button data-go="1">Indicazioni fin qui</button></div>'+
-    '<div class="acts">'+(web ? '<a href="'+esc(web)+'" target="_blank" rel="noopener">Sito</a>' : '')+'<a href="https://www.openstreetmap.org/'+o.id+'" target="_blank" rel="noopener">OpenStreetMap</a></div>');
+    '<div class="acts">'+(web ? '<a href="'+esc(web)+'" target="_blank" rel="noopener">Sito</a>' : '')+(o.id ? '<a href="https://www.openstreetmap.org/'+o.id+'" target="_blank" rel="noopener">OpenStreetMap</a>' : '')+'</div>');
   $('eCard').querySelector('[data-go]').onclick = () => dirOpen({ lat:o.lat, lng:o.lon });
 }
 function poiSet(k){
   poiOn = poiOn === k ? null : k; ePoiL.clearLayers(); poiList = []; poiBox = null; regChips();
+  document.body.classList.toggle('poi-on', !!poiOn);      /* mentre cerchi locali, monumenti e punti di Claude si nascondono */
   if (!poiOn) return;
   if (emap.getZoom() < 14){ const c = eCity ? [eCity.lat, eCity.lon] : emap.getCenter(); emap.setView(c, 15, { animate:true }); setTimeout(poiLoad, 600); }
   else poiLoad();
