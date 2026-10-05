@@ -14,7 +14,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
+<link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+<script>/* se si usa la mappa vettoriale (quasi sempre), il suo motore inizia a scaricarsi subito, in parallelo al resto */
+try { var mb = JSON.parse(localStorage.getItem('mapBase') || '"vector"'); if (mb === 'vector'){ var l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'; document.head.appendChild(l); } } catch(e){}</script>
 <style>
 /* ===== Atlante mediterraneo: blu mare profondo, pietra chiara, oro solo per i monumenti ===== */
 :root{
@@ -702,7 +707,7 @@ async function loadRegion(id){
   eOnRegion(j, dentro, keep);
   if (keep) restoreView(); else gpsAuto();
   viewReady = true;
-  if (j.mare){ loadMarine(); loadJelly(); }
+  seaLoaded = false; if (j.mare && eLayerMode === 'sea'){ seaLoaded = true; loadMarine(); loadJelly(); }   /* solo se serve: avvio più leggero */
 }
 
 /* sceglie la regione: quella salvata, altrimenti quella dove ti trovi, altrimenti Italia */
@@ -865,6 +870,7 @@ function drawSeaInto(seaLayer, jellyLayer, layer){
   (jelly||[]).forEach(o => L.marker([o.lat,o.lon], {icon:L.divIcon({className:'',html:'<div class="jl-mk">🪼</div>',iconSize:[0,0]})})
     .bindPopup('<div class="pop"><b>'+esc(o.name)+'</b><div class="row">'+new Date(o.date+'T12:00:00').toLocaleDateString('it-IT',{day:'numeric',month:'long'})+(o.place?' · '+esc(o.place):'')+'</div><div class="row"><a href="'+esc(o.url)+'" target="_blank" rel="noopener">Vedi segnalazione</a></div></div>').addTo(jellyLayer));
 }
+var seaLoaded = false;
 async function loadMarine(){
   const base='https://marine-api.open-meteo.com/v1/marine?latitude='+SEA_PTS.map(p=>p.lat).join(',')+'&longitude='+SEA_PTS.map(p=>p.lon).join(',')+'&daily=wave_height_max,wave_direction_dominant&timezone=Europe%2FRome';
   for (const u of [base+'&hourly=sea_surface_temperature&forecast_days=8', base+'&forecast_days=8', base+'&forecast_days=7']){
@@ -1320,7 +1326,7 @@ const keyOf = n => encodeURIComponent(n).replace(/'/g, '%27');
 function eMarkerHtml(c){
   const d = mapData[c.n], z = emap.getZoom();
   const cls = 'mk' + (minZoom(c)===7 ? ' big' : '') + (z<8 ? ' cp' : '') + (eCity && c.n===eCity.n ? ' here' : '') + (wkMode==='pick' && wkPick.includes(c.n) ? ' pk' : '');
-  if (!d) return '<div class="'+cls+'"><div class="b"><span class="i">⏳</span></div><div class="n">'+esc(c.n)+'</div></div>';
+  if (!d) return '<div class="'+cls+' ld"><div class="n">'+esc(c.n)+'</div></div>';
   const i = mapDay, tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i];
   return '<div class="'+cls+'"><div class="b"><span class="i">'+wmo(d.daily.weather_code[i])[1]+'</span><span style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</span>'+
     '<span class="mn">'+(tn==null?'':Math.round(tn)+'°')+'</span></div><div class="n">'+esc(c.n)+'</div></div>';
@@ -1751,6 +1757,7 @@ function eRenderLegend(){
 }
 $('eSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
   eLayerMode = b.dataset.l; $('eSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x===b));
+  if (eLayerMode === 'sea' && !seaLoaded && REG && REG.mare){ seaLoaded = true; loadMarine(); loadJelly(); }
   if (eLayerMode==='sea' && !eNear){ eSea.addTo(emap); eJelly.addTo(emap); } else { emap.removeLayer(eSea); emap.removeLayer(eJelly); }
   eRefreshWx(); eDrawSea(); eRenderLegend();
 });
