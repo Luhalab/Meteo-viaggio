@@ -2012,16 +2012,38 @@ document.addEventListener('click', e => {
   if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false);
   if (!$('eBgP').hidden && !e.target.closest('#eBgP,#eBg')) setBgP(false);
 });
+/* Punti vicini che parlano della stessa cosa diventano un solo punto: stesso posto (entro 30 m),
+   oppure stesso nome da fonti diverse con coordinate un po' diverse (entro 150 m). La scheda unisce i testi. */
+let eGroups = [];
+const STOPW = new Set(['palazzo','chiesa','di','del','della','dei','degli','delle','de','la','il','lo','le','i','gli','e','san','santa','santo','s','ex','museo','torre','castello','piazza']);
+const sigWords = t => new Set(nrm(t || '').split(' ').filter(w => w.length > 2 && !STOPW.has(w)));
+function sameName(a, b){
+  const A = sigWords(a), B = sigWords(b); if (!A.size || !B.size) return false;
+  let n = 0; A.forEach(w => { if (B.has(w)) n++; });
+  return n / Math.min(A.size, B.size) >= 0.6;
+}
+function buildGroups(){
+  const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
+  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
+    .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
+  const G = [];
+  vis.forEach(i => { const it = eItems[i];
+    const g = G.find(g => { const d = haversine(g.lat, g.lon, it.lat, it.lon);
+      return d <= (it.kind ? 35 : 30) || (!it.kind && d <= 150 && g.items.some(j => !eItems[j].kind && sameName(eItems[j].title, it.title))); });
+    if (g) g.items.push(i); else G.push({ lat: it.lat, lon: it.lon, items: [i] }); });
+  return G;
+}
 function drawArt(){
   eArt.clearLayers();
-  const onPlace = o => eItems.some(w => !w.kind && haversine(o.lat, o.lon, w.lat, w.lon) <= 30);
-  const hasStory = w => fltOn('storie') && eItems.some(o => o.kind && haversine(o.lat, o.lon, w.lat, w.lon) <= 30);
-  /* più curiosità nello stesso posto (entro 30 m) = un solo punto viola; la scheda le mostra tutte */
-  const drawnSt = [];
-  const dupStory = o => { if (!o.kind) return false; if (drawnSt.some(w => haversine(o.lat, o.lon, w.lat, w.lon) <= 30)) return true; drawnSt.push(o); return false; };
-  eItems.forEach((it,i) => fltOn(it.kind ? 'storie' : it.source==='custom' ? 'claude' : 'mon') && !(it.kind && onPlace(it)) && !dupStory(it) && L.marker([it.lat,it.lon], { icon: L.divIcon({className:'', iconSize:[0,0],
-      html:'<div class="c-dot'+(it.kind ? ' st' : it.source==='custom'?' cu':'')+(!it.kind && hasStory(it) ? ' hs' : '')+(i===eSel?' sel':'')+'"></div>'}), zIndexOffset: i===eSel ? 900 : 0 })
-    .on('click', () => eShowItem(i, false)).addTo(eArt));
+  eGroups = buildGroups();
+  eGroups.forEach(g => {
+    const its = g.items.map(j => eItems[j]), place = its.filter(o => !o.kind), story = its.some(o => o.kind) && fltOn('storie');
+    const cls = !place.length ? ' st' : place.some(o => o.source === 'custom') ? ' cu' : '';
+    const sel = g.items.includes(eSel);
+    L.marker([g.lat, g.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
+        html:'<div class="c-dot'+cls+(place.length && story ? ' hs' : '')+(sel ? ' sel' : '')+'"></div>' }), zIndexOffset: sel ? 900 : 0 })
+      .on('click', () => eShowItem(g.items[0], false)).addTo(eArt);
+  });
 }
 const SRC_LABEL = { osm:'Vedi su OpenStreetMap', swiss:'Vedi su geo.admin.ch', 'emilia-romagna':'Vedi su patrimonioculturale-er.it',
   liguria:'Vedi su geoportal.regione.liguria.it', wikipedia:'Leggi su Wikipedia', custom:null };
@@ -2030,14 +2052,21 @@ function eShowItem(i, fly){
   if (fly || !eNear) emap.flyTo([it.lat,it.lon], Math.max(emap.getZoom(), 16)); else emap.panTo([it.lat,it.lon]);
   const lbl = SRC_LABEL[it.source];
   const tag = it.kind === 'curiosita' ? 'Curiosità di Claude' : it.kind === 'da-fare' ? 'Consiglio di Claude' : 'Aggiunto da Claude';
-  /* curiosità e consigli di Claude legati a questo stesso posto (entro 80 m) */
-  const near = eItems.filter(o => o !== it && o.kind && haversine(it.lat, it.lon, o.lat, o.lon) <= 80);
+  /* tutto quello che sta nello stesso punto: altre fonti sul luogo e curiosità/consigli (senza doppioni) */
+  const grp = (eGroups.find(g => g.items.includes(i)) || { items:[i] }).items.map(j => eItems[j]);
+  const seenT = new Set([nrm(it.title)]), seenX = [nrm(it.extract || '')];
+  const dupText = x => { const n = nrm(x || ''); if (!n) return true; if (seenX.some(y => y && (y.includes(n.slice(0, 80)) || n.includes(y.slice(0, 80))))) return true; seenX.push(n); return false; };
+  const others = grp.filter(o => o !== it && !o.kind && !dupText(o.extract));
+  const near = grp.concat(eItems.filter(o => o.kind && haversine(it.lat, it.lon, o.lat, o.lon) <= 80))
+    .filter(o => o !== it && o.kind && !seenT.has(nrm(o.title)) && (seenT.add(nrm(o.title)), true));
+  const links = grp.filter(o => o.url && SRC_LABEL[o.source]).filter((o, k, A) => A.findIndex(x => x.source === o.source) === k);
   const rs = routeOf(it);
   showCard('<div class="ch"><span class="meta">'+(it.source==='custom'?'<span class="tag-cu">'+tag+'</span> · ':'')+'a '+formatDist(it.dist)+' dal centro</span><button class="x" aria-label="Chiudi">✕</button></div>'+
     '<h3>'+esc(it.title)+'</h3><div class="cb">'+(it.thumb?'<img src="'+esc(it.thumb)+'" alt="">':'')+'<p id="eCardTx">'+(esc(it.extract)||'Nessuna descrizione disponibile.')+'</p></div>'+
+    others.map(o => '<p style="margin-top:10px"><b>'+esc(o.title)+'</b> <span class="muted" style="font-size:12px">· '+esc(o.source === 'custom' ? 'Claude' : o.source === 'wikipedia' ? 'Wikipedia' : o.source === 'osm' ? 'OpenStreetMap' : 'inventario ufficiale')+'</span><br>'+esc(short(o.extract, 500))+'</p>').join('')+
     near.map(o => '<p style="margin-top:10px"><b>'+esc(o.title)+'</b><br>'+esc(o.extract)+'</p>').join('')+
     (rs ? '<button class="rt-btn" id="eCardRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
-    '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button>'+((it.url && lbl) ? '<a href="'+esc(it.url)+'" target="_blank" rel="noopener">'+lbl+'</a>' : '')+'</div>');
+    '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button>'+links.map(o => '<a href="'+esc(o.url)+'" target="_blank" rel="noopener">'+SRC_LABEL[o.source]+'</a>').join('')+'</div>');
   if (rs) $('eCardRt').onclick = () => showRoute(rs, $('eCardRt'), false);
   $('eAsk').onclick = () => shareToClaude(msgPlace(it));
   /* per Wikipedia carico l'introduzione completa, non solo le prime righe */

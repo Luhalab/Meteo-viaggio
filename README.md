@@ -142,3 +142,4 @@ testi di Wikipedia/Wikivoyage, foto e sentieri (7 giorni); pulizia automatica do
 riparte dall'ultima zona e città.
 Riapertura come Google Maps: la mappa nasce già nell'ultima zona e zoom (salvati a ogni spostamento e quando esci dall'app), poi torna la città scelta; senza limite di tempo. Il salto automatico sulla posizione GPS avviene solo la prima volta.
 Avvio: font caricati senza bloccare la pagina, collegamenti anticipati ai server, motore della mappa vettoriale scaricato in parallelo, mare e meduse scaricati solo quando si sceglie quel livello, niente clessidre sulla mappa mentre arrivano le previsioni; colore della schermata d'avvio uguale alla mappa.
+Punti uniti: elementi entro 30 m (o con lo stesso nome entro 150 m, da fonti diverse) diventano un solo punto; la scheda mostra il testo principale, gli altri testi solo se diversi, le curiosità una volta sola e i link di ogni fonte.
