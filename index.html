@@ -288,6 +288,10 @@ body.e-near .ectl .nr{display:flex}
 .dir-ab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dgps{border:none;background:none;color:var(--acc);font:500 13px var(--sans);padding:0 0 8px;cursor:pointer}
 .dmodes{display:flex;gap:8px}
+.navchip{position:absolute;left:10px;bottom:calc(var(--sheetH,70px) + 70px);z-index:960;display:flex;background:var(--card);border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.25);overflow:hidden}
+.navchip[hidden]{display:none}
+.navchip button{border:none;background:none;color:var(--tx);font:600 14px var(--sans);padding:10px 12px;cursor:pointer}
+.navchip button+button{border-left:1px solid var(--line);color:var(--tx2);padding:10px 12px}
 .dvia{display:flex;align-items:center;gap:10px;border:1px dashed var(--line);border-radius:12px;padding:7px 10px;font:500 14px var(--sans)}
 .dvia i{flex:none;width:22px;height:22px;border-radius:50%;color:#fff;font:700 12px/22px var(--sans);font-style:normal;text-align:center}
 .dvia span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -372,6 +376,7 @@ body.gm .ewrap.full .eopt{max-height:calc(100% - var(--gmTop) - var(--sheetH,70p
 .cust .row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 .cust .row .nm{flex:1;font-size:15px}
 .cust .row .nm small{display:block;color:var(--tx2);font-size:12px}
+.cust .row input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--acc)}
 .cust .row button.mv{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);font-size:18px;cursor:pointer}
 .cust .row button.mv:disabled{opacity:.35}
 .cust .row button.sw{flex:none;width:44px;height:26px;border-radius:999px;border:none;background:var(--line);position:relative;cursor:pointer}
@@ -569,6 +574,7 @@ footer a{color:var(--tx2)}
       <div class="eopt eflt" id="eFltP" hidden></div>
       <div class="eopt eflt" id="eBgP" hidden></div>
       <div class="lpm" id="eLpm" hidden></div>
+      <div class="navchip" id="eNavChip" hidden></div>
       <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
       <div class="ecard" id="eCard"></div>
@@ -608,6 +614,11 @@ footer a{color:var(--tx2)}
     <div class="lbx" id="eLbx" hidden role="dialog" aria-label="Foto"><button class="lx" id="eLbxX" aria-label="Chiudi">✕</button><button class="lp" id="eLbxP" aria-label="Foto precedente">‹</button><img id="eLbxImg" alt=""><button class="ln" id="eLbxN" aria-label="Foto successiva">›</button><div class="lc" id="eLbxCap"></div><button class="lmap" id="eLbxMap" hidden></button></div>
     <button class="cust-btn" id="eCustB"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="var(--card)"/><circle cx="15" cy="12" r="2" fill="var(--card)"/><circle cx="8" cy="18" r="2" fill="var(--card)"/></svg>Personalizza la pagina</button>
     <div class="cust" id="eCust" hidden role="dialog" aria-label="Personalizza la pagina"><div class="sh"><h3>Personalizza la pagina</h3><p class="m">Scegli l'ordine dei blocchi e quali mostrare. Ciò che sta sopra la mappa la sposta quando appare o sparisce: per una mappa ferma, metti sopra solo i blocchi fissi.</p><div id="eCustL"></div><div class="acts"><button id="eCustR">Ripristina</button><button class="pr" id="eCustOk">Fatto</button></div></div></div>
+    <div class="cust" id="eMyR" hidden role="dialog" aria-label="I miei percorsi"><div class="sh"><h3>I miei percorsi</h3>
+      <p class="m">Sono salvati solo su questo telefono, nella memoria del browser, e restano finché non li elimini (o finché non cancelli i dati del sito). Non si sincronizzano con altri dispositivi.</p>
+      <div id="eMyRL"></div>
+      <div class="acts"><button id="eMyRDel">Elimina selezionati</button><button id="eMyRAll">Elimina tutti</button></div>
+      <div class="acts" style="margin-top:8px"><button class="pr" id="eMyROk">Chiudi</button></div></div></div>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap o Esri · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
@@ -908,7 +919,7 @@ function showAddr(p){
     showCard('<div class="ch"><span class="meta">Risultato della ricerca</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.n)+'</h3>'+
       '<div class="dtools"><button data-u="a">Usa come partenza</button><button data-u="via">Aggiungi come tappa</button><button data-u="b">Usa come arrivo</button></div>');
     $('eCard').querySelectorAll('[data-u]').forEach(b => b.onclick = () => { const k = b.dataset.u, pt = { lat:p.lat, lon:p.lon, n:p.n };
-      if (k === 'via') nav.via.push(pt); else nav[k] = pt; nav.pick = null; eAddrL.clearLayers(); dirCalc(); });
+      if (k === 'via') nav.via.push(pt); else nav[k] = pt; nav.pick = null; eAddrL.clearLayers(); dirCard(); dirCalc(); });
   } else {
     showCard('<div class="ch"><span class="meta">Risultato della ricerca</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.n)+'</h3>'+
       '<div class="dtools"><button data-go="1">Indicazioni fin qui</button></div>');
@@ -1565,28 +1576,30 @@ function dirOpen(ll){
   ePhotoPin && ePhotoPin.clearLayers();
   const b = { lat: ll.lat, lon: ll.lng != null ? ll.lng : ll.lon, n: 'Cerco il nome…' };
   nav = { a: userPos ? { lat: userPos.lat, lon: userPos.lon, n: 'La tua posizione', gps: true } : null, b, via: [], res: {}, mode: 'car', pick: userPos ? null : 'a' };
-  placeName(b).then(n => { if (nav && nav.b === b){ b.n = n; dirCard(); } });
+  placeName(b).then(n => { if (nav && nav.b === b){ b.n = n; dirRefresh(); navSave(); } });
   dirCalc(); dirCard();
 }
+/* aggiorno la scheda solo se è aperta (o se stai scegliendo un punto): se l'hai chiusa resta chiusa */
+function dirRefresh(){ if (nav && (nav.pick || ($('eCard').classList.contains('show') && $('eCard').querySelector('.dir-ab')))) dirCard(); }
 async function dirCalc(){
   eDir.clearLayers(); if (!nav) return;
   const d = nav; d.res = {};
   if (d.a) L.marker([d.a.lat, d.a.lon], { icon: dirPin('A', '#2f7d4f'), zIndexOffset:1600 }).addTo(eDir);
   if (d.b) L.marker([d.b.lat, d.b.lon], { icon: dirPin('B', '#c0392b'), zIndexOffset:1600 }).addTo(eDir);
   d.via.forEach((v, i) => L.marker([v.lat, v.lon], { icon: dirPin(String(i+1), '#b8860b'), zIndexOffset:1600 }).addTo(eDir));
-  if (!d.a || !d.b){ dirCard(); return; }
+  if (!d.a || !d.b){ dirRefresh(); return; }
   const pts = [d.a].concat(d.via, [d.b]).map(p => p.lon+','+p.lat).join(';');
   const get = async (prof, svc) => { try {
     const j = await (await fetch('https://routing.openstreetmap.de/routed-'+svc+'/route/v1/'+prof+'/'+pts+'?overview=full&geometries=geojson')).json();
     const r = j.routes && j.routes[0]; return r ? { km: r.distance / 1000, min: r.duration / 60, line: r.geometry.coordinates.map(x => [x[1], x[0]]) } : 'x';
   } catch(e){ return 'x'; } };
-  d.res.car = 'wait'; d.res.foot = 'wait'; dirCard();
+  d.res.car = 'wait'; d.res.foot = 'wait'; dirRefresh();
   const [car, foot] = await Promise.all([get('driving', 'car'), get('foot', 'foot')]);
   if (nav !== d) return;
   d.res.car = car; d.res.foot = foot;
   /* a piedi uso 4,5 km/h se il servizio non dà una durata realistica */
   if (foot && foot !== 'x' && !(foot.min >= foot.km * 8)) foot.min = foot.km / 4.5 * 60;
-  dirDraw(false); dirCard();      /* la mappa resta dove stai guardando: per vedere tutto c'è il tasto */
+  dirDraw(false); dirRefresh(); navSave(); navChip();      /* la mappa resta dove stai guardando: per vedere tutto c'è il tasto */
 }
 function dirDraw(fit){
   if (!nav) return;
@@ -1617,10 +1630,10 @@ function dirCard(){
     '<div class="acts">'+(gm ? '<a href="'+gm+'" target="_blank" rel="noopener">Apri in Google Maps</a>' : '')+'</div>'+
     '<div class="src" style="font-size:11.5px;color:var(--tx2)">Percorsi: routing.openstreetmap.de, dati © OpenStreetMap</div>');
   const c = $('eCard');
-  c.querySelector('.x').onclick = dirClose;
+  c.querySelector('.x').onclick = dirHide;      /* chiudere la scheda non cancella il percorso */
   c.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { d.pick = d.pick === b.dataset.p ? null : b.dataset.p; dirCard();
     if (d.pick) wkFlash(d.pick === 'a' ? 'Tocca la mappa dove parti' : d.pick === 'b' ? 'Tocca la mappa dove arrivi' : 'Tocca la mappa per aggiungere una tappa'); });
-  c.querySelectorAll('[data-rv]').forEach(b => b.onclick = () => { d.via.splice(+b.dataset.rv, 1); dirCalc(); });
+  c.querySelectorAll('[data-rv]').forEach(b => b.onclick = () => { d.via.splice(+b.dataset.rv, 1); dirCard(); dirCalc(); });
   const fit = c.querySelector('[data-fit]'); if (fit) fit.onclick = () => dirDraw(true);
   const sv = c.querySelector('[data-save]'); if (sv) sv.onclick = () => saveMyRoute(d);
   /* mentre scegli un punto la scheda si toglie di mezzo: resta solo un avviso in basso */
@@ -1643,15 +1656,34 @@ function saveMyRoute(d){
   store.set('myRoutes', list); wkFlash('Percorso salvato: lo trovi nei filtri');
   if (typeof routesChanged === 'function') routesChanged();
 }
-function dirClose(){ if ($('ePill').textContent.startsWith('Tocca la mappa')) $('ePill').hidden = true; nav = null; eDir.clearLayers(); $('eCard').classList.remove('show'); }
+function dirClose(){ if ($('ePill').textContent.startsWith('Tocca la mappa')) $('ePill').hidden = true; nav = null; eDir.clearLayers(); $('eCard').classList.remove('show'); navChip(); store.set('navActive', null); }
+/* nascondo la scheda ma il percorso resta disegnato: lo segui sulla mappa con il pallino GPS */
+function dirHide(){ if (!nav) return; nav.pick = null; if ($('ePill').textContent.startsWith('Tocca la mappa')) $('ePill').hidden = true; $('eCard').classList.remove('show'); navChip(); }
+/* piccolo riquadro in basso a sinistra: percorso attivo, tempo, riapri o togli */
+function navChip(){
+  const ch = $('eNavChip');
+  if (!nav || !nav.a || !nav.b || $('eCard').classList.contains('show')){ ch.hidden = true; return; }
+  const r = nav.res[nav.mode];
+  ch.innerHTML = '<button data-o="1">'+(nav.mode === 'car' ? '🚗' : '🚶')+' '+(r && r.min ? fmtMin(r.min)+' · '+fmtKm(r.km) : 'Percorso')+'</button><button data-x="1" aria-label="Togli il percorso">✕</button>';
+  ch.hidden = false;
+  ch.querySelector('[data-o]').onclick = () => { ch.hidden = true; dirCard(); };
+  ch.querySelector('[data-x]').onclick = () => dirClose();
+}
+function navSave(){ if (nav && nav.a && nav.b) store.set('navActive', { a: nav.a, b: nav.b, via: nav.via, mode: nav.mode, at: Date.now() }); }
+function navRestore(){
+  const v = store.get('navActive', null);
+  if (!v || !v.a || !v.b || Date.now() - (v.at || 0) > 24 * 3600e3) return;
+  nav = { a: v.a, b: v.b, via: v.via || [], res: {}, mode: v.mode || 'car', pick: null };
+  dirCalc().then(navChip);
+}
 /* in modalità "scegli il punto", un tocco sulla mappa imposta partenza o arrivo */
 emap.on('click', e => {
   if (!nav || !nav.pick || Date.now() - lpFired < 900) return;
   const k = nav.pick, pt = { lat: e.latlng.lat, lon: e.latlng.lng, n: 'Cerco il nome…' };
   if (k === 'via') nav.via.push(pt); else nav[k] = pt;
   nav.pick = null;
-  placeName(pt).then(n => { if (nav){ pt.n = n; dirCard(); } });
-  dirCalc();
+  placeName(pt).then(n => { if (nav){ pt.n = n; dirRefresh(); navSave(); } });
+  dirCard(); dirCalc();
 });
 
 /* ---------- punti d'interesse da lontano (zoom 11–13): piccoli punti dorati da Wikipedia ---------- */
@@ -1876,7 +1908,8 @@ function fltPanel(){
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
     '<div class="fh">Percorsi in zona</div>'+
     (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
-        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')
+        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
+        (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
       : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
 }
 function bgPanel(){
@@ -1919,6 +1952,7 @@ function panelClick(e){
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
   if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
+  if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
   b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts();
@@ -1964,7 +1998,8 @@ function eShowItem(i, fly){
 function showCard(html){
   sheetOpen(false);
   const c = $('eCard'); c.innerHTML = html; c.classList.add('show'); c.scrollTop = 0;
-  const x = c.querySelector('.x'); if (x) x.onclick = () => { c.classList.remove('show'); eSel = -1; drawArt(); renderMon(); };
+  const x = c.querySelector('.x'); if (x) x.onclick = () => { c.classList.remove('show'); eSel = -1; drawArt(); renderMon(); if (typeof navChip === 'function') navChip(); };
+  if (typeof navChip === 'function') $('eNavChip').hidden = true;
 }
 function setHint(html){
   const h = $('eHint');
@@ -2324,6 +2359,32 @@ function routesHere(){
     return { id: title+'|'+names.join('|'), title, sub: (claude ? 'Consiglio di Claude · ' : 'Wikivoyage · ')+names.length+' tappe', stops: st, ch: !!b.dataset.ch };
   }).concat(eOsmRoutes).concat(myRoutesHere());
 }
+function myRList(){
+  const L0 = myRoutes();
+  $('eMyRL').innerHTML = L0.length ? L0.map(r => { const t = r.stops[r.stops.length - 1], town = (placeAt(t.lat, t.lon) || {}).n || '';
+      return '<label class="row"><input type="checkbox" data-id="'+esc(r.id)+'"><span class="nm">'+esc(r.title)+'<small>'+esc([town.replace(/^Vicino a /,''), r.stops.length+' tappe', r.at || ''].filter(Boolean).join(' · '))+'</small></span>'+
+        '<button class="mv" data-show="'+esc(r.id)+'" aria-label="Mostra sulla mappa">🗺️</button></label>'; }).join('')
+    : '<p class="muted">Nessun percorso salvato. Crealo con le indicazioni (tieni premuto sulla mappa) e "Salva percorso".</p>';
+}
+function myROpen(){ setFltP(false); myRList(); $('eMyR').hidden = false; }
+$('eMyROk').onclick = () => { $('eMyR').hidden = true; };
+$('eMyR').addEventListener('click', e => {
+  if (e.target === $('eMyR')){ $('eMyR').hidden = true; return; }
+  const sh = e.target.closest('[data-show]');
+  if (sh){ e.preventDefault(); const r = myRoutes().find(x => x.id === sh.dataset.show); if (!r) return;
+    $('eMyR').hidden = true; const k = 'my|'+r.id;
+    if (!eRoutesOn.has(k)) toggleRoute({ id:k, title:r.title, stops:r.stops, mine:true }, 0, false);
+    emap.fitBounds(L.latLngBounds(r.stops.map(p => [p.lat, p.lon])).pad(0.2), { maxZoom:17 }); }
+});
+function myRDelete(ids){
+  if (!ids.length) return;
+  store.set('myRoutes', myRoutes().filter(r => !ids.includes(r.id)));
+  ids.forEach(id => { const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } });
+  myRList(); if (typeof routesChanged === 'function') routesChanged();
+}
+$('eMyRDel').onclick = () => { const ids = [...$('eMyRL').querySelectorAll('input:checked')].map(i => i.dataset.id);
+  if (!ids.length){ wkFlash('Seleziona i percorsi da eliminare'); return; } if (confirm('Eliminare '+ids.length+(ids.length === 1 ? ' percorso?' : ' percorsi?'))) myRDelete(ids); };
+$('eMyRAll').onclick = () => { const n = myRoutes().length; if (n && confirm('Eliminare tutti i '+n+' percorsi salvati?')) myRDelete(myRoutes().map(r => r.id)); };
 function myRoutesHere(){
   const c = eCity || { lat: emap.getCenter().lat, lon: emap.getCenter().lng };
   return myRoutes().filter(r => r.stops.some(p => km(c.lat, c.lon, p.lat, p.lon) <= 20))
@@ -3059,6 +3120,7 @@ emap.on('moveend', () => { if (!poiOn || emap.getZoom() < 13) return;
   eLayerMode = 'wx';
   regChips();
   setTimeout(() => { emap.invalidateSize(); sheetSync(); }, 80);
+  setTimeout(navRestore, 1500);
   window.addEventListener('resize', () => setTimeout(sheetH, 100));
 })();
 /* ================= AVVIO ================= */
