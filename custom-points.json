@@ -468,8 +468,26 @@
     "title": "Le navi inglesi in fuga, 1718",
     "lat": 38.02894,
     "lon": 12.88261,
-    "extract": "Secondo la tradizione, nel 1718 la Madonna del Soccorso mise in fuga le navi inglesi che minacciavano Castellammare, e da allora è la patrona della città. Il miracolo viene rievocato ogni anno il 13 luglio con una suggestiva rievocazione storica, mentre la festa patronale cade a fine agosto.",
-    "url": null
+    "extract": "Secondo la tradizione, il 13 luglio 1718, durante la guerra tra Filippo V di Spagna e Vittorio Amedeo di Savoia per la Sicilia, un bastimento spagnolo inseguito da cinque navi inglesi si rifugiò sotto il castello. Mentre gli inglesi facevano fuoco, gli abitanti invocarono la Madonna del Soccorso: la leggenda dice che apparve e li mise in fuga, e da allora è la patrona. Il 13 luglio si rievoca l'evento; la festa patronale è a fine agosto.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Balarm – Nostra Principalissima Patrona",
+        "url": "https://www.balarm.it/eventi/fiere-ed-esposizioni/nostra-principalissima-patrona-rievocazione-storica-tra-credo-e-devozione-58520"
+      },
+      {
+        "t": "Pro Loco Castellammare – La storia",
+        "url": "https://en.prolococastellammare.it/history/"
+      },
+      {
+        "t": "Experience Sicily",
+        "url": "https://experiencesicily.com/2016/08/20/super-saint-maria-ofto-the-rescue/"
+      },
+      {
+        "t": "Travel365",
+        "url": "https://www.travel365.it/castellammare-del-golfo-cosa-vedere.htm"
+      }
+    ]
   },
   {
     "kind": "curiosita",
@@ -939,6 +957,42 @@
       {
         "t": "Amica News (Radio Amica)",
         "url": "https://www.radioamica.it/voci-di-sicilia-dal-13-al-18-ottobre-concerti-masterclass-e-opera-lirica-tra-castellammare-del-golfo-e-palermo/"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "Il manto tessuto dai fedeli",
+    "lat": 38.02894,
+    "lon": 12.88261,
+    "extract": "Per la Madonna del Soccorso la comunità ha promosso un nuovo manto, realizzato con le stoffe offerte dai cittadini e da donare il 13 luglio, anniversario del 1718. L'idea è del parroco della Chiesa Madre, don Fabiano Castiglione: un gesto semplice per rinsaldare il senso di comunità. Ancora oggi i fedeli cantano in siciliano un rosario tradizionale in onore della patrona.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Avvenire – Il manto della Madonna del Soccorso",
+        "url": "https://www.avvenire.it/chiesa/pagine/stoffa-per-il-manto-della-vergine-maria"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "La Madonna rivestita di maiolica",
+    "lat": 38.02894,
+    "lon": 12.88261,
+    "extract": "La statua della patrona, nella cappella a sinistra dell'altare maggiore, è ricoperta di maioliche. Le fonti non concordano sull'epoca: la Pro Loco la fa risalire alla seconda metà del Cinquecento, un'altra scheda la data al 1650. Ogni estate esce per la processione a mare, seguita da decine di barche.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Pro Loco Castellammare – Itinerario cittadino",
+        "url": "https://www.prolococastellammare.it/itinerari/6-itinerario-cittadino.pdf"
+      },
+      {
+        "t": "La Sicilia in rete – Chiesa Madre",
+        "url": "https://www.lasiciliainrete.it/en/directory-tangibili/listing/chiesa-madre-di-castellammare-del-golfo/"
+      },
+      {
+        "t": "Experience Sicily",
+        "url": "https://experiencesicily.com/2016/08/20/super-saint-maria-ofto-the-rescue/"
       }
     ]
   }
