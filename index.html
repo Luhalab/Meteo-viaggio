@@ -699,7 +699,7 @@ async function loadRegion(id){
   $('hReg').textContent = j.nome;
   const dentro = userPos && userPos.lat>=j.bounds[0][0] && userPos.lat<=j.bounds[1][0] && userPos.lon>=j.bounds[0][1] && userPos.lon<=j.bounds[1][1];
   eOnRegion(j, dentro);
-  gpsAuto();
+  if (!restoreView()) gpsAuto();
   if (j.mare){ loadMarine(); loadJelly(); }
 }
 
@@ -766,7 +766,32 @@ function normalize(j, dv, cv, hv){
   if (cv){ o.current = {time: j.current && j.current.time}; cv.forEach(v => o.current[v]=pickCur(j.current,v)); }
   return o;
 }
+/* Memoria dell'app sul telefono (IndexedDB, nel browser): previsioni, monumenti, testi e foto già scaricati.
+   Riaprendo l'app quello che c'è in memoria si vede subito; poi si aggiorna da internet quando serve. */
+const pc = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((ok, ko) => { try { const r = indexedDB.open('meteo-viaggio', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('c'); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); } catch(e){ ko(e); } }));
+  return {
+    async get(k, ttl){ try { const db = await open(); return await new Promise(ok => { const q = db.transaction('c').objectStore('c').get(k);
+      q.onsuccess = () => { const v = q.result; ok(v && (!ttl || Date.now() - v.t < ttl) ? v.v : null); }; q.onerror = () => ok(null); }); } catch(e){ return null; } },
+    set(k, v){ open().then(db => { const tx = db.transaction('c', 'readwrite'); tx.objectStore('c').put({ t: Date.now(), v }, k); }).catch(() => {}); },
+    /* tolgo quello che è più vecchio di 14 giorni, così la memoria non cresce all'infinito */
+    async prune(){ try { const db = await open(); const tx = db.transaction('c', 'readwrite'), st = tx.objectStore('c');
+      st.openCursor().onsuccess = e => { const cur = e.target.result; if (!cur) return; if (Date.now() - (cur.value && cur.value.t || 0) > 14 * 864e5) cur.delete(); cur.continue(); }; } catch(e){} },
+    async clear(){ try { const db = await open(); await new Promise(ok => { const tx = db.transaction('c', 'readwrite'); tx.objectStore('c').clear(); tx.oncomplete = ok; tx.onerror = ok; }); } catch(e){} }
+  };
+})();
+const MIN = 60e3, DAY = 864e5;
+setTimeout(() => pc.prune(), 8000);
+/* previsioni: se le ho scaricate da meno di 30 minuti le riuso; senza rete uso quelle in memoria (fino a un giorno) */
 async function openMeteo(qs){
+  const k = 'om:'+qs, fresh = await pc.get(k, 30 * MIN);
+  if (fresh) return fresh;
+  try { const j = await openMeteoNet(qs); pc.set(k, j); return j; }
+  catch(e){ const old = await pc.get(k, DAY); if (old) return old; throw e; }
+}
+async function openMeteoNet(qs){
   const base = 'https://api.open-meteo.com/v1/forecast?'+qs+'&timezone=Europe%2FRome';
   for (const u of [base+'&models='+MODELS, base]){
     try { const r = await fetch(u); if (!r.ok) continue; const j = await r.json(); if (j && j.error) continue; return j; } catch(e){}
@@ -1034,6 +1059,11 @@ function splitSections(txt){
   out.push(cur); return out;
 }
 async function extracts(host, title){
+  const k = 'ex:'+host+'|'+title, c = await pc.get(k, 7 * DAY);
+  if (c) return c;
+  const r = await extractsNet(host, title); if (r) pc.set(k, r); return r;
+}
+async function extractsNet(host, title){
   try{
     const r = await fetch('https://'+host+'/w/api.php?origin=*&format=json&action=query&prop=extracts&explaintext=1&redirects=1&titles='+encodeURIComponent(title));
     if (!r.ok) return null;
@@ -1870,6 +1900,10 @@ async function loadArea(lat, lon, radius, retry){
     () => fetchWfsItems(lat, lon, radius, WFS_LIG), () => fetchCustomPoints(lat, lon, radius) ];
   const TMAX = [12000, 25000, 10000, 10000, 10000, 8000];
   const vals = srcs.map(() => []), st = srcs.map(() => 'wait');
+  const ak = 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius, mem = retry ? null : await pc.get(ak, 7 * DAY);
+  if (my !== eReq) return;
+  const memFresh = mem && mem.t && Date.now() - mem.t < 3 * DAY;
+  if (mem) mem.vals.forEach((v, i) => { vals[i] = v || []; if (memFresh && i < 5) st[i] = 'ok'; });   /* 0-4: fonti dei monumenti, 5: punti di Claude */
   let first = true;
   const render = () => {
     if (my !== eReq) return;
@@ -1884,11 +1918,14 @@ async function loadArea(lat, lon, radius, retry){
     if (done || eItems.length) eLoading = !done && !eItems.length;
     drawArt(); renderMon();
     if (done){ eLoading = false; setHint(); showPendingItem();
+      if (st.slice(0, 5).every(x => x === 'ok') && !memFresh) pc.set(ak, { t: Date.now(), vals });
+      else if (memFresh) pc.set(ak, { t: mem.t, vals });
       if (!eItems.length && !retry && st.some(x => x === 'ko'))      /* una fonte non ha risposto: riprovo tra poco */
         setTimeout(() => { if (my === eReq) loadArea(lat, lon, radius, true); }, 2500); }
     else if (eItems.length) setHint();
   };
-  await Promise.all(srcs.map((f, i) => withTimeout(Promise.resolve().then(f), TMAX[i])
+  if (mem) render();                                    /* quello che ho in memoria si vede subito */
+  await Promise.all(srcs.map((f, i) => st[i] === 'ok' ? Promise.resolve() : withTimeout(Promise.resolve().then(f), TMAX[i])
     .then(v => { vals[i] = v || []; st[i] = 'ok'; }, () => { st[i] = 'ko'; })
     .then(render)));
 }
@@ -2085,6 +2122,7 @@ function cityVisible(){
     emap.panBy([p.x - w.width / 2, p.y - (top + bottom) / 2], { animate:true });
 }
 let eKeepCity = false;
+emap.on('moveend', () => { clearTimeout(saveViewT); saveViewT = setTimeout(saveView, 800); });
 emap.on('moveend', () => { if (eKeepCity){ eKeepCity = false; setTimeout(cityVisible, 50); } });
 /* tre posizioni del pannello: 0 chiuso, 1 metà schermo, 2 tutto lo schermo */
 function sheetState(){ const S = document.querySelector('.card.tabs.sheet'); return !S ? 0 : S.classList.contains('max') ? 2 : S.classList.contains('open') ? 1 : 0; }
@@ -2297,11 +2335,12 @@ let eOsmRoutes = [];
 async function osmRoutes(c){
   const k = c.lat.toFixed(3)+','+c.lon.toFixed(3);
   if (osmRtCache[k]) return osmRtCache[k];
+  const mem = await pc.get('rt:'+k, 7 * DAY); if (mem) return osmRtCache[k] = mem;
   const q = '[out:json][timeout:25];relation["type"="route"]["route"~"^(hiking|foot|walking)$"](around:9000,'+c.lat+','+c.lon+');out tags geom 20;';
   const r = { ok:true, json: () => overpass(q, 20000) };
   if (!r.ok) throw 0;
   const j = await r.json();
-  return osmRtCache[k] = (j.elements || []).map(el => {
+  osmRtCache[k] = (j.elements || []).map(el => {
     const t = el.tags || {}, title = t.name || (t.ref ? 'Sentiero '+t.ref : null); if (!title) return null;
     const lines = (el.members || []).filter(m => m.type === 'way' && m.geometry).map(m => m.geometry.map(g => [g.lat, g.lon]));
     if (!lines.length) return null;
@@ -2309,6 +2348,7 @@ async function osmRoutes(c){
       sub: ['Sentiero segnato', t.operator, t.distance ? String(t.distance).replace('.', ',')+' km' : null, t.ref && t.name ? 'n. '+t.ref : null].filter(Boolean).join(' · '),
       desc: t.description || t['description:it'] || '' };
   }).filter(Boolean).slice(0, 12);
+  pc.set('rt:'+k, osmRtCache[k]); return osmRtCache[k];
 }
 async function eLoadDo(c, my){
   const LG = (REG&&REG.wikiLang)||'it';
@@ -2500,6 +2540,7 @@ async function photoList(c){ return photosFrom(((REG&&REG.wikiLang)||'it')+'.wik
 async function photosFrom(dom, name){
   const ck = dom+'|'+name;
   if (photoCache[ck]) return photoCache[ck];
+  const mem = await pc.get('ph:'+ck, 7 * DAY); if (mem) return photoCache[ck] = mem;
   const api = 'https://'+dom+'/w/api.php?origin=*&format=json&redirects=1&titles='+encodeURIComponent(name);
   const [a, b] = await Promise.all([
     fetch(api+'&action=query&prop=pageimages&piprop=name').then(r => r.json()).catch(() => ({})),
@@ -2519,7 +2560,7 @@ async function photosFrom(dom, name){
       author: strip(m.Artist && m.Artist.value).slice(0, 60), lic: strip(m.LicenseShortName && m.LicenseShortName.value) };
   }).filter(Boolean);
   if (lead){ const i = list.findIndex(x => x.file === lead.replace(/ /g,'_')); if (i > 0) list.unshift(list.splice(i, 1)[0]); }
-  return photoCache[ck] = list.slice(0, 20);
+  photoCache[ck] = list.slice(0, 20); if (list.length) pc.set('ph:'+ck, photoCache[ck]); return photoCache[ck];
 }
 let ePhotoList = [], lbxI = 0, lbxList = [];
 function drawPhotos(){}            /* le foto non stanno più sulla mappa */
@@ -2949,6 +2990,22 @@ function startCompass(){
 }
 /* all'apertura, con il GPS già consentito: mostro subito le informazioni del posto in cui sei */
 var gpsAutoDone = false;
+/* ultima vista (zona della mappa e città scelta): riaprendo l'app entro 12 ore riparto da lì */
+function saveView(){
+  const c = emap.getCenter();
+  store.set('lastView', { reg: REG && REG.id, lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: emap.getZoom(),
+    city: eCity ? (eCity.virt ? { v:1, lat: eCity.lat, lon: eCity.lon } : eCity.n) : null, t: Date.now() });
+}
+let saveViewT = null;
+function restoreView(){
+  const v = store.get('lastView', null);
+  if (!v || !REG || v.reg !== REG.id || Date.now() - v.t > 12 * 3600e3) return false;
+  gpsAutoDone = true;
+  emap.setView([v.lat, v.lon], v.z, { animate:false });
+  const c = v.city ? (typeof v.city === 'string' ? byName[v.city] : placeAt(v.city.lat, v.city.lon)) : null;
+  if (c) eSelectCity(c, { noArea: true });
+  return true;
+}
 function gpsAuto(){
   if (gpsAutoDone || !userPos || !COMUNI.length) return;
   gpsAutoDone = true;

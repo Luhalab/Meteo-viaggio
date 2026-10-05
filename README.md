@@ -134,3 +134,9 @@ Percorso attivo: chiudendo la scheda delle indicazioni il percorso resta sulla m
 (tempo · km, tocca per riaprire, ✕ per togliere); resta anche riaprendo l'app per 24 ore (localStorage "navActive").
 I miei percorsi: salvati nel browser del telefono finché non li elimini; Filtri → "Gestisci i miei percorsi" per vederli
 tutti, mostrarli, eliminarne alcuni o tutti.
+
+Avvio veloce: service worker con pagina dalla rete se risponde entro 2,5 s (altrimenti copia salvata), librerie salvate
+una volta, tile della mappa salvate (fino a ~4000) e aggiornate in background. L'app salva in IndexedDB previsioni
+(riusate per 30 minuti, offline fino a un giorno), monumenti per zona (3 giorni senza richiedere, poi aggiornati),
+testi di Wikipedia/Wikivoyage, foto e sentieri (7 giorni); pulizia automatica dopo 14 giorni. Riaprendo entro 12 ore
+riparte dall'ultima zona e città.
