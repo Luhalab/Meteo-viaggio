@@ -2260,5 +2260,190 @@
         "url": "https://marble.nd.edu/item/cn69m329b52"
       }
     ]
+  },
+  {
+    "title": "Spiaggia di Balestrate",
+    "lat": 38.04382,
+    "lon": 12.98761,
+    "extract": "Lunga spiaggia di sabbia dorata di circa 8 km sul golfo di Castellammare, interrotta solo dal porto di Balestrate e dalla foce del fiume Jato. I fondali restano bassi per molti metri dalla riva, adatti anche ai più piccoli. I lidi si concentrano verso la foce dello Jato.",
+    "url": null
+  },
+  {
+    "kind": "da-fare",
+    "title": "Balestrate: giornata di mare con i bambini",
+    "lat": 38.04382,
+    "lon": 12.98761,
+    "citta": "Alcamo",
+    "extract": "Sulla lunga spiaggia di sabbia dorata di Balestrate il mare è basso per molti metri: la scelta più comoda con i bambini quando c'è sole. Ci sono lidi, chioschi e ristoranti sul lungomare e anche un tratto libero. Parcheggi sul lungomare e nelle vie vicine, in parte a pagamento. Vai a metà mattina, pranza sul posto e, se c'è vento, porta un ombrellone ben ancorato.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Balarm – Spiaggia di Balestrate",
+        "url": "https://www.balarm.it/luoghi/spiaggia-di-balestrate-balestrate-2561"
+      },
+      {
+        "t": "Spiagge.it – Le migliori spiagge di Balestrate",
+        "url": "https://www.spiagge.it/magazine/alla-scoperta-delle-migliori-spiagge-di-balestrate/"
+      },
+      {
+        "t": "BeachAtlas – Spiaggia di Balestrate",
+        "url": "https://www.beachatlas.com/it/di-balestrate"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Zingaro: la caletta di Capreria dall'ingresso sud",
+    "lat": 38.08172,
+    "lon": 12.8085,
+    "citta": "Alcamo",
+    "extract": "Dall'ingresso sud della Riserva dello Zingaro, vicino a Scopello, Cala Capreria è la prima caletta di ciottoli chiari: ci si arriva a piedi in circa 20 minuti di sentiero. Non ci sono servizi in spiaggia: porta acqua, cibo, scarpe da camminata e scarpette per l'acqua. Il biglietto costa circa 5 € (ridotto 3 €, gratuito sotto i 10 anni secondo alcune guide) e gli orari cambiano con la stagione: controlla il sito ufficiale. Il parcheggio è all'ingresso sud, meglio arrivare presto.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Ingresso sud della Riserva dello Zingaro",
+        "lat": 38.08172,
+        "lon": 12.8085
+      },
+      {
+        "n": "Cala Capreria",
+        "lat": 38.0877,
+        "lon": 12.80476
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Riserva dello Zingaro – Come raggiungerci",
+        "url": "https://www.riservazingaro.it/en/how-to-reach-us/"
+      },
+      {
+        "t": "Viaggiando Italia – Le 7 calette dello Zingaro",
+        "url": "https://www.viaggiando-italia.it/riserva-dello-zingaro-le-7-calette-piu-belle-e-litinerario-a-piedi-lungo-il-sentiero-costiero/"
+      },
+      {
+        "t": "TheWom – Cala Capreria",
+        "url": "https://travel.thewom.it/italia/sicilia/trapani/cala-capreria-riserva-dello-zingaro.html"
+      },
+      {
+        "t": "OpenStreetMap (coordinate di Cala Capreria)",
+        "url": "https://nominatim.openstreetmap.org/search?q=Cala%20Capreria&format=json"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Segesta nel pomeriggio: tempio dorico e teatro",
+    "lat": 37.94144,
+    "lon": 12.83237,
+    "citta": "Alcamo",
+    "extract": "Il tempio dorico (430-420 a.C., 36 colonne mai rifinite) è la prima tappa; poi si sale al teatro in cima a Monte Barbaro con la navetta del parco (a pagamento) o a piedi. Biglietto 12 € intero, 7 € ridotto, gratuito sotto i 18 anni; l'ultimo ingresso è un'ora prima della chiusura, che in ottobre cade nel tardo pomeriggio: verifica l'orario. Con il cielo coperto si cammina bene, ma in cima il vento si sente: porta una giacca leggera. Calcola 2-3 ore per il sito intero, 1-1,5 solo per il tempio.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Tempio dorico di Segesta",
+        "lat": 37.94144,
+        "lon": 12.83237
+      },
+      {
+        "n": "Teatro di Segesta"
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Wikivoyage – Calatafimi Segesta",
+        "url": "https://it.wikivoyage.org/wiki/Calatafimi_Segesta"
+      },
+      {
+        "t": "Quotidiano.net – Segesta",
+        "url": "https://www.quotidiano.net/itinerari/sicilia/segesta-havhf5df"
+      },
+      {
+        "t": "Nomado – Parco Archeologico di Segesta",
+        "url": "https://www.nomadotravel.app/it/attractions/segesta-temple"
+      },
+      {
+        "t": "Ministero della Cultura – Area archeologica di Segesta",
+        "url": "https://cultura.gov.it/luogo/area-archeologica-di-segesta"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Alcamo: piazza, Chiesa Madre e castello, poi cena",
+    "lat": 37.9803,
+    "lon": 12.9646,
+    "citta": "Alcamo",
+    "extract": "Giro di circa un'ora tra Piazza Ciullo (la «Chiazza», con il Palazzo Comunale e molti locali), la Chiesa Madre con il Museo d'Arte Sacra e il Castello dei Conti di Modica, oggi museo etno-agricolo-pastorale; vicino al castello c'è un ampio parcheggio. Buono per il tardo pomeriggio: negozi nelle vie del centro e cena in zona piazza, con un calice di Bianco d'Alcamo, tra le prime DOC italiane (1972). Gli orari di castello e musei non sono sempre pubblicati: controllali con il Comune prima di andare.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Piazza Ciullo",
+        "lat": 37.98029,
+        "lon": 12.96499
+      },
+      {
+        "n": "Chiesa Madre (Basilica di Santa Maria Assunta)",
+        "lat": 37.9812,
+        "lon": 12.96558
+      },
+      {
+        "n": "Castello dei Conti di Modica",
+        "lat": 37.97944,
+        "lon": 12.96694
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Wikivoyage – Alcamo",
+        "url": "https://it.wikivoyage.org/wiki/Alcamo"
+      },
+      {
+        "t": "Il Turista – Alcamo",
+        "url": "https://www.ilturista.info/guide/alcamo-sicilia-storia-mare-visita-citta/"
+      },
+      {
+        "t": "Winedering – Cantine e vino ad Alcamo",
+        "url": "https://www.winedering.com/it/wine-tourism_province-of-trapani_g2522875_ta10_wine-tastings_alcamo-hills_dn1029"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Monte Bonifato: bosco, Funtanazza e castello",
+    "lat": 37.95882,
+    "lon": 12.95929,
+    "citta": "Alcamo",
+    "extract": "A circa 6 km dal centro di Alcamo, il Bosco d'Alcamo (pini, lecci, cipressi) è fresco e riparato, con area picnic e Parco Avventura per i bambini (percorsi da 8 a 90 € circa). Dalla Funtanazza, antica cisterna, si sale per una strada ripida chiusa alle auto fino ai resti del castello dei Ventimiglia (XIV sec.), a circa 825 m, con vista sulla costa. L'ingresso alla riserva è gratuito.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Funtanazza",
+        "lat": 37.95882,
+        "lon": 12.95929
+      },
+      {
+        "n": "Cima di Monte Bonifato e castello dei Ventimiglia",
+        "lat": 37.95455,
+        "lon": 12.96437
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Balarm – Riserva Bosco di Alcamo",
+        "url": "https://www.balarm.it/luoghi/riserva-naturale-orientata-bosco-di-alcamo-alcamo-2409"
+      },
+      {
+        "t": "Wikipedia – Mount Bonifato",
+        "url": "https://en.wikipedia.org/wiki/Mount_Bonifato"
+      },
+      {
+        "t": "Komoot – Riserva Bosco di Alcamo",
+        "url": "https://www.komoot.com/de-de/guide/3252961/ausflugsziele-im-riserva-naturale-bosco-di-alcamo"
+      },
+      {
+        "t": "Holidu – Agriturismi ad Alcamo",
+        "url": "https://www.holidu.it/f/agriturismi-alcamo-italia"
+      }
+    ]
   }
 ]
