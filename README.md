@@ -176,3 +176,4 @@ Filtri separati per modalità: in vista meteo (da lontano) monumenti, luoghi agg
 (restano i luoghi imperdibili ★ e i consigli della richiesta di zona); in vista città sono tutti accesi. Le due serie ricordano le
 scelte in modo indipendente (localStorage "mapFilters2"). In vista meteo non c'è l'elenco dei percorsi: compaiono solo i consigli
 (e i percorsi) nati dalla richiesta "Cosa fare in questa zona", con 💡 sulla mappa e nei Filtri.
+Consigli della richiesta di zona: linguetta "Consigli (N)" accanto a Meteo e Foto nel pannello della vista meteo (visibile solo se ce ne sono); toccando un consiglio il pannello si abbassa, la mappa va sul punto (restando in vista meteo) e si apre la scheda; ogni riga ha l'interruttore del percorso (se ha le tappe) e ✕ per toglierlo. Non compaiono più nel pannello Filtri.

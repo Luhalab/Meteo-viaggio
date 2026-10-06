@@ -373,6 +373,9 @@ body.poi-on .sg-tip{display:none}
 .ztr span{flex:1;min-width:0;font:500 14px var(--sans)}
 .ztr span b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis}
 .ztr small{display:block;color:var(--tx2);font-size:12px}
+.ztr button.zmain{flex:1;min-width:0;width:auto;height:auto;border:none;background:none;padding:2px 0;text-align:left;font:500 14px var(--sans)}
+.ztr button.zmain b{display:block;font-weight:500}
+#eWxPz{padding:0 6px 10px}
 .ztr button{flex:none;width:38px;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);padding:0;font-size:16px;cursor:pointer}
 .ztr button.zsw{width:44px;height:26px;border-radius:999px;border:none;background:var(--line);position:relative}
 .ztr button.zsw::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
@@ -645,8 +648,8 @@ footer a{color:var(--tx2)}
     <div class="card tabs" id="eWxT" hidden>
       <button class="grip" id="eGrip2" aria-label="Apri o chiudi meteo e foto" aria-expanded="false"><span></span></button>
       <div class="zask" id="eZoneAsk" hidden><button id="eZoneAskB"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Cosa fare in questa zona? Chiedi a Claude</button></div>
-      <div class="tbar" role="tablist"><button role="tab" data-w="m" class="on" aria-selected="true">Meteo</button><button role="tab" data-w="f" id="eWxTf" aria-selected="false">Foto</button></div>
-      <div class="tbody"><div id="eWxPm"></div><div id="eWxPf" hidden></div></div>
+      <div class="tbar" role="tablist"><button role="tab" data-w="m" class="on" aria-selected="true">Meteo</button><button role="tab" data-w="f" id="eWxTf" aria-selected="false">Foto</button><button role="tab" data-w="z" id="eWxTz" aria-selected="false" hidden>Consigli</button></div>
+      <div class="tbody"><div id="eWxPm"></div><div id="eWxPf" hidden></div><div id="eWxPz" hidden></div></div>
     </div>
     <div class="card tabs" id="eTabs" hidden>
       <button class="grip" id="eGrip" aria-label="Apri o chiudi curiosità e cose da fare" aria-expanded="false"><span></span></button>
@@ -2045,7 +2048,7 @@ function zoneScan(){
   (customCache || []).forEach(p => { if (p.kind !== 'da-fare' || p.lat == null) return;
     const k = tipKey(p); if (base.has(k) || zoneFound.has(k) || km(zoneAsk.lat, zoneAsk.lon, p.lat, p.lon) > zoneAsk.r) return;
     zoneFound.add(k); ch = true; });
-  if (ch) store.set('zoneFound', [...zoneFound]);
+  if (ch){ store.set('zoneFound', [...zoneFound]); setTimeout(() => { if (typeof zoneTabSync === 'function') zoneTabSync(); }, 0); }
   return ch;
 }
 let zoneTipsCache = [];
@@ -2056,7 +2059,7 @@ function zoneRemove(p){
   const k = tipKey(p); zoneFound.delete(k); store.set('zoneFound', [...zoneFound]);
   if (zoneAsk){ zoneAsk.base.push(k); store.set('zoneAsk', zoneAsk); }       /* non lo ritrovo come "nuovo" */
   if (zoneRouteOf(p)){ const id = zoneRouteId(p); if (eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); } }
-  $('eCard').classList.remove('show'); drawSights(); routesUI();
+  $('eCard').classList.remove('show'); drawSights(); routesUI(); zoneTabSync();
 }
 function zoneToggleRoute(p){
   const st = zoneRouteOf(p); if (!st) return; const id = zoneRouteId(p);
@@ -2064,6 +2067,31 @@ function zoneToggleRoute(p){
   const i = Math.max(0, zoneTips().indexOf(p));
   showRoute(st, null, false, { id, color: ROUTE_COLORS[i % ROUTE_COLORS.length], card:false, title:p.title, noFit: !eNear, city: placeAt(p.lat, p.lon) });
 }
+/* linguetta "Consigli" accanto a Meteo e Foto: i consigli della tua richiesta; toccandone uno si vede dov'è sulla mappa */
+function zoneTabSync(){
+  const tips = zoneTips(), tab = $('eWxTz');
+  tab.hidden = !tips.length; tab.textContent = 'Consigli ('+tips.length+')';
+  if (!tips.length && !$('eWxPz').hidden) document.querySelector('#eWxT [data-w=m]').click();
+  if (!$('eWxPz').hidden) zonePanel();
+}
+function zonePanel(){
+  zoneTipsCache = zoneTips();
+  $('eWxPz').innerHTML = '<div class="rtnote" style="padding:2px 16px 6px">Tocca un consiglio per vedere dov\'è sulla mappa.</div>'+zoneTipsCache.map((p, i) => {
+    const st = zoneRouteOf(p), on = st && eRoutesOn.has(zoneRouteId(p)), t = ((placeAt(p.lat, p.lon) || {}).n || '').replace(/^Vicino a /, '');
+    return '<div class="ztr"><button class="zmain" data-zshow="'+i+'"><b>'+esc(p.title)+'</b><small>📍 '+esc([t, st ? st.length+' tappe' : ''].filter(Boolean).join(' · '))+'</small></button>'+
+      (st ? '<button data-zr="'+i+'" class="zsw'+(on ? ' on' : '')+'" aria-label="Mostra il percorso"></button>' : '')+'<button data-zdel="'+i+'" aria-label="Togli il consiglio">✕</button></div>'; }).join('');
+}
+function zoneLocate(p){
+  sheetOpen(false);                                                    /* abbasso il pannello per vedere la mappa */
+  let done = false; const show = () => { if (done) return; done = true; zoneTipCard(p); };
+  emap.once('moveend', () => setTimeout(show, 120)); setTimeout(show, 2600);
+  emap.flyTo([p.lat, p.lon], Math.max(emap.getZoom(), 12), { duration: 1.4 });
+}
+$('eWxPz').addEventListener('click', e => {
+  const zs = e.target.closest('[data-zshow]'); if (zs){ const p = zoneTipsCache[+zs.dataset.zshow]; if (p) zoneLocate(p); return; }
+  const zr = e.target.closest('[data-zr]'); if (zr){ const p = zoneTipsCache[+zr.dataset.zr]; if (p) zoneToggleRoute(p); return; }
+  const zd = e.target.closest('[data-zdel]'); if (zd){ const p = zoneTipsCache[+zd.dataset.zdel]; if (p) zoneRemove(p); }
+});
 function zoneTipCard(p){
   const st = zoneRouteOf(p);
   showCard('<div class="ch"><span class="meta"><span class="tag-cu">💡 Consiglio della tua richiesta</span></span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.title)+'</h3>'+
@@ -2082,7 +2110,7 @@ document.addEventListener('visibilitychange', async () => {
   const before = JSON.stringify(customCache || []); customAt = 0;
   const now = JSON.stringify(await customAll());
   if (now === before) return;
-  zoneScan(); drawSights(); if (!$('eFltP').hidden) fltPanel();
+  zoneScan(); drawSights(); zoneTabSync(); if (!$('eFltP').hidden) fltPanel();
   if (eNear && eArea) loadArea(eArea.lat, eArea.lon, eArea.radius);
   if (eCity){ const c = eCity, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c; eLoadCur(tc, eCityReq); eLoadDo(tc, eCityReq); }
   wkFlash('Aggiornati i punti di Claude');
@@ -2159,19 +2187,13 @@ function fltPanel(){
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
   const dot = c => d(c, '<span class="dt" style="background:'+c+'"></span>');
   const rs = eNear ? routesHere() : [];
-  zoneTipsCache = zoneTips();
-  const zsec = eNear ? '' : (zoneTipsCache.length
-    ? '<div class="fh">Consigli della tua richiesta ('+zoneTipsCache.length+')</div>'+zoneTipsCache.map((p, i) => { const st = zoneRouteOf(p), on = st && eRoutesOn.has(zoneRouteId(p)), t = ((placeAt(p.lat, p.lon) || {}).n || '').replace(/^Vicino a /, '');
-        return '<div class="ztr"><span><b>'+esc(p.title)+'</b><small>'+esc([t, st ? st.length+' tappe' : ''].filter(Boolean).join(' · '))+'</small></span><button data-zshow="'+i+'" aria-label="Mostra sulla mappa">🗺️</button>'+
-          (st ? '<button data-zr="'+i+'" class="zsw'+(on ? ' on' : '')+'" aria-label="Percorso"></button>' : '')+'<button data-zdel="'+i+'" aria-label="Togli">✕</button></div>'; }).join('')
-    : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">In modalità meteo i percorsi non si vedono qui. Chiedi a Claude cosa fare in questa zona per vedere qui i suoi consigli; i percorsi di una città compaiono avvicinandoti.</div>');
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
     (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
-    (eNear ? '<div class="fh">Percorsi in zona</div>' : zsec+(myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
+    (eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
     (!eNear ? '' : rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
         (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
@@ -2214,9 +2236,6 @@ function panelClick(e){
   const del = e.target.closest('[data-del]');
   if (del){ if (confirm('Eliminare questo percorso?')){ const id = del.dataset.del; store.set('myRoutes', myRoutes().filter(r => r.id !== id));
     const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } fltPanel(); } return; }
-  const zs = e.target.closest('[data-zshow]'); if (zs){ const p = zoneTipsCache[+zs.dataset.zshow]; if (p){ setFltP(false); emap.flyTo([p.lat, p.lon], Math.max(emap.getZoom(), 11)); zoneTipCard(p); } return; }
-  const zr = e.target.closest('[data-zr]'); if (zr){ const p = zoneTipsCache[+zr.dataset.zr]; if (p) zoneToggleRoute(p); return; }
-  const zd = e.target.closest('[data-zdel]'); if (zd){ const p = zoneTipsCache[+zd.dataset.zdel]; if (p){ zoneRemove(p); fltPanel(); } return; }
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
   if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
@@ -2349,6 +2368,7 @@ function sheetSync(){
     $('eWxTf').hidden = $('ePhs').hidden || !eCity;
     $('eZoneAsk').hidden = !!eCity;
     if ($('eWxTf').hidden && !$('eWxPf').hidden) document.querySelector('#eWxT [data-w=m]').click();
+    zoneTabSync();
   } else if (X.classList.contains('sheet')){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eAnchor').after(X); applyLayout(); }
   W.classList.toggle('has-sheet', on1 || on2);
   /* la testata del luogo (nome, meteo, Esplora, Chiedi a Claude) va nel pannello attivo, sopra le linguette */
@@ -2480,7 +2500,9 @@ document.querySelector('#eWxT .tbar').addEventListener('click', e => {
   const b = e.target.closest('button[data-w]'); if (!b || Date.now() - sheetSwiped < 400) return;
   const was = b.classList.contains('on') && $('eWxT').classList.contains('open');
   document.querySelectorAll('#eWxT .tbar button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); });
-  $('eWxPm').hidden = b.dataset.w !== 'm'; $('eWxPf').hidden = b.dataset.w !== 'f'; sheetOpen(!was);
+  $('eWxPm').hidden = b.dataset.w !== 'm'; $('eWxPf').hidden = b.dataset.w !== 'f'; $('eWxPz').hidden = b.dataset.w !== 'z';
+  if (b.dataset.w === 'z') zonePanel();
+  sheetOpen(!was);
 });
 ['eTabs','eWxT'].forEach(id => { L.DomEvent.disableClickPropagation($(id)); L.DomEvent.disableScrollPropagation($(id)); });
 new MutationObserver(tabsSync).observe($('eCurS'), { attributes:true, attributeFilter:['hidden'] });
@@ -2689,6 +2711,7 @@ function routesHere(){
 }
 /* aggiorno pannello Filtri e tasti nella scheda: acceso / spento in tutti e due i posti */
 function routesUI(){
+  if (!$('eWxPz').hidden) zonePanel();
   if (!$('eFltP').hidden) fltPanel();
   document.querySelectorAll('#eDo .rt-btn[data-stops], #eDo .rt-btn[data-osm]').forEach(b => {
     if (b.classList.contains('busy')) return;
