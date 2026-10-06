@@ -336,6 +336,12 @@ body.gm .gchips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-w
 .gchips button{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:none;border-radius:18px;background:var(--card);color:var(--tx);font:500 14px var(--sans);box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer}
 .gchips button.on{background:var(--acc);color:#fff}
 body.poi-on .c-dot{display:none}
+.sg-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(22,33,28,.6);transform:translate(-50%,-50%);cursor:pointer}
+.sg-dot.cu{background:var(--brick)}
+.sg-big{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-9px);cursor:pointer;opacity:.95}
+.sg-big span{width:17px;height:17px;border-radius:50%;background:#b98f3e;color:#fff;font-size:10px;line-height:17px;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sg-big b{margin-top:1px;font:600 10.5px var(--sans);color:#6b5520;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+body.poi-on .sg-dot,body.poi-on .sg-big{display:none}
 .gchips .gsep{flex:none;width:1px;margin:6px 2px;background:rgba(0,0,0,.18)}
 .poi{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(20,36,48,.35);cursor:pointer}
 .dtools a.lnk{border:1px solid var(--line);background:var(--card);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);text-decoration:none}
@@ -1751,6 +1757,72 @@ emap.on('click', e => {
 
 /* ---------- punti d'interesse da lontano (zoom 11–13): piccoli punti dorati da Wikipedia ---------- */
 let eDotKey = '', eDotTimer = null;
+/* ---------- LUOGHI NOTEVOLI nella vista meteo ----------
+   Da lontano, dove non ci sono etichette del meteo, mostro cosa c'è da vedere:
+   - i luoghi notevoli da Wikidata, misurati da quante Wikipedia ne parlano (non da quanto è grande la città);
+     oltre 20 lingue = "imperdibile": icona speciale con il nome sempre visibile;
+   - i luoghi aggiunti da Claude (punti rosso mattone piccoli).
+   Toccandoli: due righe di descrizione e "Avvicinati". Risultati salvati sul telefono per 7 giorni. */
+const eSights = L.layerGroup().addTo(emap);
+let sightList = [], sightT = null, sightKey = '';
+const SIGHT_BIG = 20, SIGHT_MIN = 6;
+/* tipi da non mostrare: comuni, frazioni, isole e regioni amministrative, strade, stazioni, aeroporti, scuole, ospedali */
+const SIGHT_SKIP = ['Q747074','Q515','Q486972','Q15089','Q16110','Q18415595','Q484170','Q55488','Q1248784','Q34442','Q3914','Q16917','Q1549591','Q5119','Q3024240','Q15284','Q1637706','Q123705','Q532','Q3957','Q2039348','Q15284','Q954172','Q1307276'];
+async function loadSights(){
+  if (eNear || emap.getZoom() < 8.5 || !(fltOn('sights') || fltOn('mon'))){ eSights.clearLayers(); sightList = []; return; }
+  const c = emap.getCenter(), b = emap.getBounds();
+  const r = Math.min(60, Math.max(8, haversine(b.getNorth(), b.getWest(), b.getSouth(), b.getEast()) / 2000));
+  const key = c.lat.toFixed(1)+','+c.lng.toFixed(1)+','+Math.round(r / 10);
+  if (key === sightKey) { drawSights(); return; }
+  sightKey = key;
+  let list = await pc.get('sg:'+key, 7 * DAY);
+  if (!list){
+    const LG = (REG && REG.wikiLang) || 'it';
+    const q = 'SELECT ?item ?itemLabel ?coord ?links ?art WHERE { SERVICE wikibase:around { ?item wdt:P625 ?coord. bd:serviceParam wikibase:center "Point('+c.lng.toFixed(4)+' '+c.lat.toFixed(4)+')"^^geo:wktLiteral; wikibase:radius "'+Math.round(r)+'". } '+
+      '?item wikibase:sitelinks ?links. FILTER(?links >= '+SIGHT_MIN+') '+
+      'FILTER NOT EXISTS { ?item wdt:P31 ?t. VALUES ?t { '+SIGHT_SKIP.map(x => 'wd:'+x).join(' ')+' } } '+
+      'OPTIONAL { ?art schema:about ?item; schema:isPartOf <https://'+LG+'.wikipedia.org/>. } '+
+      'SERVICE wikibase:label { bd:serviceParam wikibase:language "'+LG+',it,en". } } ORDER BY DESC(?links) LIMIT 60';
+    try {
+      const res = await withTimeout(fetch('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q), { headers:{ Accept:'application/sparql-results+json' } }), 15000);
+      const j = await res.json();
+      list = (j.results.bindings || []).map(x => { const m = /Point\(([-\d.]+) ([-\d.]+)\)/.exec(x.coord.value);
+        return m ? { n: x.itemLabel.value, lat: +m[2], lon: +m[1], links: +x.links.value, wd: x.item.value, art: x.art ? x.art.value : null } : null; })
+        .filter(x => x && !/^Q\d+$/.test(x.n));
+      pc.set('sg:'+key, list);
+    } catch(e){ list = []; sightKey = ''; }
+  }
+  if (eNear) return;
+  sightList = list; drawSights();
+}
+async function drawSights(){
+  eSights.clearLayers();
+  if (eNear || emap.getZoom() < 8.5) return;
+  const b = emap.getBounds().pad(0.1), z = emap.getZoom();
+  /* i più importanti sempre; quelli minori solo avvicinandosi un po' */
+  sightList.filter(x => b.contains([x.lat, x.lon]) && (x.links >= SIGHT_BIG ? fltOn('sights') : fltOn('mon') && z >= 10 && z < DOT_Z))   /* da zoom 11 i minori li mostrano già i puntini di Wikipedia */.slice(0, 40).forEach(x => {
+    const big = x.links >= SIGHT_BIG;
+    L.marker([x.lat, x.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
+        html: big ? '<div class="sg-big"><span>★</span><b>'+esc(x.n)+'</b></div>' : '<div class="sg-dot" title="'+esc(x.n)+'"></div>' }), zIndexOffset: big ? 400 : -400 })
+      .on('click', () => sightCard(x)).addTo(eSights);
+  });
+  if (fltOn('claude') && z >= 9.5){
+    (await customAll()).filter(p => !p.kind && p.lat != null && b.contains([p.lat, p.lon])).slice(0, 60).forEach(p =>
+      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-dot cu" title="'+esc(p.title)+'"></div>' }), zIndexOffset:-300 })
+        .on('click', () => sightCard({ n: p.title, lat: p.lat, lon: p.lon, extract: p.extract, claude: true })).addTo(eSights));
+  }
+}
+async function sightCard(x){
+  const LG = (REG && REG.wikiLang) || 'it';
+  const head = '<div class="ch"><span class="meta">'+(x.claude ? '<span class="tag-cu">Aggiunto da Claude</span>' : x.links >= SIGHT_BIG ? '★ Imperdibile' : 'Da vedere')+'</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(x.n)+'</h3>';
+  const acts = '<div class="acts"><button class="ai" id="eSgGo">Avvicinati</button>'+(x.art ? '<a href="'+esc(x.art)+'" target="_blank" rel="noopener">Leggi su Wikipedia</a>' : '')+'</div>';
+  showCard(head+'<p id="eSgTx">'+esc(x.extract ? short(x.extract, 300) : 'Carico la descrizione…')+'</p>'+acts);
+  $('eSgGo').onclick = () => { $('eCard').classList.remove('show'); emap.flyTo([x.lat, x.lon], 16); };
+  if (!x.extract && x.art){ const sm = await wikiSummary(LG, decodeURIComponent(x.art.split('/wiki/')[1]).replace(/_/g, ' '));
+    if ($('eSgTx')) $('eSgTx').textContent = sm && sm.extract ? short(sm.extract, 300) : ''; }
+  else if (!x.extract && $('eSgTx')) $('eSgTx').textContent = '';
+}
+emap.on('moveend', () => { clearTimeout(sightT); if (eNear){ eSights.clearLayers(); return; } sightT = setTimeout(loadSights, 600); });
 function eRefreshDots(){
   if (eNear || emap.getZoom() < DOT_Z){ eDots.clearLayers(); eDotKey=''; return; }
   clearTimeout(eDotTimer);
@@ -1963,7 +2035,7 @@ async function loadArea(lat, lon, radius, retry){
     .then(render)));
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','claude','storie','foto','percorsi'];
+const FLT_ALL = ['mon','sights','claude','storie','foto','percorsi'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
@@ -1975,6 +2047,7 @@ function fltPanel(){
   const rs = routesHere();
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
+    row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
     '<div class="fh">Percorsi in zona</div>'+
@@ -2026,7 +2099,7 @@ function panelClick(e){
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts();
+  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts(); drawSights();
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);

@@ -150,3 +150,7 @@ attuale o con timestamp vecchio scartati; un salto improvviso e poco preciso acc
 molto impreciso: attesa fino a 6 s). Il puntino si sposta con un movimento morbido (700 ms), in modalità "segui" la mappa si
 muove solo se il puntino si allontana dal centro, la direzione ha una media mobile. Se per 30 s non arriva nessun fix, o dopo
 un errore di segnale, il GPS riparte da solo; dopo oltre un minuto in background il filtro riparte da zero.
+Luoghi imperdibili nella vista meteo (da zoom 8,5): da Wikidata, misurati dal numero di Wikipedia che ne parlano (non dalla
+grandezza della città); da 20 lingue in su icona ★ piccola con il nome, gli altri come puntini da zoom 10; anche i luoghi di
+Claude come puntini rosso mattone. Filtro "Luoghi imperdibili" nel pannello Filtri. Scheda con descrizione, "Avvicinati" e
+Wikipedia. Salvati sul telefono per 7 giorni.
