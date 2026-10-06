@@ -236,6 +236,13 @@ body.e-full{overflow:hidden}
 .eflt b.fd{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid;margin-right:10px}
 .eflt b.fd svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .eflt button>span{flex:1;display:flex;align-items:center}
+.eflt .lb{display:block}
+.eflt .lb small{display:block}
+#eRt{position:relative}
+#eRt .bdg{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#2470b8;color:#fff;font:700 12px/20px var(--sans);text-align:center;padding:0 5px;box-sizing:border-box}
+#eRt .bdg[hidden]{display:none}
+.eflt .rtnote{padding:2px 10px 8px;font-size:13px;color:var(--tx2);line-height:1.4}
+.eflt .rtsrc{display:inline-block;font-size:11px;font-weight:600;color:var(--tx2);background:var(--soft);border-radius:6px;padding:1px 6px;margin-right:4px}
 .eflt button.bgr>span{display:block}
 .eflt i.rd{width:22px;border-radius:50%;background:none;border:2px solid var(--line);box-sizing:border-box}
 .eflt i.rd::after{display:none}
@@ -342,12 +349,12 @@ body.poi-on .c-dot{display:none}
 .zask button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:20px;background:var(--acc-soft);color:var(--acc);font:600 14px var(--sans);padding:10px 12px;cursor:pointer}
 .zask svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
 .eflt .tipgl{display:block;width:100%;text-align:left;border:none;background:var(--soft);color:var(--tx);font:500 13.5px var(--sans);padding:9px 12px;margin:2px 0 4px;border-radius:10px;min-height:0}
-.eflt .tipcity{font:600 12px var(--sans);color:var(--tx2);padding:8px 10px 2px;text-transform:uppercase;letter-spacing:.03em}
-.eflt .tipr{display:flex;align-items:center;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
-.eflt .tipr span{flex:1;min-width:0;font:500 14px var(--sans)}
-.eflt .tipr span b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis}
-.eflt .tipr small{display:block;color:var(--tx2);font-size:12px}
-.eflt .tipr button{flex:none;width:38px;height:38px;min-height:0;border:1px solid var(--line);border-radius:10px;padding:0;justify-content:center;font-size:16px}
+.tipcity{font:600 12px var(--sans);color:var(--tx2);padding:8px 10px 2px;text-transform:uppercase;letter-spacing:.03em}
+.tipr{display:flex;align-items:center;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
+.tipr span{flex:1;min-width:0;font:500 14px var(--sans)}
+.tipr span b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.tipr small{display:block;color:var(--tx2);font-size:12px}
+.tipr button{flex:none;width:38px;height:38px;min-height:0;border:1px solid var(--line);border-radius:10px;padding:0;justify-content:center;font-size:16px}
 .ecard .tipdel{border:1px solid #e3b5ad;background:none;color:#b4553f;border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
 .sg-tip{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-13px);cursor:pointer}
 .sg-tip span{width:24px;height:24px;border-radius:50%;background:#2f7d4f;color:#fff;font-size:13px;line-height:24px;text-align:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
@@ -374,7 +381,7 @@ body.poi-on .sg-dot,body.poi-on .sg-big{display:none}
 .dtools a.lnk{border:1px solid var(--line);background:var(--card);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);text-decoration:none}
 body.gm #eFull,body.gm #eSeg,body.gm #eCustB,body.gm footer{display:none!important}
 body.gm .ewrap.full .ectl:not(.ezb){top:var(--gmTop)}
-body.gm .ewrap.full .ecomp{left:auto;right:10px;top:calc(var(--gmTop) + 112px)}
+body.gm .ewrap.full .ecomp{left:auto;right:10px;top:calc(var(--gmTop) + 168px)}
 body.gm .ewrap.full .erefetch,body.gm .ewrap.full .ehint{top:var(--gmTop)}
 body.gm.shop-on{--gmTop:calc(env(safe-area-inset-top,0px) + 164px)}
 body.gm .ewrap.full .erefetch.show ~ .ehint{top:calc(var(--gmTop) + 48px)}
@@ -607,6 +614,7 @@ footer a{color:var(--tx2)}
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
         <button id="eBg" aria-label="Sfondo della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
         <button id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
+        <button id="eRt" aria-label="Percorsi" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5"/></svg><span class="bdg" id="eRtB" hidden></span></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
@@ -624,6 +632,7 @@ footer a{color:var(--tx2)}
       </div>
       <div class="eopt eflt" id="eFltP" hidden></div>
       <div class="eopt eflt" id="eBgP" hidden></div>
+      <div class="eopt eflt" id="eRtP" hidden></div>
       <div class="lpm" id="eLpm" hidden></div>
       <div class="navchip" id="eNavChip" hidden></div>
       <button class="epill" id="ePill" hidden></button>
@@ -678,6 +687,9 @@ footer a{color:var(--tx2)}
       <div class="zl">Altre preferenze <span class="muted">(facoltativo)</span></div>
       <textarea id="eZoneTxt" rows="3" placeholder="Es. siamo in due, niente lunghe camminate, ci piace il pesce, mezz'ora di auto al massimo…"></textarea>
       <div class="acts"><button id="eZoneNo">Annulla</button><button class="pr" id="eZoneGo">Chiedi a Claude</button></div></div></div>
+    <div class="cust" id="eTipsD" hidden role="dialog" aria-label="Consigli di Claude"><div class="sh"><h3 id="eTipsT">Consigli di Claude</h3>
+      <p class="m">Con 🗺️ vedi il consiglio sulla mappa, con 🗑️ lo elimini (solo da questa app).</p>
+      <div id="eTipsL"></div><div class="acts"><button class="pr" id="eTipsOk">Chiudi</button></div></div></div>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap o Esri · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
@@ -2099,24 +2111,35 @@ const fltOn = k => eFlt[k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 function fltPanel(){
-  const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
+  const row = (k, label, dot, sub) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+'<span class="lb">'+esc(label)+(sub ? '<small>'+esc(sub)+'</small>' : '')+'</span></span><i></i></button>';
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
   const dot = c => d(c, '<span class="dt" style="background:'+c+'"></span>');
-  const rs = routesHere();
-  $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
+  const n = tipsList(true).length + tipsList(false).length;
+  $('eFltP').innerHTML = '<div class="fh">Cosa mostrare sulla mappa</div>'+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
-    row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
+    row('sights', 'Luoghi imperdibili', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'), 'visibili da lontano')+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità di Claude', dot('#6b4fa0'))+
-    row('oggi', 'Consigli del momento (💡, spariscono da soli)', d('#c99700', '<span style="font-size:12px;line-height:1">💡</span>'))+
-    tipsSection(true)+
-    row('consigli', 'Consigli di Claude (restano, li elimini tu)', dot('#2f7d4f'))+
-    tipsSection(false)+
-    '<div class="fh">Percorsi in zona</div>'+
-    (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
-        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
-        (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
-      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
+    row('oggi', 'Consigli del momento', d('#c99700', '<span style="font-size:12px;line-height:1">💡</span>'), 'spariscono da soli')+
+    row('consigli', 'Consigli che restano', dot('#2f7d4f'), 'li elimini tu')+
+    (n ? '<button data-tips="1" class="act"><span>Vedi o elimina i consigli ('+n+')</span></button>' : '')+
+    '<div class="rtnote" style="padding-top:8px">I percorsi hanno il loro tasto: <b>Percorsi</b>, sotto questo.</div>';
+}
+/* ---------- pannello PERCORSI: un elenco solo, con un interruttore per percorso ---------- */
+function rtBadge(){ const b = $('eRtB'), n = eRoutesOn.size; b.hidden = !n; b.textContent = n; }
+function rtPanel(){
+  const rs = routesHere(), mine = myRoutes().length;
+  const where = eCity ? 'a '+(eCity.virt ? 'questa zona' : eCity.n) : 'nella zona';
+  $('eRtP').innerHTML = '<div class="fh">Percorsi '+esc(where)+'</div>'+
+    (rs.length
+      ? '<div class="rtnote">Accendi un percorso per vederlo sulla mappa, anche più di uno insieme.</div>'+
+        rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+
+          '<small><span class="rtsrc">'+esc(r.sub.split(' · ')[0])+'</span>'+esc(r.sub.split(' · ').slice(1).join(' · '))+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
+        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')
+      : '<div class="rtnote">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'.' : 'Scegli una città per vedere i suoi percorsi.')+'</div>')+
+    '<div class="fh">I miei percorsi</div>'+
+    '<div class="rtnote">Per crearne uno: tieni premuto sulla mappa, aggiungi le tappe e tocca «Salva percorso».</div>'+
+    (mine ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+mine+')</span></button>' : '');
 }
 /* consigli di Claude vicini alla zona che guardi (entro 40 km dal centro della mappa) */
 let tipsCache = [];
@@ -2147,25 +2170,33 @@ function inHere(p, temp){
     (temp && km(city.lat, city.lon, p.lat, p.lon) <= Math.max(12, townKm(city) * 1.5));      /* i consigli del momento riguardano tutta la zona intorno */
   return emap.getBounds().pad(0.2).contains([p.lat, p.lon]);
 }
-function tipsSection(temp){
-  const c = emap.getCenter(), city = selCity(), k = temp ? 'T' : 'P';
-  const L1 = (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && !tipExpired(p) && isTempTip(p) === temp && inHere(p, temp))
+function tipsList(temp){
+  const c = emap.getCenter(), city = selCity();
+  return (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && !tipExpired(p) && isTempTip(p) === temp && inHere(p, temp))
     .map(p => ({ p, town: tipTown(p), d: km(c.lat, c.lng, p.lat, p.lon) }))
-    .sort((a, b) => (city ? 0 : a.town.localeCompare(b.town)) || a.d - b.d).slice(0, 20);
-  const arr = L1.map(x => x.p);
-  if (temp) tipsCacheT = arr; else tipsCache = arr;
-  if (!L1.length) return '';
-  /* intestazione che si apre e si chiude: tengo il pannello corto */
-  const towns = [...new Set(L1.map(x => x.town))];
-  const where = city ? 'a '+city.n+' e dintorni' : towns.length > 2 ? 'in '+towns.slice(0, 2).join(', ')+'…' : 'a '+towns.join(' e ');
-  let h = '<button class="tipgl" data-tgl="'+k+'" aria-expanded="'+tipsOpen[k]+'"><span>'+(tipsOpen[k] ? '▾' : '▸')+' '+L1.length+(L1.length === 1 ? ' consiglio ' : ' consigli ')+esc(where)+'</span></button>';
-  if (!tipsOpen[k]) return h;
+    .sort((a, b) => (city ? 0 : a.town.localeCompare(b.town)) || a.d - b.d).slice(0, 30);
+}
+function tipsRows(temp){
+  const L1 = tipsList(temp), city = selCity();
+  const arr = L1.map(x => x.p); if (temp) tipsCacheT = arr; else tipsCache = arr;
   let last = null;
-  return h+L1.map((x, i) => { const p = x.p; let head = '';
+  return L1.map((x, i) => { const p = x.p; let head = '';
     if (!city && x.town !== last){ head = '<div class="tipcity">📍 '+esc(x.town)+'</div>'; last = x.town; }
     return head+'<div class="tipr"><span><b>'+esc(p.title)+'</b><small>'+esc([city ? '📍 '+x.town : '', p.stops && p.stops.length ? p.stops.length+' tappe' : '', temp ? tipUntil(p) : ''].filter(Boolean).join(' · '))+'</small></span>'+
       '<button data-tshow="'+(temp ? 'T' : '')+i+'" aria-label="Mostra sulla mappa">🗺️</button><button data-tdel="'+(temp ? 'T' : '')+i+'" aria-label="Elimina il consiglio">🗑️</button></div>'; }).join('');
 }
+function tipsDialog(){
+  const city = selCity(), T = tipsRows(true), P = tipsRows(false);
+  $('eTipsT').textContent = city ? 'Consigli a '+city.n : 'Consigli in questa zona';
+  $('eTipsL').innerHTML = (T ? '<div class="zl">💡 Del momento: spariscono da soli</div>'+T : '')+(P ? '<div class="zl">Che restano: li elimini tu</div>'+P : '') || '<p class="muted">Nessun consiglio per questa zona.</p>';
+}
+function tipsOpenDialog(){ setFltP(false); tipsDialog(); $('eTipsD').hidden = false; }
+$('eTipsOk').onclick = () => { $('eTipsD').hidden = true; };
+$('eTipsD').addEventListener('click', e => {
+  if (e.target === $('eTipsD')){ $('eTipsD').hidden = true; return; }
+  const ts = e.target.closest('[data-tshow]'); if (ts){ const p = tipFromRef(ts.dataset.tshow); if (p){ $('eTipsD').hidden = true; tipShow(p); } return; }
+  const td = e.target.closest('[data-tdel]'); if (td){ const p = tipFromRef(td.dataset.tdel); if (p) tipDelete(p); }
+});
 const tipFromRef = r => r[0] === 'T' ? tipsCacheT[+r.slice(1)] : tipsCache[+r];
 function tipShow(p){
   setFltP(false);
@@ -2183,6 +2214,7 @@ function tipDelete(p){
   hideTip(p); $('eCard').classList.remove('show');
   eItems = eItems.filter(o => !(o.kind === 'da-fare' && tipKey(o) === tipKey(p))); drawArt(); drawSights();
   if (!$('eFltP').hidden) fltPanel();
+  if (!$('eTipsD').hidden) tipsDialog();
   if (eCity) eLoadDo(eCity.virt ? Object.assign({}, eCity.ref, { lat: eCity.lat, lon: eCity.lon }) : eCity, eCityReq);
   wkFlash('Consiglio eliminato');
 }
@@ -2201,10 +2233,12 @@ function setIcons(on){
   if (tileBase === 'vector') vtApply();
   else { tileBase = on ? 'osm' : 'clean'; store.set('mapBase', tileBase); setETiles(true); }
 }
-function setFltP(o){ if (o){ fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
-function setBgP(o){ if (o){ bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
+function setFltP(o){ if (o){ fltPanel(); setOpt(false); setBgP(false); setRtP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setBgP(o){ if (o){ bgPanel(); setOpt(false); setFltP(false); setRtP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
+function setRtP(o){ if (o){ rtPanel(); setOpt(false); setFltP(false); setBgP(false); } $('eRtP').hidden = !o; $('eRt').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
+$('eRt').onclick = e => { e.stopPropagation(); setRtP($('eRtP').hidden); };
 function panelClick(e){
   e.stopPropagation();          /* i pannelli si ridisegnano: senza questo si chiuderebbero da soli */
   const ly = e.target.closest('button[data-ly]');
@@ -2222,13 +2256,11 @@ function panelClick(e){
     store.set('vt_flt', vtFlt); vtApply(); bgPanel(); return; }
   const del = e.target.closest('[data-del]');
   if (del){ if (confirm('Eliminare questo percorso?')){ const id = del.dataset.del; store.set('myRoutes', myRoutes().filter(r => r.id !== id));
-    const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } fltPanel(); } return; }
-  const tg = e.target.closest('[data-tgl]'); if (tg){ tipsOpen[tg.dataset.tgl] = !tipsOpen[tg.dataset.tgl]; fltPanel(); return; }
-  const ts = e.target.closest('[data-tshow]'); if (ts){ const p = tipFromRef(ts.dataset.tshow); if (p) tipShow(p); return; }
-  const td = e.target.closest('[data-tdel]'); if (td){ const p = tipFromRef(td.dataset.tdel); if (p) tipDelete(p); return; }
+    const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } routesUI(); } return; }
+  if (e.target.closest('button[data-tips]')){ tipsOpenDialog(); return; }
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
-  if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
+  if (e.target.closest('button[data-roff]')){ clearRoutes(); return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
@@ -2236,9 +2268,11 @@ function panelClick(e){
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);
+$('eRtP').addEventListener('click', panelClick);
 document.addEventListener('click', e => {
   if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false);
   if (!$('eBgP').hidden && !e.target.closest('#eBgP,#eBg')) setBgP(false);
+  if (!$('eRtP').hidden && !e.target.closest('#eRtP,#eRt')) setRtP(false);
 });
 /* Punti vicini che parlano della stessa cosa diventano un solo punto: stesso posto (entro 30 m),
    oppure stesso nome da fonti diverse con coordinate un po' diverse (entro 150 m). La scheda unisce i testi. */
@@ -2680,7 +2714,8 @@ function routesHere(){
 }
 /* aggiorno pannello Filtri e tasti nella scheda: acceso / spento in tutti e due i posti */
 function routesUI(){
-  if (!$('eFltP').hidden) fltPanel();
+  if (!$('eRtP').hidden) rtPanel();
+  rtBadge();
   document.querySelectorAll('#eDo .rt-btn[data-stops], #eDo .rt-btn[data-osm]').forEach(b => {
     if (b.classList.contains('busy')) return;
     const id = b.dataset.osm != null ? (eOsmRoutes[+b.dataset.osm] || {}).id : routeFromBtn(b).id, on = eRoutesOn.has(id);
@@ -2695,7 +2730,7 @@ function myRList(){
         '<button class="mv" data-show="'+esc(r.id)+'" aria-label="Mostra sulla mappa">🗺️</button></label>'; }).join('')
     : '<p class="muted">Nessun percorso salvato. Crealo con le indicazioni (tieni premuto sulla mappa) e "Salva percorso".</p>';
 }
-function myROpen(){ setFltP(false); myRList(); $('eMyR').hidden = false; }
+function myROpen(){ setFltP(false); setRtP(false); myRList(); $('eMyR').hidden = false; }
 $('eMyROk').onclick = () => { $('eMyR').hidden = true; };
 $('eMyR').addEventListener('click', e => {
   if (e.target === $('eMyR')){ $('eMyR').hidden = true; return; }
@@ -3619,7 +3654,7 @@ emap.on('moveend', () => { if (!poiOn || emap.getZoom() < 13) return;
 (function gmInit(){
   document.body.classList.add('gm');
   const top = document.querySelector('.ectl:not(.ezb)');
-  top.append($('eBg'), $('eFlt'));               /* livelli e filtri in alto a destra, come su Google Maps */
+  top.append($('eBg'), $('eFlt'), $('eRt'));               /* livelli e filtri in alto a destra, come su Google Maps */
   $('eZs').prepend($('eLoc'));                    /* la posizione sopra i tasti di zoom */
   document.querySelector('.search').appendChild($('themeBtn'));
   $('eWrap').classList.add('full'); document.body.classList.add('e-full');

@@ -167,3 +167,7 @@ attuale o con timestamp vecchio scartati; un salto improvviso e poco preciso acc
 molto impreciso: attesa fino a 6 s). Il puntino si sposta con un movimento morbido (700 ms), in modalità "segui" la mappa si
 muove solo se il puntino si allontana dal centro, la direzione ha una media mobile. Se per 30 s non arriva nessun fix, o dopo
 un errore di segnale, il GPS riparte da solo; dopo oltre un minuto in background il filtro riparte da zero.
+Pannelli (colonna in alto a destra): Livelli (sfondo e mare), Filtri (solo interruttori: cosa mostrare sulla mappa, più
+"Vedi o elimina i consigli" che apre una finestra con i consigli della città, divisi in "del momento" e "che restano") e
+Percorsi (un solo elenco per la città scelta: consigli di Claude con tappe, Wikivoyage, sentieri segnati, i miei percorsi;
+un interruttore per ognuno, badge con il numero di percorsi accesi, "Nascondi tutti", "Gestisci i miei percorsi").
