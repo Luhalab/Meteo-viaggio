@@ -391,6 +391,9 @@ body.gm .ewrap.full .eopt{max-height:calc(100% - var(--gmTop) - var(--sheetH,70p
 #cNow,#wxS .sub:not(#cTodoT),#cDays,#eWkBest,#eWkHint{display:none!important}
 #cTodoT{margin-top:2px}
 .guide .src{font-size:12.5px;color:var(--tx2);margin:2px 0 6px}
+.guide details.rgrp>summary{font-weight:700}
+.guide .rgb{padding:0 0 4px 12px;border-left:3px solid var(--acc-soft);margin:2px 0 6px 2px}
+.guide .rgb details>summary{font-weight:500;font-size:15px}
 .guide .osr{padding:8px 0;border-top:1px solid var(--line)}
 .guide .evh{font:600 13px var(--sans);color:var(--tx2);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 4px}
 .guide .evi{padding:8px 0;border-top:1px solid var(--line)}
@@ -2532,14 +2535,19 @@ async function eLoadDo(c, my){
   const draw = () => {
     if (my !== eCityReq) return;
     eOsmRoutes = osm; eDoPhotos = wph;
-    const blocks = mine.map(p => { const rs = routeOf(p);
+    /* i percorsi (consigli di Claude con tappe + sentieri segnati) stanno insieme in un'unica voce "Percorsi (N)";
+       gli altri consigli restano voci singole */
+    const routeTips = mine.filter(p => routeOf(p)), plainTips = mine.filter(p => !routeOf(p));
+    const tipHtml = p => { const rs = routeOf(p);
       return '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
         (rs ? '<button class="rt-btn" data-stops="'+esc(JSON.stringify(rs))+'">'+RT_IC+'Mostra il percorso sulla mappa</button><br>' : '')+
-        srcLinks(p, c)+'<span class="tag-cu">Consiglio di Claude</span></details>'; })
-      .concat(osm.length ? ['<details><summary>Sentieri segnati ('+osm.length+')</summary>'+osm.map((r, i) =>
-        '<div class="osr"><b>'+esc(r.title)+'</b><small>'+esc(r.sub)+'</small>'+(r.desc ? '<p>'+esc(short(r.desc, 300))+'</p>' : '')+
-        '<button class="rt-btn" data-osm="'+i+'">'+RT_IC+'Mostra sulla mappa</button>'+
-        '<div class="src">Fonti: <a href="'+esc(r.url)+'" target="_blank" rel="noopener">OpenStreetMap</a>'+(r.web ? ' · <a href="'+esc(r.web)+'" target="_blank" rel="noopener">sito del sentiero</a>' : '')+'</div></div>').join('')+'</details>'] : [])
+        srcLinks(p, c)+'<span class="tag-cu">Consiglio di Claude</span></details>'; };
+    const osmHtml = (r, i) => '<details><summary>'+esc(r.title)+'</summary><small class="muted">'+esc(r.sub)+'</small>'+(r.desc ? '<p>'+esc(short(r.desc, 300))+'</p>' : '')+
+      '<button class="rt-btn" data-osm="'+i+'">'+RT_IC+'Mostra sulla mappa</button>'+
+      '<div class="src">Fonti: <a href="'+esc(r.url)+'" target="_blank" rel="noopener">OpenStreetMap</a>'+(r.web ? ' · <a href="'+esc(r.web)+'" target="_blank" rel="noopener">sito del sentiero</a>' : '')+'</div></details>';
+    const nRoutes = routeTips.length + osm.length;
+    const routesGroup = nRoutes ? ['<details class="rgrp"><summary>Percorsi ('+nRoutes+')</summary><div class="rgb">'+routeTips.map(tipHtml).join('')+osm.map(osmHtml).join('')+'</div></details>'] : [];
+    const blocks = routesGroup.concat(plainTips.map(tipHtml))
       .concat(wv ? guideBlocks(wv, DO_SEC, base, 'Wikivoyage', 1200) : []);
     const phs = wph.length ? '<div class="phs-row dophs">'+wph.map((p, i) => '<button data-di="'+i+'" aria-label="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="" loading="lazy"></button>').join('')+'</div>'+
       '<div class="src" style="margin:0 0 6px">Foto dalla guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a></div>' : '';
