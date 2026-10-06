@@ -1765,5 +1765,143 @@
     "url": "https://en.wikipedia.org/wiki/Alcamo"
    }
   ]
+ },
+ {
+  "kind": "da-fare",
+  "title": "Monreale: mosaici e chiostro al mattino",
+  "lat": 38.0826321,
+  "lon": 13.2919931,
+  "extract": "Con cielo coperto e temperature miti i mosaici dorati del Duomo e il chiostro con le sue 228 colonne scolpite non perdono nulla, anzi si visitano comodamente. Al Duomo, secondo la tabella del Comune di Palermo, il martedì e il mercoledì si entra dalle 9 alle 14 (ultimo ingresso alle 13): conviene arrivare all'apertura. Dal complesso si raggiungono anche le terrazze con vista sulla città. Meglio verificare gli orari prima di partire, perché la cattedrale può chiudere per cerimonie.",
+  "url": null,
+  "stops": [
+   {
+    "n": "Duomo di Monreale",
+    "lat": 38.0820313,
+    "lon": 13.2922777
+   },
+   {
+    "n": "Chiostro dei Benedettini"
+   },
+   {
+    "n": "Terrazze del Duomo"
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Comune di Palermo – Orari dei principali luoghi di interesse",
+    "url": "https://turismo.comune.palermo.it/js/server/uploads/new/_17112025093804.pdf"
+   },
+   {
+    "t": "Museionline – Cattedrale di Santa Maria Nuova",
+    "url": "https://www.museionline.info/tipologie-museo/cattedrale-di-santa-maria-nuova"
+   },
+   {
+    "t": "Italia.it – Chiostro di Monreale",
+    "url": "https://www.italia.it/it/sicilia/monreale/esperienze/monreale-chiostro-di-santa-maria-nuova-biglietto-dingresso-tiqets-975808"
+   }
+  ]
+ },
+ {
+  "kind": "da-fare",
+  "title": "Palermo: mercati del Capo e Ballarò, street food e souvenir",
+  "lat": 38.1156818,
+  "lon": 13.3614594,
+  "extract": "Il tempo coperto ma caldo e senza pioggia è ideale per girare i mercati all'aperto. Ballarò, il più antico, è più vivo al mattino; il Capo, con ingresso da Porta Carini, resta aperto fino alle 20 secondo una guida gastronomica. Si assaggiano panelle, crocchè e sfincione, e al Capo si trovano prodotti tipici sottovuoto (capperi, pomodori secchi, acciughe) che sono ottimi souvenir. Attenzione a borseggiatori nei tratti più stretti di Ballarò.",
+  "url": null,
+  "stops": [
+   {
+    "n": "Mercato di Ballarò (da Piazza Casa Professa)",
+    "lat": 38.1133064,
+    "lon": 13.3611809
+   },
+   {
+    "n": "Quattro Canti",
+    "lat": 38.1156818,
+    "lon": 13.3614594
+   },
+   {
+    "n": "Mercato del Capo (Porta Carini)",
+    "lat": 38.118503,
+    "lon": 13.3541473
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Dissapore – Mercato del Capo",
+    "url": "https://www.dissapore.com/spesa/mercato-del-capo-a-palermo-cosa-non-perdere/"
+   },
+   {
+    "t": "Do Eat Better – Street food a Palermo",
+    "url": "https://doeatbetterexperience.com/it/blog/street-food-palermo-guida-mercati/"
+   },
+   {
+    "t": "Gazzetta del Gusto – Mercati storici di Palermo",
+    "url": "https://www.gazzettadelgusto.it/food-news/mercati-storici-di-palermo/?print=pdf"
+   }
+  ]
+ },
+ {
+  "kind": "da-fare",
+  "title": "Mondello: passeggiata e bagno con i bambini",
+  "lat": 38.2062142,
+  "lon": 13.3245517,
+  "extract": "La baia è riparata tra Monte Pellegrino e Monte Gallo, e con vento debole da nord-est il mare dovrebbe essere calmo. La sabbia chiara e il fondale basso e digradante la rendono adatta ai bambini, anche se con cielo coperto il bagno dipende dal caldo della giornata. Meglio arrivare nel pomeriggio, dopo la mattina in città, e lasciare l'auto presto: i parcheggi sono a pagamento e limitati. Verifica sul sito AMAT se il bus 806 dal centro è attivo in autunno.",
+  "url": null,
+  "stops": [
+   {
+    "n": "Mondello (centro)",
+    "lat": 38.2062142,
+    "lon": 13.3245517
+   },
+   {
+    "n": "Lungomare Cristoforo Colombo",
+    "lat": 38.1956788,
+    "lon": 13.3330225
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Nomado – Spiaggia di Mondello",
+    "url": "https://www.nomadotravel.app/it/attractions/mondello-beach"
+   },
+   {
+    "t": "Spiagge.it – Spiagge più belle di Palermo",
+    "url": "https://www.spiagge.it/magazine/spiagge-piu-belle-palermo/"
+   },
+   {
+    "t": "Balarm – Mondello in ottobre",
+    "url": "https://www.balarm.it/news/magazine/mondello-i-lidi-balneari-restano-aperti-per-tutto-ottobre-17054"
+   }
+  ]
+ },
+ {
+  "kind": "da-fare",
+  "title": "Palazzo dei Normanni e Cappella Palatina",
+  "lat": 38.1112064,
+  "lon": 13.3532496,
+  "extract": "È la più antica residenza reale d'Europa e oggi ospita l'Assemblea regionale siciliana. La Cappella Palatina, consacrata nel 1140 da Ruggero II, unisce mosaici bizantini, ornamenti dorati e decorazioni di gusto islamico: con il cielo coperto resta una visita al coperto ideale. Gli orari indicati sono circa 8.30-17 dal lunedì al sabato, ma durante le sedute del parlamento alcune parti non sono visitabili; i prezzi online sono discordanti, quindi controlla il sito ufficiale.",
+  "url": null,
+  "stops": [
+   {
+    "n": "Palazzo dei Normanni e Cappella Palatina",
+    "lat": 38.1112064,
+    "lon": 13.3532496
+   },
+   {
+    "n": "Cattedrale di Palermo",
+    "lat": 38.1143482,
+    "lon": 13.3560128
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Travel365 – Palazzo dei Normanni e Cappella Palatina",
+    "url": "https://www.travel365.it/visita-palazzo-normanni-cappella-palatina-palermo.htm"
+   },
+   {
+    "t": "Arte.it – Palazzo Reale o dei Normanni",
+    "url": "https://www.arte.it/guida-arte/palermo/da-vedere/museo/palazzo-reale-o-dei-normanni-3155/immagini"
+   }
+  ]
  }
 ]
