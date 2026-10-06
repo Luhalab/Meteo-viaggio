@@ -358,9 +358,9 @@ body.poi-on .sg-tip{display:none}
 .cust textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px;font:14px var(--sans);background:var(--card);color:var(--tx);resize:vertical}
 .sg-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(22,33,28,.6);transform:translate(-50%,-50%);cursor:pointer}
 .sg-dot.cu{background:var(--brick)}
-.sg-big{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-14px);cursor:pointer}
-.sg-big span{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#e0b450,#b98f3e);color:#fff;font-size:15px;line-height:26px;text-align:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
-.sg-big b{margin-top:2px;font:700 11.5px var(--sans);color:#5a4413;background:rgba(255,250,235,.92);border-radius:6px;padding:1px 5px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.sg-big{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-9px);cursor:pointer;opacity:.95}
+.sg-big span{width:17px;height:17px;border-radius:50%;background:#b98f3e;color:#fff;font-size:10px;line-height:17px;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sg-big b{margin-top:1px;font:600 10.5px var(--sans);color:#6b5520;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 body.poi-on .sg-dot,body.poi-on .sg-big{display:none}
 .gchips.gsub{margin-top:6px}
 .gchips.gsub[hidden]{display:none!important}
@@ -1804,7 +1804,7 @@ const SIGHT_BIG = 20, SIGHT_MIN = 6;
 /* tipi da non mostrare: comuni, frazioni, isole e regioni amministrative, strade, stazioni, aeroporti, scuole, ospedali */
 const SIGHT_SKIP = ['Q747074','Q515','Q486972','Q15089','Q16110','Q18415595','Q484170','Q55488','Q1248784','Q34442','Q3914','Q16917','Q1549591','Q5119','Q3024240','Q15284','Q1637706','Q123705','Q532','Q3957','Q2039348','Q15284','Q954172','Q1307276'];
 async function loadSights(){
-  if (eNear || emap.getZoom() < 8.5 || !fltOn('mon')){ eSights.clearLayers(); sightList = []; return; }
+  if (eNear || emap.getZoom() < 8.5 || !(fltOn('sights') || fltOn('mon'))){ eSights.clearLayers(); sightList = []; return; }
   const c = emap.getCenter(), b = emap.getBounds();
   const r = Math.min(60, Math.max(8, haversine(b.getNorth(), b.getWest(), b.getSouth(), b.getEast()) / 2000));
   const key = c.lat.toFixed(1)+','+c.lng.toFixed(1)+','+Math.round(r / 10);
@@ -1832,10 +1832,10 @@ async function loadSights(){
 }
 async function drawSights(){
   eSights.clearLayers();
-  if (eNear || emap.getZoom() < 8.5 || !fltOn('mon')) return;
+  if (eNear || emap.getZoom() < 8.5) return;
   const b = emap.getBounds().pad(0.1), z = emap.getZoom();
   /* i più importanti sempre; quelli minori solo avvicinandosi un po' */
-  sightList.filter(x => b.contains([x.lat, x.lon]) && (x.links >= SIGHT_BIG || (z >= 10 && z < DOT_Z)))   /* da zoom 11 i minori li mostrano già i puntini di Wikipedia */.slice(0, 40).forEach(x => {
+  sightList.filter(x => b.contains([x.lat, x.lon]) && (x.links >= SIGHT_BIG ? fltOn('sights') : fltOn('mon') && z >= 10 && z < DOT_Z))   /* da zoom 11 i minori li mostrano già i puntini di Wikipedia */.slice(0, 40).forEach(x => {
     const big = x.links >= SIGHT_BIG;
     L.marker([x.lat, x.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
         html: big ? '<div class="sg-big"><span>★</span><b>'+esc(x.n)+'</b></div>' : '<div class="sg-dot" title="'+esc(x.n)+'"></div>' }), zIndexOffset: big ? 400 : -400 })
@@ -2084,7 +2084,7 @@ async function loadArea(lat, lon, radius, retry){
     .then(render)));
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','claude','storie','consigli','foto','percorsi'];
+const FLT_ALL = ['mon','sights','claude','storie','consigli','foto','percorsi'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
@@ -2096,6 +2096,7 @@ function fltPanel(){
   const rs = routesHere();
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
+    row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità di Claude', dot('#6b4fa0'))+
     row('consigli', 'Consigli di Claude (cosa fare)', dot('#2f7d4f'))+
@@ -3386,11 +3387,23 @@ const SHOP_SUB = {
 const SHOP_SKIP = ['supermarket','convenience','kiosk','car','car_repair','car_parts','fuel','motorcycle','tyres','doityourself','hardware','trade','storage_rental','funeral_directors','pawnbroker','money_lender','vacant','yes'];
 const SHOP_KNOWN = [].concat(...Object.values(SHOP_SUB).filter(x => x.v).map(x => x.v));
 let shopSub = Object.assign(Object.fromEntries(Object.keys(SHOP_SUB).map(k => [k, true])), store.get('shopSub', {}));
-function shopOk(v){
-  if (!v || SHOP_SKIP.includes(v)) return false;
-  const g = Object.keys(SHOP_SUB).find(k => SHOP_SUB[k].v && SHOP_SUB[k].v.includes(v)) || 'altri';
-  return shopSub[g];
+/* categoria di un negozio: dal tipo OSM (shop=…), dalla classe della mappa vettoriale e, se mancano, dal nome */
+const SHOP_NAME = [
+  ['abb',    /abbigliament|moda|boutique|fashion|\bzara\b|h ?& ?m|calzedonia|intimissimi|tezenis|\bovs\b|benetton|bershka|pull ?& ?bear|stradivarius|max ?mara|liu ?jo|guess|levi|diesel|piazza italia|coin|mango|jeans|intimo|camicer/i],
+  ['scarpe', /calzatur|scarp|shoes|foot ?locker|geox|pittarello|deichmann/i],
+  ['sport',  /sport|decathlon|cisalfa|outdoor|bici|cicli|surf|diving|pesca/i],
+  ['souv',   /souvenir|ceramich|artigian|regal|gift|bottega|pupi|carretto|coral/i],
+  ['gioie',  /gioiell|oreficeri|jewel|orolog|pandora|swarovski/i],
+  ['tipici', /enotec|vini|cantina|pasticceri|dolci|panific|forno|salumer|formagg|gastronom|prodotti tipici|cioccolat|torrefaz/i]
+];
+const SHOP_CLASS = { clothing_store:'abb', shoes:'scarpe', jewelry:'gioie', gift:'souv', art_gallery:'souv', alcohol_shop:'tipici', bakery:'tipici', confectionery:'tipici' };
+function shopCat(v, cls, name){
+  if (v && SHOP_SKIP.includes(v)) return null;
+  if (['supermarket','grocery','convenience'].includes(cls)) return null;
+  const g = Object.keys(SHOP_SUB).find(k => SHOP_SUB[k].v && SHOP_SUB[k].v.includes(v)) || SHOP_CLASS[cls] || (SHOP_NAME.find(x => x[1].test(name || '')) || [])[0];
+  return g || 'altri';
 }
+function shopOk(v, cls, name){ const g = shopCat(v, cls, name); return !!g && shopSub[g]; }
 const SHOP_LABEL = { clothes:'Abbigliamento', boutique:'Boutique', shoes:'Scarpe', sports:'Articoli sportivi', outdoor:'Articoli outdoor', bicycle:'Biciclette',
   gift:'Regali', souvenir:'Souvenir', art:'Arte', craft:'Artigianato', antiques:'Antiquariato', ceramics:'Ceramiche', jewelry:'Gioielleria', watches:'Orologi',
   deli:'Gastronomia', wine:'Enoteca', alcohol:'Vini e liquori', confectionery:'Dolci', pastry:'Pasticceria', cheese:'Formaggi', bakery:'Panificio', books:'Libreria',
@@ -3412,12 +3425,12 @@ function vtPois(k, b){
   const seen = new Set(), out = [];
   fs.forEach(f => { const p = f.properties || {};
     if (!p.name || f.geometry.type !== 'Point') return;
-    if (k === 'shop' ? !shopOk(p.subclass) || ['restaurant','fast_food','cafe','bar','beer','ice_cream','lodging'].includes(p.class) : !POIC[k].vt.includes(p.class)) return;
+    if (k === 'shop' ? !shopOk(p.subclass, p.class, p.name) || ['restaurant','fast_food','cafe','bar','beer','ice_cream','lodging','place_of_worship','museum','attraction','bus','railway','parking','fuel','hospital','pharmacy','school','college','library','town_hall','post','bank','toilets','drinking_water','police','park','theatre','cinema','monument','castle','harbor','ferry_terminal','campsite','zoo','stadium','swimming','golf','playground','cemetery'].includes(p.class) : !POIC[k].vt.includes(p.class)) return;
     const [lon, lat] = f.geometry.coordinates; if (!b.contains([lat, lon])) return;
     const key = p.name+'|'+lat.toFixed(4)+','+lon.toFixed(4); if (seen.has(key)) return; seen.add(key);
     const sub = p.subclass || p.class;
     const t = { name: p['name:it'] || p.name };
-    if (k === 'shop') t.shop = sub; else if (k === 'hotel') t.tourism = sub; else if (sub === 'ice_cream') t.amenity = 'ice_cream'; else t.amenity = ['restaurant','fast_food','cafe','bar','pub'].includes(sub) ? sub : p.class === 'beer' ? 'pub' : p.class;
+    if (k === 'shop'){ t.shop = p.subclass || p.class; t._cls = p.class; } else if (k === 'hotel') t.tourism = sub; else if (sub === 'ice_cream') t.amenity = 'ice_cream'; else t.amenity = ['restaurant','fast_food','cafe','bar','pub'].includes(sub) ? sub : p.class === 'beer' ? 'pub' : p.class;
     out.push({ t, lat, lon, id: null, vt: true }); });
   return out;
 }
@@ -3427,14 +3440,18 @@ async function poiLoad(){
   poiBox = emap.getBounds().pad(0.4);
   const q = '[out:json][timeout:20];('+POIC[k].q.split(';').map(x => x+'('+bb+');').join('')+');out center tags 120;';
   let els = vtPois(k, b);                     /* la mappa vettoriale ha già i locali della zona: nessuna attesa */
-  if (!els.length && !(vtGL && vtGL.isStyleLoaded())){   /* online solo se la mappa vettoriale non c'è: opzione leggera */
-    try { els = ((await overpass(q, 12000)).elements || []).map(el => ({ t: el.tags || {}, lat: el.lat != null ? el.lat : el.center && el.center.lat, lon: el.lon != null ? el.lon : el.center && el.center.lon, id: el.type+'/'+el.id })); }
-    catch(e){ wkFlash('Non riesco a caricare i locali: riprova tra poco'); return; }
+  /* online solo se la mappa vettoriale non c'è, o (per i negozi) se ne trova pochi: in città le tile non hanno tutti i negozi */
+  if (!els.length && !(vtGL && vtGL.isStyleLoaded()) || (k === 'shop' && els.length < 8 && emap.getZoom() >= 14)){
+    const vt = els;
+    try { const net = ((await overpass(q, 12000)).elements || []).map(el => ({ t: el.tags || {}, lat: el.lat != null ? el.lat : el.center && el.center.lat, lon: el.lon != null ? el.lon : el.center && el.center.lon, id: el.type+'/'+el.id }));
+      /* unisco: quelli della rete hanno più dettagli, quelli della mappa restano se la rete non li ha */
+      els = net.concat(vt.filter(v => !net.some(n => n.t.name === v.t.name && n.lat != null && haversine(n.lat, n.lon, v.lat, v.lon) < 60))); }
+    catch(e){ if (!vt.length){ wkFlash('Non riesco a caricare i locali: riprova tra poco'); return; } }
   }
   if (poiOn !== k) return;
   const ctr = emap.getCenter();
   poiList = els
-    .filter(o => o.lat != null && o.t.name && (k !== 'shop' || shopOk(o.t.shop))).map(o => Object.assign(o, { d: haversine(ctr.lat, ctr.lng, o.lat, o.lon) }))
+    .filter(o => o.lat != null && o.t.name && (k !== 'shop' || shopOk(o.t.shop, o.t._cls, o.t.name))).map(o => Object.assign(o, { d: haversine(ctr.lat, ctr.lng, o.lat, o.lon) }))
     .sort((a, b2) => a.d - b2.d).slice(0, 40);              /* al massimo 40, i più vicini: la mappa resta leggibile */
   ePoiL.clearLayers();
   poiList.forEach(o => L.marker([o.lat, o.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
@@ -3453,7 +3470,7 @@ async function poiDetails(o){
 function poiCard(o){
   if (o.vt && !o.full){ poiDetails(o).then(() => { if ($('eCard').classList.contains('show') && $('eCard').querySelector('h3') && $('eCard').querySelector('h3').textContent === o.t.name) poiCard(o); }); }
   const t = o.t, town = (placeAt(o.lat, o.lon) || {}).n || '', where = (t['addr:street'] ? t['addr:street']+(t['addr:housenumber'] ? ' '+t['addr:housenumber'] : '')+', ' : '')+town.replace(/^Vicino a /, '');
-  const typ = POI_TYPE[t.amenity] || POI_TYPE[t.tourism] || (t.shop === 'ice_cream' ? 'Gelateria' : t.shop ? (SHOP_LABEL[t.shop] || 'Negozio') : 'Locale');
+  const typ = POI_TYPE[t.amenity] || POI_TYPE[t.tourism] || (t.shop === 'ice_cream' ? 'Gelateria' : t.shop ? (SHOP_LABEL[t.shop] || (SHOP_SUB[shopCat(t.shop, t._cls, t.name)] || {}).t || 'Negozio') : 'Locale');
   const qq = encodeURIComponent(t.name+' '+town.replace(/^Vicino a /, ''));
   const info = [t.cuisine ? 'Cucina: '+t.cuisine.replace(/;/g, ', ').replace(/_/g, ' ') : '', t.opening_hours ? 'Orari: '+t.opening_hours : '',
     (t.phone || t['contact:phone']) ? 'Tel. '+(t.phone || t['contact:phone']) : ''].filter(Boolean);
@@ -3471,7 +3488,8 @@ function poiSet(k){
   document.body.classList.toggle('poi-on', !!poiOn); document.body.classList.toggle('shop-on', poiOn === 'shop');      /* mentre cerchi locali, monumenti e punti di Claude si nascondono */
   if (!poiOn){ drawArt(); setHint(); if (eNear && !eItems.length && !eLoading){ const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); } return; }
   if (!poiOn) return;
-  if (emap.getZoom() < 14){ const c = eCity ? [eCity.lat, eCity.lon] : emap.getCenter(); emap.setView(c, 15, { animate:true }); setTimeout(poiLoad, 600); }
+  const zMin = poiOn === 'shop' ? 16 : 14;
+  if (emap.getZoom() < zMin){ const c = emap.getZoom() < 12 && eCity ? [eCity.lat, eCity.lon] : emap.getCenter(); emap.setView(c, zMin + 1 - (poiOn === 'shop' ? 1 : 0), { animate:true }); setTimeout(poiLoad, 700); }
   else poiLoad();
 }
 emap.on('moveend', () => { if (!poiOn || emap.getZoom() < 13) return;
