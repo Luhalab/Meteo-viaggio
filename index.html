@@ -2467,11 +2467,13 @@ async function wikidataEvents(c){
       lat: m ? +m[2] : null, lon: m ? +m[1] : null, fonti: [{ t:'Wikidata', url: x.e.value }].concat(x.url ? [{ t:'sito ufficiale', url: x.url.value }] : []) }; });
 }
 let eEvList = [];
+const wdEvCache = {};
 async function renderEvents(c, my, wv){
   const [a, b] = evRange(), A = isoDay(a), B = isoDay(b);
   const all = await customAll();
   const mine = all.filter(p => p.kind === 'evento' && p.inizio && p.lat != null && km(c.lat, c.lon, p.lat, p.lon) <= 15 && p.inizio <= B && (p.fine || p.inizio) >= A);
-  let wd = []; try { wd = await wikidataEvents(c); } catch(e){}
+  const wk = c.n+'|'+A; let wd = wdEvCache[wk];
+  if (!wd){ wd = []; try { wd = await wikidataEvents(c); wdEvCache[wk] = wd; } catch(e){} }      /* la richiesta a Wikidata si fa una volta sola */
   if (my !== eCityReq) return;
   const seen = new Set(mine.map(p => p.title.toLowerCase()));
   eEvList = mine.concat(wd.filter(x => !seen.has(x.title.toLowerCase()))).sort((p, q) => p.inizio.localeCompare(q.inizio));
@@ -2521,30 +2523,42 @@ async function eLoadDo(c, my){
   const LG = (REG&&REG.wikiLang)||'it';
   const mine = (await customAll()).filter(p => p.kind === 'da-fare' && p.lat != null && km(c.lat,c.lon,p.lat,p.lon) <= 8);
   const name = (c.ref || c).n;
-  const [wv, osm, wph] = await Promise.all([
-    eWvCache[c.n] !== undefined ? eWvCache[c.n] : extracts(LG+'.wikivoyage.org', c.n).catch(() => null),
-    osmRoutes(c).catch(() => []),
-    photosFrom(LG+'.wikivoyage.org', name).catch(() => [])
-  ]);
-  eWvCache[c.n] = wv;
-  if (my !== eCityReq) return;
-  eOsmRoutes = osm; eDoPhotos = wph;
   const base = 'https://'+LG+'.wikivoyage.org/wiki/'+encodeURIComponent(c.n.replace(/ /g,'_'));
-  const blocks = mine.map(p => { const rs = routeOf(p);
-    return '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
-      (rs ? '<button class="rt-btn" data-stops="'+esc(JSON.stringify(rs))+'">'+RT_IC+'Mostra il percorso sulla mappa</button><br>' : '')+
-      srcLinks(p, c)+'<span class="tag-cu">Consiglio di Claude</span></details>'; })
-    .concat(osm.length ? ['<details><summary>Sentieri segnati ('+osm.length+')</summary>'+osm.map((r, i) =>
-      '<div class="osr"><b>'+esc(r.title)+'</b><small>'+esc(r.sub)+'</small>'+(r.desc ? '<p>'+esc(short(r.desc, 300))+'</p>' : '')+
-      '<button class="rt-btn" data-osm="'+i+'">'+RT_IC+'Mostra sulla mappa</button>'+
-      '<div class="src">Fonti: <a href="'+esc(r.url)+'" target="_blank" rel="noopener">OpenStreetMap</a>'+(r.web ? ' · <a href="'+esc(r.web)+'" target="_blank" rel="noopener">sito del sentiero</a>' : '')+'</div></div>').join('')+'</details>'] : [])
-    .concat(wv ? guideBlocks(wv, DO_SEC, base, 'Wikivoyage', 1200) : []);
-  renderEvents(c, my, wv);
-  $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n; setTimeout(routesChanged, 0);
-  const phs = wph.length ? '<div class="phs-row dophs">'+wph.map((p, i) => '<button data-di="'+i+'" aria-label="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="" loading="lazy"></button>').join('')+'</div>'+
-    '<div class="src" style="margin:0 0 6px">Foto dalla guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a></div>' : '';
-  $('eDo').innerHTML = blocks.length ? phs+blocks.join('')+'<div class="muted" style="margin-top:8px;font-size:11.5px">Fonti: guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a> (CC BY-SA), sentieri da OpenStreetMap, consigli di Claude</div>'
-    : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>';
+  /* Si disegna SUBITO con i consigli di Claude (sono già sul telefono); guida Wikivoyage, sentieri e foto arrivano da internet
+     e si aggiungono man mano, ognuno con un tempo massimo: una fonte lenta non blocca più la scheda. */
+  let wv = eWvCache[c.n] !== undefined ? eWvCache[c.n] : null, osm = [], wph = [];
+  const pend = { wv: eWvCache[c.n] === undefined, osm: true, ph: true };
+  eOsmRoutes = []; eDoPhotos = [];
+  const draw = () => {
+    if (my !== eCityReq) return;
+    eOsmRoutes = osm; eDoPhotos = wph;
+    const blocks = mine.map(p => { const rs = routeOf(p);
+      return '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
+        (rs ? '<button class="rt-btn" data-stops="'+esc(JSON.stringify(rs))+'">'+RT_IC+'Mostra il percorso sulla mappa</button><br>' : '')+
+        srcLinks(p, c)+'<span class="tag-cu">Consiglio di Claude</span></details>'; })
+      .concat(osm.length ? ['<details><summary>Sentieri segnati ('+osm.length+')</summary>'+osm.map((r, i) =>
+        '<div class="osr"><b>'+esc(r.title)+'</b><small>'+esc(r.sub)+'</small>'+(r.desc ? '<p>'+esc(short(r.desc, 300))+'</p>' : '')+
+        '<button class="rt-btn" data-osm="'+i+'">'+RT_IC+'Mostra sulla mappa</button>'+
+        '<div class="src">Fonti: <a href="'+esc(r.url)+'" target="_blank" rel="noopener">OpenStreetMap</a>'+(r.web ? ' · <a href="'+esc(r.web)+'" target="_blank" rel="noopener">sito del sentiero</a>' : '')+'</div></div>').join('')+'</details>'] : [])
+      .concat(wv ? guideBlocks(wv, DO_SEC, base, 'Wikivoyage', 1200) : []);
+    const phs = wph.length ? '<div class="phs-row dophs">'+wph.map((p, i) => '<button data-di="'+i+'" aria-label="'+esc(p.title)+'"><img src="'+esc(p.thumb)+'" alt="" loading="lazy"></button>').join('')+'</div>'+
+      '<div class="src" style="margin:0 0 6px">Foto dalla guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a></div>' : '';
+    const waiting = pend.wv || pend.osm || pend.ph;
+    const spin = waiting ? '<div class="muted" style="margin:8px 0;font-size:12.5px"><span class="spin"></span>Cerco anche la guida, i sentieri e le foto…</div>' : '';
+    $('eDo').innerHTML = blocks.length
+      ? phs+blocks.join('')+spin+'<div class="muted" style="margin-top:8px;font-size:11.5px">Fonti: guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a> (CC BY-SA), sentieri da OpenStreetMap, consigli di Claude</div>'
+      : (waiting ? spin : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>');
+  };
+  $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n;
+  draw(); routesChanged(); renderEvents(c, my, wv);
+  /* ogni fonte: aggiorna quando arriva, e dopo il tempo massimo smette di far girare l'indicatore (ma se arriva dopo, si aggiunge lo stesso) */
+  const settle = (prom, ms, flag, on) => {
+    const t = setTimeout(() => { if (pend[flag]){ pend[flag] = false; draw(); } }, ms);
+    prom.then(v => { clearTimeout(t); pend[flag] = false; on(v); draw(); }, () => { clearTimeout(t); if (pend[flag]){ pend[flag] = false; draw(); } });
+  };
+  if (pend.wv) settle(extracts(LG+'.wikivoyage.org', c.n), 10000, 'wv', v => { eWvCache[c.n] = v; wv = v; renderEvents(c, my, v); });
+  settle(osmRoutes(c), 8000, 'osm', v => { osm = v || []; setTimeout(routesChanged, 0); });
+  settle(photosFrom(LG+'.wikivoyage.org', name), 8000, 'ph', v => { wph = v || []; });
 }
 
 let eDoPhotos = [];
