@@ -1285,11 +1285,15 @@ function vtApply(){
     try { vtGL.setFilter(id, parts.length > 1 ? parts : null); } catch(e){} });
   Object.keys(vtOrigS).forEach(id => { try { vtGL.setLayoutProperty(id, 'text-size', vtBig ? vtScale(vtOrigS[id], 1.35) : vtOrigS[id]); } catch(e){} });
 }
+let vtLast = '';
 function vtSync(e){
   if (!vtGL) return;
-  if (e && (e.type === 'resize' || e.type === 'viewreset')) vtGL.resize();
-  const c = emap.getCenter();
-  vtGL.jumpTo({ center:[c.lng, c.lat], zoom: emap.getZoom() - 1, bearing: CAN_ROT ? (360 - emap.getBearing()) % 360 : 0 });
+  if (e && (e.type === 'resize' || e.type === 'viewreset')){ vtGL.resize(); vtLast = ''; }
+  const c = emap.getCenter(), z = emap.getZoom() - 1, br = CAN_ROT ? (360 - emap.getBearing()) % 360 : 0;
+  const key = c.lat+','+c.lng+','+z+','+br;
+  if (key === vtLast) return;                         /* "move" e "zoom" arrivano insieme con gli stessi valori: una sola ridisegnata */
+  vtLast = key;
+  vtGL.jumpTo({ center:[c.lng, c.lat], zoom: z, bearing: br });
 }
 function loadJs(src){ return new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); }); }
 function vtLib(){
@@ -2921,21 +2925,36 @@ function eRenderHero(){
   $('eHW').innerHTML = d ? wmo(d.daily.weather_code[mapDay])[1]+' <b>'+Math.round(d.daily.temperature_2m_max[mapDay])+'°</b> '+Math.round(d.daily.temperature_2m_min[mapDay])+'°' : esc(PROV[eCity.p]||'');
 }
 let eCitySrc = '';   /* 'search' o 'tap' = città scelta da te; altrimenti vale la posizione GPS */
+let selTok = 0;
 function eSelectCity(c, opts){
   opts = opts || {};
   const same = eCity && eCity.n === c.n && eCity.lat === c.lat;
   if (opts.src) eCitySrc = opts.src; else if (!same) eCitySrc = 'auto';
   eCity = c;
   if (!same) $('eStart').hidden = true;
-  if (!same){ if (opts.src === 'search' || opts.src === 'tap'){ eKeepCity = true; setTimeout(cityVisible, 400); }   /* città appena scelta: deve restare visibile */
-    if (!(opts && opts.noArea)){ clearRoutes(); eRouteStarts.clearLayers(); }   /* spostando la mappa il percorso resta */
-    const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
-    openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
-  if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
-  if (opts.zoom) emap.flyTo([c.lat, c.lon], 15);
-  eRefreshWx(); eRenderHero();
-  if (!mapData[c.n]) fetchMissing([c]);
-  sheetSync();
+  const tok = ++selTok;
+  /* il lavoro "pesante" (caricare meteo, foto, monumenti, ridisegnare i segnaposto) */
+  const heavy = () => {
+    if (tok !== selTok) return;                       /* nel frattempo ho scelto un'altra città */
+    if (!same){ if (!opts.zoom && (opts.src === 'search' || opts.src === 'tap')){ eKeepCity = true; setTimeout(cityVisible, 400); }   /* città appena scelta: deve restare visibile */
+      if (!(opts && opts.noArea)){ clearRoutes(); eRouteStarts.clearLayers(); }   /* spostando la mappa il percorso resta */
+      const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
+      openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
+    if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
+    eRefreshWx(); eRenderHero();
+    if (!mapData[c.n]) fetchMissing([c]);
+    sheetSync();
+  };
+  if (opts.zoom){
+    /* Prima parte il volo della mappa, senza altro lavoro in parallelo: il lavoro pesante parte quando il volo finisce
+       (o dopo 2,8 s al massimo). Così l'animazione resta fluida invece di andare a scatti. */
+    eRenderHero();                                    /* subito il nome e il meteo: costano poco */
+    let done = false; const go = () => { if (done) return; done = true; heavy(); };
+    const ctr = emap.getCenter(), far = km(ctr.lat, ctr.lng, c.lat, c.lon) > 250;
+    emap.once('moveend', go); setTimeout(go, 2800);
+    if (far) emap.setView([c.lat, c.lon], 15, { animate:false });               /* troppo lontano: niente volo, un salto pulito */
+    else emap.flyTo([c.lat, c.lon], 15, { duration: 1.6 });
+  } else heavy();
 }
 /* Un punto fuori dai centri abitati diventa un luogo a sé ("Vicino a Marsala"):
    meteo, mare, foto e monumenti di quel punto preciso, curiosità e consigli della città più vicina. */

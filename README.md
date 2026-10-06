@@ -166,3 +166,4 @@ Scheda "Cosa fare": i percorsi (consigli di Claude con tappe e sentieri segnati)
 libero) e manda "[Meteo e viaggio: città e meteo]" con il meteo della città giorno per giorno (cielo, temperature, pioggia, vento,
 UV), l'ora per ora del primo giorno, il meteo delle città vicine, i luoghi notevoli e le preferenze, chiedendo consigli scelti in
 base al meteo e alle preferenze, cercati su internet. Da vicino resta la richiesta di aggiungere punti e curiosità.
+Scelta di una città (ricerca, fumetto, tabella): il volo della mappa parte da solo e il lavoro pesante (meteo, foto, monumenti, segnaposto) parte a volo finito, o dopo 2,8 s al massimo; sotto ai 250 km di distanza volo di 1,6 s, oltre un salto netto; la mappa vettoriale si ridisegna una volta sola per fotogramma.
