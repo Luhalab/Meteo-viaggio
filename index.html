@@ -338,6 +338,7 @@ body.gm .gchips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-w
 body.poi-on .c-dot{display:none}
 .sg-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(22,33,28,.6);transform:translate(-50%,-50%);cursor:pointer}
 .sg-dot.cu{background:var(--brick)}
+.sg-dot.st{background:#6b4fa0}
 .sg-big{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-9px);cursor:pointer;opacity:.95}
 .sg-big span{width:17px;height:17px;border-radius:50%;background:#b98f3e;color:#fff;font-size:10px;line-height:17px;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .sg-big b{margin-top:1px;font:600 10.5px var(--sans);color:#6b5520;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
@@ -1860,6 +1861,12 @@ async function drawSights(){
         html: big ? '<div class="sg-big"><span>★</span><b>'+esc(x.n)+'</b></div>' : '<div class="sg-dot" title="'+esc(x.n)+'"></div>' }), zIndexOffset: big ? 400 : -400 })
       .on('click', () => sightCard(x)).addTo(eSights);
   });
+  if (fltOn('storie') && z >= 9.5){
+    const all = await customAll(), ok = customPrecise(all);
+    all.filter(p => p.kind === 'curiosita' && ok(p) && b.contains([p.lat, p.lon])).slice(0, 40).forEach(p =>
+      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-dot st" title="'+esc(p.title)+'"></div>' }), zIndexOffset:-320 })
+        .on('click', () => sightCard({ n: p.title, lat: p.lat, lon: p.lon, extract: p.extract, claude: true })).addTo(eSights));
+  }
   if (fltOn('claude') && z >= 9.5){
     (await customAll()).filter(p => !p.kind && p.lat != null && b.contains([p.lat, p.lon])).slice(0, 60).forEach(p =>
       L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-dot cu" title="'+esc(p.title)+'"></div>' }), zIndexOffset:-300 })
@@ -2138,8 +2145,13 @@ async function loadArea(lat, lon, radius, retry){
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
 const FLT_ALL = ['mon','sights','claude','storie','foto','percorsi'];
-let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
-const fltOn = k => eFlt[k] !== false;
+/* due serie di filtri: in modalità meteo (da lontano) monumenti, luoghi di Claude e curiosità sono spenti di default
+   (restano i luoghi imperdibili ★ e i consigli della richiesta di zona); in modalità città sono tutti accesi. Ognuna ricorda le tue scelte. */
+const FLT_DEF = { near: Object.fromEntries(FLT_ALL.map(k => [k, true])), far: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { mon:false, claude:false, storie:false }) };
+const FLT_SAVED = store.get('mapFilters2', {}) || {};
+let eFlt = { near: Object.assign({}, FLT_DEF.near, FLT_SAVED.near), far: Object.assign({}, FLT_DEF.far, FLT_SAVED.far) };
+const fltMode = () => eNear ? 'near' : 'far';
+const fltOn = k => eFlt[fltMode()][k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 function fltPanel(){
@@ -2153,7 +2165,8 @@ function fltPanel(){
         return '<div class="ztr"><span><b>'+esc(p.title)+'</b><small>'+esc([t, st ? st.length+' tappe' : ''].filter(Boolean).join(' · '))+'</small></span><button data-zshow="'+i+'" aria-label="Mostra sulla mappa">🗺️</button>'+
           (st ? '<button data-zr="'+i+'" class="zsw'+(on ? ' on' : '')+'" aria-label="Percorso"></button>' : '')+'<button data-zdel="'+i+'" aria-label="Togli">✕</button></div>'; }).join('')
     : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">In modalità meteo i percorsi non si vedono qui. Chiedi a Claude cosa fare in questa zona per vedere qui i suoi consigli; i percorsi di una città compaiono avvicinandoti.</div>');
-  $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
+  $('eFltP').innerHTML = '<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
+    (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
@@ -2209,7 +2222,7 @@ function panelClick(e){
   if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
-  eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
+  eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
   b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts(); drawSights();
 }
 $('eFltP').addEventListener('click', panelClick);
@@ -3059,7 +3072,7 @@ emap.on('zoomend moveend', () => {
   setETiles();
   if (near !== eNear){
     eNear = near; document.body.classList.toggle('e-near', near); renderGoBtn(); sheetSync(); if (!$('eFltP').hidden) fltPanel();
-    if (near){ emap.addLayer(eArt); emap.removeLayer(eSea); emap.removeLayer(eJelly); }
+    if (near){ emap.addLayer(eArt); emap.removeLayer(eSea); emap.removeLayer(eJelly); drawArt(); }
     else { emap.removeLayer(eArt); if (!nav) $('eCard').classList.remove('show'); $('eRefetch').classList.remove('show');
            if (eLayerMode==='sea'){ eSea.addTo(emap); eJelly.addTo(emap); } }
     $('eSeg').style.display = (!near && REG && REG.mare) ? '' : 'none';

@@ -172,3 +172,7 @@ Modalità meteo e percorsi: nel pannello Filtri, in modalità meteo (da lontano)
 una città) l'app segna quali consigli esistono già (localStorage "zoneAsk"); i consigli "da-fare" nuovi che arrivano dopo nella zona
 chiesta (entro il raggio della richiesta) diventano "consigli della tua richiesta" ("zoneFound", per 14 giorni): in modalità meteo si vedono
 con 💡 e il nome, nei Filtri c'è l'elenco con 🗺️, interruttore del percorso (senza cambiare zoom) e ✕ per toglierli.
+Filtri separati per modalità: in vista meteo (da lontano) monumenti, luoghi aggiunti da Claude e curiosità sono spenti di default
+(restano i luoghi imperdibili ★ e i consigli della richiesta di zona); in vista città sono tutti accesi. Le due serie ricordano le
+scelte in modo indipendente (localStorage "mapFilters2"). In vista meteo non c'è l'elenco dei percorsi: compaiono solo i consigli
+(e i percorsi) nati dalla richiesta "Cosa fare in questa zona", con 💡 sulla mappa e nei Filtri.
