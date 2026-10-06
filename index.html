@@ -708,7 +708,7 @@ function getPos(){
   posChiesta = new Promise(res => {
     if (!navigator.geolocation) return res(null);
     navigator.geolocation.getCurrentPosition(
-      p => res(userPos = {lat:p.coords.latitude, lon:p.coords.longitude}),
+      p => { if (!userPos) userPos = { lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy, coarse:true }; res(userPos); },
       () => res(null),
       {timeout:8000, maximumAge:300000, enableHighAccuracy:false});
   });
@@ -3272,19 +3272,73 @@ async function shareToClaude(text, file){
 function freshPos(){
   return new Promise(res => {
     if (!navigator.geolocation) return res(null);
-    navigator.geolocation.getCurrentPosition(p => res(userPos = {lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}), () => res(null),
-      {timeout:9000, maximumAge:30000, enableHighAccuracy:true});
+    if (watchId != null && userPos && !userPos.coarse && Date.now() - lastGpsAt < 8000 && (userPos.acc || 999) <= 60) return res(userPos);   /* già aggiornata e precisa */
+    navigator.geolocation.getCurrentPosition(p => { gpsFeed(p.coords, p.timestamp, true); res(userPos); }, () => res(userPos && !userPos.coarse ? userPos : null),
+      {timeout:9000, maximumAge:5000, enableHighAccuracy:true});
   });
 }
 /* ---------- la tua posizione: si aggiorna mentre ti muovi, con la direzione in cui guardi ---------- */
 let watchId = null, tracking = false, follow = false, meMk = null, meAcc = null;
 let heading = null, gpsHeadAt = 0, compassOn = false, headRaf = 0;
+/* ---------- filtro del GPS: posizione stabile ----------
+   Ogni fix passa da un filtro di Kalman semplificato: i fix imprecisi pesano poco, quelli molto peggiori di quello attuale si
+   scartano, un salto improvviso si accetta solo se confermato da altri fix. Da fermo il puntino non "balla"; camminando o
+   guidando segue senza ritardo (il filtro si fida di più dei fix quando la velocità è alta). */
+const GPS = { lat:0, lon:0, v:-1, t:0, jumps:0, firstAt:0 };
+let lastGpsAt = 0, lastGpsRestart = 0;
+function gpsPublish(){ userPos = { lat: GPS.lat, lon: GPS.lon, acc: Math.max(5, Math.round(Math.sqrt(GPS.v))), t: Date.now() }; return true; }
+function gpsReset(c, acc, now){ GPS.lat = c.latitude; GPS.lon = c.longitude; GPS.v = acc * acc; GPS.t = now; GPS.jumps = 0; GPS.firstAt = 0; return gpsPublish(); }
+function gpsFeed(c, ts, force){
+  const acc = Math.max(c.accuracy || 50, 5), now = ts || Date.now(), sp = c.speed > 0 ? c.speed : 0;
+  lastGpsAt = Date.now();
+  if (force || GPS.v < 0){
+    /* primo fix: se è molto impreciso aspetto qualche secondo un fix migliore */
+    if (!force && acc > 150){ if (!GPS.firstAt) GPS.firstAt = now; if (now - GPS.firstAt < 6000) return false; }
+    return gpsReset(c, acc, now);
+  }
+  if (now <= GPS.t) return false;                                   /* fix vecchio o ripetuto */
+  const dt = Math.min((now - GPS.t) / 1000, 60), cur = Math.sqrt(GPS.v);
+  if (acc > Math.max(100, cur * 3) && dt < 30) return false;        /* molto peggiore dell'attuale: lo ignoro */
+  const d = km(GPS.lat, GPS.lon, c.latitude, c.longitude) * 1000;
+  if (d > 50 * dt + acc + cur && acc > 15){                          /* salto improvviso e poco preciso: serve conferma */
+    if (++GPS.jumps < 3) return false;
+    return gpsReset(c, acc, now);
+  }
+  GPS.jumps = 0;
+  GPS.v += dt * Math.pow(Math.max(3, sp * 1.2), 2);                 /* quanto può essersi mosso nel frattempo */
+  const K = GPS.v / (GPS.v + acc * acc);
+  GPS.lat += K * (c.latitude - GPS.lat); GPS.lon += K * (c.longitude - GPS.lon);
+  GPS.v = (1 - K) * GPS.v; GPS.t = now;
+  return gpsPublish();
+}
+let meShown = null, meTw = 0;
+/* sposto il puntino con un movimento morbido invece di farlo saltare */
+function meGo(){
+  if (!userPos || !meMk || !meShown){ drawEMe(); return; }
+  const from = meShown.slice(), to = [userPos.lat, userPos.lon];
+  meAcc.setRadius(Math.min(userPos.acc || 0, 300));
+  if (km(from[0], from[1], to[0], to[1]) * 1000 < 1) return;
+  cancelAnimationFrame(meTw);
+  const t0 = performance.now();
+  const step = t => { const k = Math.min(1, (t - t0) / 700), e = k * (2 - k);
+    meShown = [from[0] + (to[0] - from[0]) * e, from[1] + (to[1] - from[1]) * e];
+    meMk.setLatLng(meShown); meAcc.setLatLng(meShown); if (k < 1) meTw = requestAnimationFrame(step); };
+  meTw = requestAnimationFrame(step);
+}
+/* in modalità "segui" la mappa si sposta solo se il puntino si è allontanato dal centro: niente micro-movimenti */
+function followMe(){
+  if (!userPos) return;
+  const p = emap.latLngToContainerPoint([userPos.lat, userPos.lon]), sz = emap.getSize();
+  if (Math.hypot(p.x - sz.x / 2, p.y - sz.y / 2) < 10) return;
+  emap.panTo([userPos.lat, userPos.lon], { animate:true, duration:0.8, easeLinearity:0.5 });
+}
 const ME_HTML = '<div class="me"><svg class="me-cone" viewBox="0 0 72 72" aria-hidden="true"><defs><radialGradient id="meg" cx="36" cy="36" r="34" gradientUnits="userSpaceOnUse">'+
   '<stop offset="0" stop-color="#2470b8" stop-opacity=".6"/><stop offset="1" stop-color="#2470b8" stop-opacity="0"/></radialGradient></defs>'+
   '<path d="M36 36 L19 6.6 A34 34 0 0 1 53 6.6 Z" fill="url(#meg)"/></svg><div class="me-dot"></div></div>';
 function drawEMe(){
-  if (!userPos){ eMe.clearLayers(); meMk = meAcc = null; return; }
-  const ll = [userPos.lat, userPos.lon];
+  if (!userPos){ eMe.clearLayers(); meMk = meAcc = null; meShown = null; return; }
+  cancelAnimationFrame(meTw);
+  const ll = [userPos.lat, userPos.lon]; meShown = ll;
   if (!meMk){
     meAcc = L.circle(ll, { radius: 0, color:'#2470b8', weight:1, opacity:.3, fillColor:'#2470b8', fillOpacity:.07, interactive:false }).addTo(eMe);
     meMk = L.marker(ll, { icon: L.divIcon({className:'', html: ME_HTML, iconSize:[0,0]}), interactive:false, keyboard:false, zIndexOffset:-500 }).addTo(eMe);
@@ -3299,7 +3353,9 @@ function applyHeading(){
   w.classList.add('hd'); w.querySelector('.me-cone').style.transform = 'rotate('+(heading + mapRot())+'deg)';
 }
 function setHeading(h){
-  heading = (h + 360) % 360;
+  h = ((h % 360) + 360) % 360;
+  if (heading == null) heading = h;
+  else heading = (heading + (((h - heading + 540) % 360) - 180) * 0.25 + 360) % 360;      /* media mobile: si muove di un quarto della differenza */
   if (!headRaf) headRaf = requestAnimationFrame(() => { headRaf = 0;
     if (headUp && CAN_ROT){ const cur = emap.getBearing(), want = (360 - heading) % 360;
       if (Math.abs(((want - cur + 540) % 360) - 180) > 2) emap.setBearing(want); }   /* sotto i 2° non giro: niente tremolio */
@@ -3350,19 +3406,30 @@ function gpsAuto(){
 }
 function startTracking(){
   if (!navigator.geolocation || watchId != null) return;
+  lastGpsRestart = Date.now();
   watchId = navigator.geolocation.watchPosition(p => {
     const c = p.coords;
-    userPos = { lat: c.latitude, lon: c.longitude, acc: c.accuracy };
-    if (c.heading != null && !isNaN(c.heading) && (c.speed || 0) > 1){ gpsHeadAt = Date.now(); setHeading(c.heading); }
-    drawEMe();
+    if (!gpsFeed(c, p.timestamp)) return;
+    if (c.heading != null && !isNaN(c.heading) && (c.speed || 0) > 1.5){ gpsHeadAt = Date.now(); setHeading(c.heading); }
+    meGo();
     gpsAuto();
-    if (follow) emap.panTo([userPos.lat, userPos.lon], { animate: true });
-  }, () => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 });
+    if (follow) followMe();
+  }, err => {
+    if (err.code === 1) return;                       /* permesso negato: inutile riprovare */
+    stopTracking(); setTimeout(() => { if (tracking && !document.hidden) startTracking(); }, 3000);     /* segnale perso: riparto da solo */
+  }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
 }
+/* se per mezzo minuto non arriva nessun fix, riavvio il GPS (su alcuni telefoni il servizio si "addormenta") */
+setInterval(() => { if (tracking && !document.hidden && watchId != null && Date.now() - lastGpsAt > 30000 && Date.now() - lastGpsRestart > 30000){ stopTracking(); startTracking(); } }, 10000);
 function stopTracking(){ if (watchId != null){ navigator.geolocation.clearWatch(watchId); watchId = null; } }
 function setFollow(f){ follow = f; $('meBtn').classList.toggle('on', f); $('eLoc').classList.toggle('on', f); }
 /* per non consumare batteria: fermo il GPS quando l'app non è in primo piano */
-document.addEventListener('visibilitychange', () => { if (document.hidden) stopTracking(); else if (tracking) startTracking(); });
+let gpsHiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){ gpsHiddenAt = Date.now(); stopTracking(); }
+  else { if (Date.now() - gpsHiddenAt > 60000){ GPS.v = -1; GPS.firstAt = 0; }      /* dopo una lunga pausa riparto da zero: niente salti dal vecchio punto */
+    if (tracking) startTracking(); }
+});
 emap.on('dragstart', () => { setFollow(false); if (headUp) setHeadUp(false); });
 /* se il permesso c'è già, la posizione si muove da sola fin dall'apertura */
 if (navigator.permissions && navigator.permissions.query)

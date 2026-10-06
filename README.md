@@ -162,3 +162,8 @@ con un tocco. Con una città scelta mostrano solo i consigli di quella città (s
 vicina entro 12 km; i consigli del momento anche entro 12 km dal centro), ognuno con 📍 la sua città; senza città scelta sono
 raggruppati per città. Campo facoltativo "citta" in custom-points.json per indicare la città a mano. Lo stesso criterio vale
 per "I miei percorsi" in zona.
+GPS stabile: ogni fix passa da un filtro di Kalman semplificato (fix imprecisi pesano poco; fix molto peggiori di quello
+attuale o con timestamp vecchio scartati; un salto improvviso e poco preciso accettato solo dopo 3 fix coerenti; primo fix
+molto impreciso: attesa fino a 6 s). Il puntino si sposta con un movimento morbido (700 ms), in modalità "segui" la mappa si
+muove solo se il puntino si allontana dal centro, la direzione ha una media mobile. Se per 30 s non arriva nessun fix, o dopo
+un errore di segnale, il GPS riparte da solo; dopo oltre un minuto in background il filtro riparte da zero.
