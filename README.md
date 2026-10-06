@@ -157,3 +157,8 @@ Shopping: categoria dal tipo OSM, dalla classe della mappa vettoriale o dal nome
 Consigli di Claude in due tipi: "del momento" (💡, da "Cosa fare in questa zona": campi "temporaneo": true e
 "valido_fino": "AAAA-MM-GG"; spariscono da soli dopo quella data, filtro e elenco propri, icona gialla da vicino)
 e "che restano" (verdi, si eliminano a mano). La richiesta per zona chiede a Claude di salvarli già come temporanei.
+Filtri più ordinati: gli elenchi dei consigli (del momento e che restano) sono chiusi di default (▸ N consigli a …) e si aprono
+con un tocco. Con una città scelta mostrano solo i consigli di quella città (stesso comune; fuori dagli abitati la città grande più
+vicina entro 12 km; i consigli del momento anche entro 12 km dal centro), ognuno con 📍 la sua città; senza città scelta sono
+raggruppati per città. Campo facoltativo "citta" in custom-points.json per indicare la città a mano. Lo stesso criterio vale
+per "I miei percorsi" in zona.
