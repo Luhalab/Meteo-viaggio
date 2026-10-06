@@ -289,6 +289,7 @@ body.e-near .ectl .nr{display:flex}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
+.c-dot.tip{background:#2f7d4f}
 .gone{display:none!important}
 /* menu della pressione prolungata e indicazioni */
 .lpm{position:absolute;z-index:990;width:220px;background:var(--card);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.28);padding:4px;overflow:hidden}
@@ -340,6 +341,16 @@ body.poi-on .c-dot{display:none}
 .zask[hidden]{display:none}
 .zask button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:20px;background:var(--acc-soft);color:var(--acc);font:600 14px var(--sans);padding:10px 12px;cursor:pointer}
 .zask svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.eflt .tipr{display:flex;align-items:center;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
+.eflt .tipr span{flex:1;min-width:0;font:500 14px var(--sans)}
+.eflt .tipr span b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.eflt .tipr small{display:block;color:var(--tx2);font-size:12px}
+.eflt .tipr button{flex:none;width:38px;height:38px;min-height:0;border:1px solid var(--line);border-radius:10px;padding:0;justify-content:center;font-size:16px}
+.ecard .tipdel{border:1px solid #e3b5ad;background:none;color:#b4553f;border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
+.sg-tip{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-13px);cursor:pointer}
+.sg-tip span{width:24px;height:24px;border-radius:50%;background:#2f7d4f;color:#fff;font-size:13px;line-height:24px;text-align:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.sg-tip b{margin-top:2px;font:600 11px var(--sans);color:#1d5233;background:rgba(240,250,243,.94);border-radius:6px;padding:1px 5px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+body.poi-on .sg-tip{display:none}
 .cust .zl{font:600 13px var(--sans);color:var(--tx2);margin:12px 0 6px}
 .cust .zch{display:flex;flex-wrap:wrap;gap:6px}
 .cust .zch button{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:7px 12px;font:500 13.5px var(--sans);cursor:pointer}
@@ -1830,6 +1841,12 @@ async function drawSights(){
         html: big ? '<div class="sg-big"><span>★</span><b>'+esc(x.n)+'</b></div>' : '<div class="sg-dot" title="'+esc(x.n)+'"></div>' }), zIndexOffset: big ? 400 : -400 })
       .on('click', () => sightCard(x)).addTo(eSights);
   });
+  if (fltOn('consigli') && z >= 8.5){
+    const all = await customAll(), ok = customPrecise(all);
+    all.filter(p => p.kind === 'da-fare' && ok(p) && b.contains([p.lat, p.lon])).slice(0, 25).forEach(p =>
+      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-tip"><span>💡</span><b>'+esc(p.title.split(':')[0])+'</b></div>' }), zIndexOffset:500 })
+        .on('click', () => tipShow(p)).addTo(eSights));
+  }
   if (fltOn('claude') && z >= 9.5){
     (await customAll()).filter(p => !p.kind && p.lat != null && b.contains([p.lat, p.lon])).slice(0, 60).forEach(p =>
       L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-dot cu" title="'+esc(p.title)+'"></div>' }), zIndexOffset:-300 })
@@ -1981,7 +1998,15 @@ const WFS_LIG = { base:'https://geoservizi.regione.liguria.it/geoserver/M2343/wf
 /* punti e curiosità scritti a mano (custom-points.json): li aggiunge Claude quando glielo chiedi */
 let customCache = null;
 let customAt = 0, customLoading = null;
+/* consigli eliminati dall'utente: restano nel file comune ma su questo telefono non si vedono più */
+const tipKey = p => (p.title || '')+'|'+(+p.lat).toFixed(4)+','+(+p.lon).toFixed(4);
+let hiddenTips = new Set(store.get('hiddenTips', []));
+function hideTip(p){ hiddenTips.add(tipKey(p)); store.set('hiddenTips', [...hiddenTips]); }
 async function customAll(){
+  const all = await customAllRaw();
+  return hiddenTips.size ? all.filter(p => p.kind !== 'da-fare' || !hiddenTips.has(tipKey(p))) : all;
+}
+async function customAllRaw(){
   /* riletto ogni minuto: così i punti che Claude aggiunge mentre l'app è aperta arrivano da soli */
   if (customCache && Date.now() - customAt < 60000) return customCache;
   if (!customLoading) customLoading = (async () => {
@@ -2059,7 +2084,7 @@ async function loadArea(lat, lon, radius, retry){
     .then(render)));
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','claude','storie','foto','percorsi'];
+const FLT_ALL = ['mon','claude','storie','consigli','foto','percorsi'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
@@ -2072,12 +2097,45 @@ function fltPanel(){
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
-    row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
+    row('storie', 'Curiosità di Claude', dot('#6b4fa0'))+
+    row('consigli', 'Consigli di Claude (cosa fare)', dot('#2f7d4f'))+
+    tipsSection()+
     '<div class="fh">Percorsi in zona</div>'+
     (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
         (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
       : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
+}
+/* consigli di Claude vicini alla zona che guardi (entro 40 km dal centro della mappa) */
+let tipsCache = [];
+function tipsSection(){
+  const c = emap.getCenter();
+  const L1 = (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && km(c.lat, c.lng, p.lat, p.lon) <= 40)
+    .sort((a, b) => km(c.lat, c.lng, a.lat, a.lon) - km(c.lat, c.lng, b.lat, b.lon)).slice(0, 15);
+  tipsCache = L1;
+  if (!L1.length) return '';
+  return '<div class="fh">Consigli di Claude in zona</div>'+L1.map((p, i) => { const t = (placeAt(p.lat, p.lon) || {}).n || '';
+    return '<div class="tipr"><span><b>'+esc(p.title)+'</b><small>'+esc(t.replace(/^Vicino a /, ''))+(p.stops && p.stops.length ? ' · '+p.stops.length+' tappe' : '')+'</small></span>'+
+      '<button data-tshow="'+i+'" aria-label="Mostra sulla mappa">🗺️</button><button data-tdel="'+i+'" aria-label="Elimina il consiglio">🗑️</button></div>'; }).join('');
+}
+function tipShow(p){
+  setFltP(false);
+  emap.flyTo([p.lat, p.lon], Math.max(emap.getZoom(), 15));
+  const st = p.stops && p.stops.filter(x => x.lat != null).length >= 2 ? p.stops : null;
+  showCard('<div class="ch"><span class="meta"><span class="tag-cu">Consiglio di Claude</span></span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.title)+'</h3>'+
+    '<p>'+esc(p.extract || '')+'</p>'+(st ? '<button class="rt-btn" id="eTipRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
+    '<div class="guide">'+srcLinks(p, eCity || placeAt(p.lat, p.lon) || {n:''})+'</div>'+
+    '<div class="acts"><button id="eTipDel" class="tipdel">Elimina questo consiglio</button></div>');
+  if (st) $('eTipRt').onclick = () => showRoute(st, $('eTipRt'), false, { id:'tip|'+tipKey(p), title:p.title });
+  $('eTipDel').onclick = () => tipDelete(p);
+}
+function tipDelete(p){
+  if (!confirm('Eliminare il consiglio «'+p.title+'»? Non lo vedrai più in questa app.')) return;
+  hideTip(p); $('eCard').classList.remove('show');
+  eItems = eItems.filter(o => !(o.kind === 'da-fare' && tipKey(o) === tipKey(p))); drawArt(); drawSights();
+  if (!$('eFltP').hidden) fltPanel();
+  if (eCity) eLoadDo(eCity.virt ? Object.assign({}, eCity.ref, { lat: eCity.lat, lon: eCity.lon }) : eCity, eCityReq);
+  wkFlash('Consiglio eliminato');
 }
 function bgPanel(){
   const noIc = tileBase === 'clean' || (tileBase === 'vector' && Object.values(vtFlt).every(v => !v));
@@ -2116,13 +2174,15 @@ function panelClick(e){
   const del = e.target.closest('[data-del]');
   if (del){ if (confirm('Eliminare questo percorso?')){ const id = del.dataset.del; store.set('myRoutes', myRoutes().filter(r => r.id !== id));
     const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } fltPanel(); } return; }
+  const ts = e.target.closest('[data-tshow]'); if (ts){ const p = tipsCache[+ts.dataset.tshow]; if (p) tipShow(p); return; }
+  const td = e.target.closest('[data-tdel]'); if (td){ const p = tipsCache[+td.dataset.tdel]; if (p) tipDelete(p); return; }
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
   if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts();
+  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts(); drawSights();
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);
@@ -2142,7 +2202,7 @@ function sameName(a, b){
 }
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
-  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
+  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind === 'da-fare' ? 'consigli' : it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
     .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
   const G = [];
   vis.forEach(i => { const it = eItems[i];
@@ -2156,7 +2216,7 @@ function drawArt(){
   eGroups = buildGroups();
   eGroups.forEach(g => {
     const its = g.items.map(j => eItems[j]), place = its.filter(o => !o.kind), story = its.some(o => o.kind) && fltOn('storie');
-    const cls = !place.length ? ' st' : place.some(o => o.source === 'custom') ? ' cu' : '';
+    const cls = !place.length ? (its.every(o => o.kind === 'da-fare') ? ' tip' : ' st') : place.some(o => o.source === 'custom') ? ' cu' : '';
     const sel = g.items.includes(eSel);
     L.marker([g.lat, g.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
         html:'<div class="c-dot'+cls+(place.length && story ? ' hs' : '')+(sel ? ' sel' : '')+'"></div>' }), zIndexOffset: sel ? 900 : 0 })
@@ -2186,6 +2246,7 @@ function eShowItem(i, fly){
     (rs ? '<button class="rt-btn" id="eCardRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
     '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button>'+links.map(o => '<a href="'+esc(o.url)+'" target="_blank" rel="noopener">'+SRC_LABEL[o.source]+'</a>').join('')+'</div>');
   if (rs) $('eCardRt').onclick = () => showRoute(rs, $('eCardRt'), false);
+  if (it.kind === 'da-fare'){ const a = $('eCard').querySelector('.acts'); const bt = document.createElement('button'); bt.className = 'tipdel'; bt.textContent = 'Elimina questo consiglio'; bt.onclick = () => tipDelete(it); a.appendChild(bt); }
   $('eAsk').onclick = () => shareToClaude(msgPlace(it));
   /* per Wikipedia carico l'introduzione completa, non solo le prime righe */
   if (it.source === 'wikipedia' && it.lang) wikiSummary(it.lang, it.title).then(s => {
