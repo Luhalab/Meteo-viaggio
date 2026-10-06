@@ -149,6 +149,16 @@ body.vt-on #emap.leaflet-container{background:#f2efe9}
 .hr .t{font-size:15px;font-weight:600}
 .hr .p{font-size:11px;color:var(--acc);margin-top:2px}
 .hr .m{font-size:11px;color:var(--tx2)}
+.wd{display:inline-flex;align-items:center;gap:1px;white-space:nowrap;font-size:11px;line-height:1.2;color:var(--tx2);border-radius:999px}
+.wd .wa{font-style:normal;display:inline-block;font-size:10px;margin-right:1px}
+.wd.w0{opacity:.75}
+.wd.w1{color:var(--tx);font-weight:500}
+.wd.w2{color:var(--tx);font-weight:700;background:rgba(127,140,150,.22);padding:1px 5px}
+.wd.w3{color:#fff;font-weight:700;background:#3a4650;padding:1px 5px}
+.wkt .wv{margin-top:2px}
+.hr.now .wd{color:#fff;opacity:1}
+.hr.now .wd.w2{background:rgba(255,255,255,.22)}
+.hr.now .wd.w3{background:rgba(255,255,255,.4)}
 .item{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
 .item:last-child{border-bottom:none}
 .item .e{font-size:20px;width:26px;text-align:center}
@@ -808,7 +818,17 @@ async function openMeteoNet(qs){
 }
 
 /* ================= MAPPA ================= */
-const MAP_DV = ['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum'];
+const MAP_DV = ['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','wind_speed_10m_max','wind_direction_10m_dominant'];
+/* Vento: niente colori (sono già usati per le temperature). Si distingue per peso e "pastiglia":
+   sotto 20 km/h grigio chiaro, 20–29 più scuro, 30–44 pastiglia grigia in grassetto, da 45 pastiglia scura.
+   La freccia indica dove va il vento (la direzione da cui soffia è quella opposta). */
+function windTag(v, dir){
+  if (v == null) return '';
+  const k = Math.round(v), lv = k >= 45 ? 3 : k >= 30 ? 2 : k >= 20 ? 1 : 0;
+  const ar = dir == null ? '' : '<i class="wa" style="transform:rotate('+Math.round(dir)+'deg)">↓</i>';
+  return '<span class="wd w'+lv+'" title="Vento '+k+' km/h'+(dir == null ? '' : ' da '+windFrom(dir))+'">'+ar+k+' km/h</span>';
+}
+const windFrom = d => ['nord','nord-est','est','sud-est','sud','sud-ovest','ovest','nord-ovest'][Math.round(((d % 360) + 360) % 360 / 45) % 8];
 const mapData = {}, pending = new Set();
 const mapDay = 0;   /* giorno mostrato sulla mappa: oggi */
 /* Sfondo mappa. Ordine: CARTO se hai una chiave, altrimenti Esri (veloce e pulito),
@@ -965,7 +985,7 @@ document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg
 
 /* ================= SCHEDA CITTÀ ================= */
 const CITY_DV=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','precipitation_probability_max','wind_speed_10m_max','wind_direction_10m_dominant','uv_index_max'];
-const CITY_HV=['temperature_2m','apparent_temperature','precipitation_probability','precipitation','weather_code','wind_speed_10m'];
+const CITY_HV=['temperature_2m','apparent_temperature','precipitation_probability','precipitation','weather_code','wind_speed_10m','wind_direction_10m'];
 const CITY_CV=['temperature_2m','relative_humidity_2m','apparent_temperature','weather_code','wind_speed_10m','wind_direction_10m','pressure_msl'];
 const cityCache={}, wikiCache={};
 let city=null, cw=null, selDay=0, reqId=0, pendingDay=null;
@@ -1142,7 +1162,7 @@ function renderTodo(){
       '<div class="i">'+wmo(H.weather_code[i])[1]+'</div>'+
       '<div class="t"'+(cls?'':' style="color:'+tcol(t)+'"')+'>'+(t==null?'–':Math.round(t))+'°</div>'+
       '<div class="p">'+(mm>=0.1?'💧'+mm.toFixed(1)+' mm':(pp!=null?pp+'%':'&nbsp;'))+'</div>'+
-      '<div class="m">💨 '+Math.round(H.wind_speed_10m[i]||0)+'</div></div>';
+      '<div class="m">'+windTag(H.wind_speed_10m[i]||0, H.wind_direction_10m ? H.wind_direction_10m[i] : null)+'</div></div>';
   }).join('')+'</div>';
   if (oggi) setTimeout(centerNow, 50);
 }
@@ -1497,7 +1517,8 @@ function eRenderWeek(){
     if (!d){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
     d.time.slice(0, wkDays).forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
       h += '<td data-i="'+i+'" class="'+(sdOn(c) && i === selDay ? 'sd' : '')+'"><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
-           '<div class="tn">'+(tn==null?'':Math.round(tn)+'°')+'</div>'+(r>=0.5?'<div class="rr">'+(r<10?r.toFixed(1):Math.round(r))+' mm</div>':'')+'</td>'; });
+           '<div class="tn">'+(tn==null?'':Math.round(tn)+'°')+'</div>'+(r>=0.5?'<div class="rr">'+(r<10?r.toFixed(1):Math.round(r))+' mm</div>':'')+
+           (d.daily.wind_speed_10m_max ? '<div class="wv">'+windTag(d.daily.wind_speed_10m_max[i], d.daily.wind_direction_10m_dominant ? d.daily.wind_direction_10m_dominant[i] : null)+'</div>' : '')+'</td>'; });
     h += '</tr>';
   });
   $('eWeekT').innerHTML = h+'</tbody></table>';
