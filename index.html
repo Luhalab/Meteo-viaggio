@@ -358,6 +358,8 @@ body.poi-on .sg-tip{display:none}
 .cust textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px;font:14px var(--sans);background:var(--card);color:var(--tx);resize:vertical}
 .sg-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(22,33,28,.6);transform:translate(-50%,-50%);cursor:pointer}
 .sg-dot.cu{background:var(--brick)}
+.sg-dot.tp{background:#2f7d4f}
+.c-dot.tipt{background:#e0a800}
 .sg-big{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-9px);cursor:pointer;opacity:.95}
 .sg-big span{width:17px;height:17px;border-radius:50%;background:#b98f3e;color:#fff;font-size:10px;line-height:17px;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .sg-big b{margin-top:1px;font:600 10.5px var(--sans);color:#6b5520;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
@@ -1841,10 +1843,10 @@ async function drawSights(){
         html: big ? '<div class="sg-big"><span>★</span><b>'+esc(x.n)+'</b></div>' : '<div class="sg-dot" title="'+esc(x.n)+'"></div>' }), zIndexOffset: big ? 400 : -400 })
       .on('click', () => sightCard(x)).addTo(eSights);
   });
-  if (fltOn('consigli') && z >= 8.5){
+  {
     const all = await customAll(), ok = customPrecise(all);
-    all.filter(p => p.kind === 'da-fare' && ok(p) && b.contains([p.lat, p.lon])).slice(0, 25).forEach(p =>
-      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-tip"><span>💡</span><b>'+esc(p.title.split(':')[0])+'</b></div>' }), zIndexOffset:500 })
+    all.filter(p => p.kind === 'da-fare' && (isTempTip(p) ? fltOn('oggi') : fltOn('consigli') && z >= 9.5) && (isTempTip(p) || ok(p)) && b.contains([p.lat, p.lon])).slice(0, 30).forEach(p =>
+      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html: isTempTip(p) ? '<div class="sg-tip"><span>💡</span><b>'+esc(p.title.split(':')[0])+'</b></div>' : '<div class="sg-dot tp" title="'+esc(p.title)+'"></div>' }), zIndexOffset: isTempTip(p) ? 500 : -350 })
         .on('click', () => tipShow(p)).addTo(eSights));
   }
   if (fltOn('claude') && z >= 9.5){
@@ -2000,11 +2002,16 @@ let customCache = null;
 let customAt = 0, customLoading = null;
 /* consigli eliminati dall'utente: restano nel file comune ma su questo telefono non si vedono più */
 const tipKey = p => (p.title || '')+'|'+(+p.lat).toFixed(4)+','+(+p.lon).toFixed(4);
+/* consiglio "del momento" (da "Cosa fare in questa zona"): ha "valido_fino"; il giorno dopo sparisce da solo */
+function todayISO(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const isTempTip = p => p.kind === 'da-fare' && !!(p.temporaneo || p.valido_fino);
+const tipExpired = p => isTempTip(p) && p.valido_fino && p.valido_fino < todayISO();
+const tipUntil = p => p.valido_fino ? (p.valido_fino === todayISO() ? 'solo oggi' : 'fino a '+new Date(p.valido_fino+'T12:00:00').toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short' })) : '';
 let hiddenTips = new Set(store.get('hiddenTips', []));
 function hideTip(p){ hiddenTips.add(tipKey(p)); store.set('hiddenTips', [...hiddenTips]); }
 async function customAll(){
   const all = await customAllRaw();
-  return hiddenTips.size ? all.filter(p => p.kind !== 'da-fare' || !hiddenTips.has(tipKey(p))) : all;
+  return all.filter(p => p.kind !== 'da-fare' || (!hiddenTips.has(tipKey(p)) && !tipExpired(p)));
 }
 async function customAllRaw(){
   /* riletto ogni minuto: così i punti che Claude aggiunge mentre l'app è aperta arrivano da soli */
@@ -2037,7 +2044,7 @@ function customPrecise(all){
 async function fetchCustomPoints(lat, lon, radius){
   const all = await customAll(), ok = customPrecise(all);
   return all.filter(p => ok(p) && p.kind !== 'evento').map(p => ({
-    title: p.title, extract: p.extract || '', thumb: p.thumb || null, lat: p.lat, lon: p.lon, kind: p.kind || null, stops: p.stops || null,
+    title: p.title, extract: p.extract || '', thumb: p.thumb || null, lat: p.lat, lon: p.lon, kind: p.kind || null, stops: p.stops || null, temporaneo: p.temporaneo, valido_fino: p.valido_fino, fonti: p.fonti,
     dist: haversine(lat, lon, p.lat, p.lon), url: p.url || null, source: 'custom' })).filter(p => p.dist <= radius);
 }
 
@@ -2084,7 +2091,7 @@ async function loadArea(lat, lon, radius, retry){
     .then(render)));
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','sights','claude','storie','consigli','foto','percorsi'];
+const FLT_ALL = ['mon','sights','claude','storie','oggi','consigli','foto','percorsi'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
@@ -2099,8 +2106,10 @@ function fltPanel(){
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità di Claude', dot('#6b4fa0'))+
-    row('consigli', 'Consigli di Claude (cosa fare)', dot('#2f7d4f'))+
-    tipsSection()+
+    row('oggi', 'Consigli del momento (💡, spariscono da soli)', d('#c99700', '<span style="font-size:12px;line-height:1">💡</span>'))+
+    tipsSection(true)+
+    row('consigli', 'Consigli di Claude (restano, li elimini tu)', dot('#2f7d4f'))+
+    tipsSection(false)+
     '<div class="fh">Percorsi in zona</div>'+
     (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
@@ -2109,21 +2118,25 @@ function fltPanel(){
 }
 /* consigli di Claude vicini alla zona che guardi (entro 40 km dal centro della mappa) */
 let tipsCache = [];
-function tipsSection(){
+let tipsCacheT = [];
+function tipsSection(temp){
   const c = emap.getCenter();
-  const L1 = (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && km(c.lat, c.lng, p.lat, p.lon) <= 40)
+  const L1 = (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && !tipExpired(p) && isTempTip(p) === temp &&
+      (temp || km(c.lat, c.lng, p.lat, p.lon) <= 40))
     .sort((a, b) => km(c.lat, c.lng, a.lat, a.lon) - km(c.lat, c.lng, b.lat, b.lon)).slice(0, 15);
-  tipsCache = L1;
+  if (temp) tipsCacheT = L1; else tipsCache = L1;
   if (!L1.length) return '';
-  return '<div class="fh">Consigli di Claude in zona</div>'+L1.map((p, i) => { const t = (placeAt(p.lat, p.lon) || {}).n || '';
-    return '<div class="tipr"><span><b>'+esc(p.title)+'</b><small>'+esc(t.replace(/^Vicino a /, ''))+(p.stops && p.stops.length ? ' · '+p.stops.length+' tappe' : '')+'</small></span>'+
-      '<button data-tshow="'+i+'" aria-label="Mostra sulla mappa">🗺️</button><button data-tdel="'+i+'" aria-label="Elimina il consiglio">🗑️</button></div>'; }).join('');
+  const pre = temp ? 'T' : '';
+  return L1.map((p, i) => { const t = (placeAt(p.lat, p.lon) || {}).n || '';
+    return '<div class="tipr"><span><b>'+esc(p.title)+'</b><small>'+esc([t.replace(/^Vicino a /, ''), p.stops && p.stops.length ? p.stops.length+' tappe' : '', temp ? tipUntil(p) : ''].filter(Boolean).join(' · '))+'</small></span>'+
+      '<button data-tshow="'+pre+i+'" aria-label="Mostra sulla mappa">🗺️</button><button data-tdel="'+pre+i+'" aria-label="Elimina il consiglio">🗑️</button></div>'; }).join('');
 }
+const tipFromRef = r => r[0] === 'T' ? tipsCacheT[+r.slice(1)] : tipsCache[+r];
 function tipShow(p){
   setFltP(false);
   emap.flyTo([p.lat, p.lon], Math.max(emap.getZoom(), 15));
   const st = p.stops && p.stops.filter(x => x.lat != null).length >= 2 ? p.stops : null;
-  showCard('<div class="ch"><span class="meta"><span class="tag-cu">Consiglio di Claude</span></span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.title)+'</h3>'+
+  showCard('<div class="ch"><span class="meta"><span class="tag-cu">'+(isTempTip(p) ? '💡 Consiglio del momento' : 'Consiglio di Claude')+'</span>'+(isTempTip(p) && tipUntil(p) ? ' · '+esc(tipUntil(p)) : '')+'</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.title)+'</h3>'+
     '<p>'+esc(p.extract || '')+'</p>'+(st ? '<button class="rt-btn" id="eTipRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
     '<div class="guide">'+srcLinks(p, eCity || placeAt(p.lat, p.lon) || {n:''})+'</div>'+
     '<div class="acts"><button id="eTipDel" class="tipdel">Elimina questo consiglio</button></div>');
@@ -2175,8 +2188,8 @@ function panelClick(e){
   const del = e.target.closest('[data-del]');
   if (del){ if (confirm('Eliminare questo percorso?')){ const id = del.dataset.del; store.set('myRoutes', myRoutes().filter(r => r.id !== id));
     const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } fltPanel(); } return; }
-  const ts = e.target.closest('[data-tshow]'); if (ts){ const p = tipsCache[+ts.dataset.tshow]; if (p) tipShow(p); return; }
-  const td = e.target.closest('[data-tdel]'); if (td){ const p = tipsCache[+td.dataset.tdel]; if (p) tipDelete(p); return; }
+  const ts = e.target.closest('[data-tshow]'); if (ts){ const p = tipFromRef(ts.dataset.tshow); if (p) tipShow(p); return; }
+  const td = e.target.closest('[data-tdel]'); if (td){ const p = tipFromRef(td.dataset.tdel); if (p) tipDelete(p); return; }
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
   if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
@@ -2203,7 +2216,7 @@ function sameName(a, b){
 }
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
-  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind === 'da-fare' ? 'consigli' : it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
+  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind === 'da-fare' ? (isTempTip(it) ? 'oggi' : 'consigli') : it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
     .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
   const G = [];
   vis.forEach(i => { const it = eItems[i];
@@ -2217,7 +2230,7 @@ function drawArt(){
   eGroups = buildGroups();
   eGroups.forEach(g => {
     const its = g.items.map(j => eItems[j]), place = its.filter(o => !o.kind), story = its.some(o => o.kind) && fltOn('storie');
-    const cls = !place.length ? (its.every(o => o.kind === 'da-fare') ? ' tip' : ' st') : place.some(o => o.source === 'custom') ? ' cu' : '';
+    const cls = !place.length ? (its.every(o => o.kind === 'da-fare') ? (its.some(isTempTip) ? ' tipt' : ' tip') : ' st') : place.some(o => o.source === 'custom') ? ' cu' : '';
     const sel = g.items.includes(eSel);
     L.marker([g.lat, g.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
         html:'<div class="c-dot'+cls+(place.length && story ? ' hs' : '')+(sel ? ' sel' : '')+'"></div>' }), zIndexOffset: sel ? 900 : 0 })
@@ -3151,6 +3164,7 @@ $('eZone').addEventListener('click', e => {
   const p = e.target.closest('[data-p]'); if (p){ const v = p.dataset.p; zonePref.has(v) ? zonePref.delete(v) : zonePref.add(v); store.set('zonePref', [...zonePref]); zoneDialog(); }
 });
 $('eZoneGo').onclick = () => { store.set('zoneTxt', $('eZoneTxt').value); $('eZone').hidden = true; shareToClaude(msgZone()); };
+function zoneEnd(){ const d = new Date(); d.setDate(d.getDate() + zoneDays()[1]); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function zoneDays(){
   const w = ZONE_WHEN.find(x => x[0] === zoneWhen), d = new Date(); d.setHours(0,0,0,0);
   let start = w[2]; if (start < 0){ start = (6 - d.getDay() + 7) % 7; }      /* prossimo sabato (oggi se è sabato) */
@@ -3179,7 +3193,8 @@ function msgZone(){
     '2. Non premiare le città solo perché sono grandi o hanno tante cose: valuta quanto vale la pena con quel meteo e per le mie preferenze. Va bene anche un borgo piccolo.\n'+
     '3. Cerca su internet, non solo su Wikipedia: siti turistici ufficiali, guide di viaggio, pagine di riserve e musei (orari e aperture), recensioni recenti.\n'+
     '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore della giornata, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
-    '5. Se un consiglio riguarda un posto preciso che non è ancora nell\'app, aggiungilo a custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare" con coordinate verificate e fonti.';
+    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare" con "temporaneo": true e "valido_fino": "'+zoneEnd()+'" '+
+    '(sono consigli legati a questo meteo: l\'app li toglie da sola dopo quella data), coordinate verificate del posto, "stops" se è un itinerario e "fonti".';
 }
 function msgCity(c){
   return '[Meteo e viaggio: città] '+c.n+' (centro '+coords(c)+'). Non sono necessariamente lì: non serve la mia posizione.\nFai tutto subito, senza chiedermi conferma.\n'+
