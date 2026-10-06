@@ -151,3 +151,4 @@ delle città visibili (tempo, temperature, pioggia, vento) e la richiesta di con
 internet, senza premiare le città solo perché grandi.
 Shopping: chip "Shopping" con sottofiltri (Abbigliamento, Scarpe, Sport, Souvenir e artigianato, Gioielli, Prodotti
 tipici, Altri negozi), dalle tile vettoriali; supermercati e simili esclusi.
+Luoghi notevoli nella vista meteo (da zoom 8,5): da Wikidata, misurati dal numero di Wikipedia che ne parlano (non dalla grandezza della città); da 20 lingue in su icona ★ con il nome sempre visibile, gli altri come puntini da zoom 10; anche i luoghi di Claude come puntini rosso mattone. Scheda con descrizione, Avvicinati e Wikipedia. Salvati sul telefono per 7 giorni; inclusi nella richiesta 'Cosa fare in questa zona'.
