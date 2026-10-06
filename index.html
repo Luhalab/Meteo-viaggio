@@ -666,8 +666,8 @@ footer a{color:var(--tx2)}
       <div id="eMyRL"></div>
       <div class="acts"><button id="eMyRDel">Elimina selezionati</button><button id="eMyRAll">Elimina tutti</button></div>
       <div class="acts" style="margin-top:8px"><button class="pr" id="eMyROk">Chiudi</button></div></div></div>
-    <div class="cust" id="eZone" hidden role="dialog" aria-label="Cosa fare in questa zona"><div class="sh"><h3>Cosa fare in questa zona</h3>
-      <p class="m">Claude guarda il meteo delle città sulla mappa e cerca su internet (siti turistici, guide, recensioni) i posti più adatti, senza premiare per forza le città grandi.</p>
+    <div class="cust" id="eZone" hidden role="dialog" aria-label="Cosa fare in questa zona"><div class="sh"><h3 id="eZoneT">Cosa fare in questa zona</h3>
+      <p class="m" id="eZoneP">Claude guarda il meteo delle città sulla mappa e cerca su internet (siti turistici, guide, recensioni) i posti più adatti, senza premiare per forza le città grandi.</p>
       <div class="zl">Quando</div><div class="zch" id="eZoneWhen"></div>
       <div class="zl">Cosa ti interessa</div><div class="zch" id="eZonePref"></div>
       <div class="zl">Altre preferenze <span class="muted">(facoltativo)</span></div>
@@ -2844,12 +2844,14 @@ function renderAskBtn(){ renderAskBtn0(); if (document.body.classList.contains('
 function renderAskBtn0(){
   if (eCity && eCity.virt){ const v = eCity;
     $('eAskCityT').textContent = 'Chiedi a Claude di aggiungere punti e curiosità qui intorno';
-    $('eAskCity').onclick = () => shareToClaude(msgHere({lat: v.lat, lon: v.lon})); return; }
+    $('eAskCity').onclick = () => !eNear ? zoneOpen(v) : shareToClaude(msgHere({lat: v.lat, lon: v.lon})); return; }
   const cityMode = eCity && (eCitySrc === 'search' || eCitySrc === 'tap');
   $('eAskCityT').textContent = cityMode ? 'Chiedi a Claude di aggiungere punti e curiosità di '+eCity.n
                                         : 'Chiedi a Claude di aggiungere punti e curiosità qui intorno';
-  const c0 = eCity;
-  $('eAskCity').onclick = cityMode ? () => askCityClaude(c0) : askHereClaude;
+  const c0 = eCity, old = cityMode ? () => askCityClaude(c0) : askHereClaude;
+  /* in modalità meteo (da lontano) con una città scelta: consigli in base al meteo e alle mie preferenze;
+     da vicino: come prima (aggiungere punti e curiosità) */
+  $('eAskCity').onclick = () => (eCity && !eNear) ? zoneOpen(eCity) : old();
 }
 /* senza città cercata: usa la posizione GPS */
 async function askHereClaude(){
@@ -3109,14 +3111,24 @@ function zoneDialog(){
   $('eZoneWhen').innerHTML = ZONE_WHEN.map(w => '<button data-w="'+w[0]+'" class="'+(zoneWhen === w[0] ? 'on' : '')+'">'+w[1]+'</button>').join('');
   $('eZonePref').innerHTML = ZONE_PREF.map(p => '<button data-p="'+esc(p)+'" class="'+(zonePref.has(p) ? 'on' : '')+'">'+esc(p)+'</button>').join('');
 }
-$('eZoneAskB').onclick = () => { zoneDialog(); $('eZoneTxt').value = store.get('zoneTxt', ''); $('eZone').hidden = false; };
+let zoneCity = null;
+/* city = null: la zona che vedi sulla mappa; city = una città scelta: consigli per quella città e i suoi dintorni, in base al suo meteo */
+function zoneOpen(city){
+  zoneCity = city;
+  const nm = city ? (city.virt ? 'questa zona' : city.n) : '';
+  $('eZoneT').textContent = city ? 'Cosa fare a '+nm : 'Cosa fare in questa zona';
+  $('eZoneP').textContent = city ? 'Claude guarda il meteo di '+nm+' e dei dintorni e cerca su internet (siti turistici, guide, recensioni) cosa conviene fare, senza premiare per forza le città grandi.'
+    : 'Claude guarda il meteo delle città sulla mappa e cerca su internet (siti turistici, guide, recensioni) i posti più adatti, senza premiare per forza le città grandi.';
+  zoneDialog(); $('eZoneTxt').value = store.get('zoneTxt', ''); $('eZone').hidden = false;
+}
+$('eZoneAskB').onclick = () => zoneOpen(null);
 $('eZoneNo').onclick = () => { $('eZone').hidden = true; };
 $('eZone').addEventListener('click', e => {
   if (e.target === $('eZone')){ $('eZone').hidden = true; return; }
   const w = e.target.closest('[data-w]'); if (w){ zoneWhen = w.dataset.w; zoneDialog(); return; }
   const p = e.target.closest('[data-p]'); if (p){ const v = p.dataset.p; zonePref.has(v) ? zonePref.delete(v) : zonePref.add(v); store.set('zonePref', [...zonePref]); zoneDialog(); }
 });
-$('eZoneGo').onclick = () => { store.set('zoneTxt', $('eZoneTxt').value); $('eZone').hidden = true; shareToClaude(msgZone()); };
+$('eZoneGo').onclick = () => { store.set('zoneTxt', $('eZoneTxt').value); $('eZone').hidden = true; shareToClaude(zoneCity ? msgCityWx(zoneCity) : msgZone()); };
 function zoneDays(){
   const w = ZONE_WHEN.find(x => x[0] === zoneWhen), d = new Date(); d.setHours(0,0,0,0);
   let start = w[2]; if (start < 0){ start = (6 - d.getDay() + 7) % 7; }      /* prossimo sabato (oggi se è sabato) */
@@ -3147,6 +3159,53 @@ function msgZone(){
     '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore della giornata, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
     '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare", come faresti se ti chiedessi cosa fare in quella città: '+
     'coordinate verificate del posto, il campo "citta" con la città di riferimento, "stops" se è un itinerario e "fonti". Restano nell\'app finché non li elimino io.';
+}
+/* testo del meteo di un giorno (per i messaggi a Claude) */
+function dayWxText(D, T, i, label){
+  const g = k => D[k] ? D[k][i] : null;
+  const pp = g('precipitation_probability_max'), uv = g('uv_index_max');
+  return (label || dayLabel(T[i], i)).toLowerCase()+': '+wmo(g('weather_code'))[0].toLowerCase()+', '+Math.round(g('temperature_2m_max'))+'°/'+Math.round(g('temperature_2m_min'))+'°'+
+    ((g('precipitation_sum') || 0) >= 0.5 ? ', pioggia '+g('precipitation_sum').toFixed(1)+' mm' : ', niente pioggia')+(pp != null ? ' (probabilità '+Math.round(pp)+'%)' : '')+
+    (g('wind_speed_10m_max') != null ? ', vento '+Math.round(g('wind_speed_10m_max'))+' km/h'+(g('wind_direction_10m_dominant') != null ? ' da '+windFrom(g('wind_direction_10m_dominant')) : '') : '')+
+    (uv != null ? ', UV '+Math.round(uv) : '');
+}
+function msgCityWx(c){
+  const [d0, d1] = zoneDays(), base = c.ref || c, txt = $('eZoneTxt').value.trim();
+  const when = ZONE_WHEN.find(x => x[0] === zoneWhen)[1].toLowerCase();
+  /* meteo della città: quello dettagliato se è già caricato, altrimenti quello della mappa */
+  const own = (typeof city !== 'undefined' && city && city.n === c.n && cw) ? { D: cw.daily, T: cw.time } : (mapData[c.n] ? { D: mapData[c.n].daily, T: mapData[c.n].time } : null);
+  let days = '';
+  if (own) for (let i = d0; i <= d1 && i < own.T.length; i++) days += '- '+dayWxText(own.D, own.T, i)+'\n';
+  /* ora per ora del primo giorno (se il meteo dettagliato è caricato): serve a scegliere il momento giusto */
+  let hours = '';
+  if (cw && city && city.n === c.n && cw.hourly){
+    const H = cw.hourly, day = cw.time[d0];
+    const hh = cw.htime.map((t, i) => [t, i]).filter(x => x[0].startsWith(day) && +x[0].slice(11, 13) >= 8 && +x[0].slice(11, 13) <= 22 && +x[0].slice(11, 13) % 2 === 0).map(x => x[1]);
+    hours = hh.map(i => cw.htime[i].slice(11, 13)+'h '+Math.round(H.temperature_2m[i])+'° '+wmo(H.weather_code[i])[0].toLowerCase()+
+      (H.precipitation_probability[i] != null ? ' pioggia '+Math.round(H.precipitation_probability[i])+'%' : '')+' vento '+Math.round(H.wind_speed_10m[i] || 0)).join('; ');
+  }
+  /* dintorni: le città vicine con il loro meteo, per confrontare dove conviene andare */
+  const near = eVisible.filter(x => x.n !== c.n && mapData[x.n] && km(c.lat, c.lon, x.lat, x.lon) <= 30)
+    .sort((a, b) => km(c.lat, c.lon, a.lat, a.lon) - km(c.lat, c.lon, b.lat, b.lon)).slice(0, 8);
+  const nearTxt = near.map(x => { const D = mapData[x.n].daily, T = mapData[x.n].time, parts = [];
+    for (let i = d0; i <= Math.min(d1, d0 + 2) && i < T.length; i++) parts.push(dayWxText(D, T, i));
+    return '- '+x.n+' (a '+Math.round(km(c.lat, c.lon, x.lat, x.lon))+' km): '+parts.join('; '); }).join('\n');
+  const sg = sightList.filter(x => km(c.lat, c.lon, x.lat, x.lon) <= 25).slice(0, 15).map(x => x.n+(x.links >= SIGHT_BIG ? ' (molto noto)' : '')).join(', ');
+  const nm = base.n;
+  return '[Meteo e viaggio: città e meteo] Cosa fare '+when+' a '+nm+' e nei dintorni (centro '+coords(c)+').\n'+
+    'Fai tutto subito, senza chiedermi conferma. Non sono necessariamente lì.\n\n'+
+    'Meteo previsto a '+nm+':\n'+(days || '(dati meteo non ancora caricati)')+'\n'+
+    (hours ? '\nOra per ora ('+dayLabel(cw.time[d0], d0).toLowerCase()+'): '+hours+'\n' : '')+
+    (nearTxt ? '\nMeteo nei dintorni (per confrontare):\n'+nearTxt+'\n' : '')+
+    (sg ? '\nLuoghi notevoli nei dintorni (da Wikidata, per farti un\'idea, non solo questi): '+sg+'.\n' : '')+
+    '\nLe mie preferenze: '+(zonePref.size ? [...zonePref].join(', ') : 'nessuna in particolare')+(txt ? '. '+txt : '')+'.\n\n'+
+    'Cosa ti chiedo:\n'+
+    '1. Consigliami 3-5 cose da fare a '+nm+' e nei dintorni (entro circa mezz\'ora) per '+when+', in ordine di preferenza, scegliendo in base al METEO e alle mie preferenze '+
+    '(es. sole e vento debole: mare, calette, riserve, passeggiate; pioggia o vento forte: musei, chiese, mercati coperti, ristoranti, shopping al coperto). Dimmi anche a che ora conviene andare, guardando il meteo ora per ora.\n'+
+    '2. Non premiare un posto solo perché è grande o ha tante cose: conta quanto vale la pena con questo meteo e per le mie preferenze. Va bene anche un borgo piccolo vicino.\n'+
+    '3. Cerca su internet, non solo su Wikipedia: siti turistici ufficiali, guide di viaggio, orari di riserve e musei, recensioni recenti.\n'+
+    '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
+    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare": coordinate verificate del posto, il campo "citta" con "'+nm+'" (o la città di riferimento), "stops" se è un itinerario e "fonti". Restano nell\'app finché non li elimino io.';
 }
 function msgCity(c){
   return '[Meteo e viaggio: città] '+c.n+' (centro '+coords(c)+'). Non sono necessariamente lì: non serve la mia posizione.\nFai tutto subito, senza chiedermi conferma.\n'+

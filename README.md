@@ -162,3 +162,7 @@ cercati su internet, senza premiare le città solo perché grandi. I consigli ve
 Scheda "Cosa fare": si disegna subito con i consigli di Claude (già sul telefono); guida Wikivoyage, sentieri OSM e foto si aggiungono man mano, ognuno con un tempo massimo (8-10 s) e un indicatore finché arrivano; la richiesta degli eventi a Wikidata si fa una volta sola per città.
 Modalità "segui" (GPS): si ferma quando ti sposti altrove con la ricerca, Esplora, i tasti zoom o qualsiasi spostamento verso un punto a più di 150 m da te; il tasto posizione la riattiva.
 Scheda "Cosa fare": i percorsi (consigli di Claude con tappe e sentieri segnati) sono raggruppati in un'unica voce "Percorsi (N)", con ogni percorso come sotto-voce; gli altri consigli restano voci singole.
+"Chiedi a Claude" in modalità meteo (da lontano) con una città scelta: apre la finestra delle preferenze (quando, interessi, testo
+libero) e manda "[Meteo e viaggio: città e meteo]" con il meteo della città giorno per giorno (cielo, temperature, pioggia, vento,
+UV), l'ora per ora del primo giorno, il meteo delle città vicine, i luoghi notevoli e le preferenze, chiedendo consigli scelti in
+base al meteo e alle preferenze, cercati su internet. Da vicino resta la richiesta di aggiungere punti e curiosità.
