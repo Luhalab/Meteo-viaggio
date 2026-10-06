@@ -175,3 +175,7 @@ Consigli di Claude unificati: tutti i "da-fare" sono uguali (anche quelli nati d
 scadenza, un solo interruttore nei Filtri, restano finché non si eliminano; da lontano compaiono con 💡 e il nome, da vicino
 nella scheda "Cosa fare" della città e, se hanno le tappe, nei Percorsi. Appartengono a una città se cadono nel suo comune
 o entro 12 km (6 km per le città piccole). I campi "temporaneo" e "valido_fino" non sono più usati.
+Percorsi di nuovo dentro il pannello Filtri (sezione "Percorsi a <città>", un interruttore per percorso; il numero dei
+percorsi accesi sta sul bottone Filtri). L'elenco si costruisce dai dati dei consigli di Claude con almeno 2 tappe (almeno una
+con coordinate: le altre le cerca l'app quando accendi il percorso), più i sentieri segnati OSM e "I miei percorsi": non dipende
+più dal caricamento della scheda "Cosa fare". Stesso stato acceso/spento nei Filtri e nella scheda "Cosa fare".
