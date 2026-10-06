@@ -1857,10 +1857,10 @@ async function drawSights(){
         html: big ? '<div class="sg-big"><span>★</span><b>'+esc(x.n)+'</b></div>' : '<div class="sg-dot" title="'+esc(x.n)+'"></div>' }), zIndexOffset: big ? 400 : -400 })
       .on('click', () => sightCard(x)).addTo(eSights);
   });
-  {
+  if (fltOn('consigli') && z >= 8.5){
     const all = await customAll(), ok = customPrecise(all);
-    all.filter(p => p.kind === 'da-fare' && (isTempTip(p) ? fltOn('oggi') : fltOn('consigli') && z >= 9.5) && (isTempTip(p) || ok(p)) && b.contains([p.lat, p.lon])).slice(0, 30).forEach(p =>
-      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html: isTempTip(p) ? '<div class="sg-tip"><span>💡</span><b>'+esc(p.title.split(':')[0])+'</b></div>' : '<div class="sg-dot tp" title="'+esc(p.title)+'"></div>' }), zIndexOffset: isTempTip(p) ? 500 : -350 })
+    all.filter(p => p.kind === 'da-fare' && ok(p) && b.contains([p.lat, p.lon])).slice(0, 30).forEach(p =>
+      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-tip"><span>💡</span><b>'+esc(p.title.split(':')[0])+'</b></div>' }), zIndexOffset:500 })
         .on('click', () => tipShow(p)).addTo(eSights));
   }
   if (fltOn('claude') && z >= 9.5){
@@ -2016,16 +2016,12 @@ let customCache = null;
 let customAt = 0, customLoading = null;
 /* consigli eliminati dall'utente: restano nel file comune ma su questo telefono non si vedono più */
 const tipKey = p => (p.title || '')+'|'+(+p.lat).toFixed(4)+','+(+p.lon).toFixed(4);
-/* consiglio "del momento" (da "Cosa fare in questa zona"): ha "valido_fino"; il giorno dopo sparisce da solo */
-function todayISO(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-const isTempTip = p => p.kind === 'da-fare' && !!(p.temporaneo || p.valido_fino);
-const tipExpired = p => isTempTip(p) && p.valido_fino && p.valido_fino < todayISO();
-const tipUntil = p => p.valido_fino ? (p.valido_fino === todayISO() ? 'solo oggi' : 'fino a '+new Date(p.valido_fino+'T12:00:00').toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short' })) : '';
+/* i consigli (anche quelli nati da "Cosa fare in questa zona") sono tutti uguali: non scadono e restano finché non li elimini tu */
 let hiddenTips = new Set(store.get('hiddenTips', []));
 function hideTip(p){ hiddenTips.add(tipKey(p)); store.set('hiddenTips', [...hiddenTips]); }
 async function customAll(){
   const all = await customAllRaw();
-  return all.filter(p => p.kind !== 'da-fare' || (!hiddenTips.has(tipKey(p)) && !tipExpired(p)));
+  return all.filter(p => p.kind !== 'da-fare' || !hiddenTips.has(tipKey(p)));
 }
 async function customAllRaw(){
   /* riletto ogni minuto: così i punti che Claude aggiunge mentre l'app è aperta arrivano da soli */
@@ -2105,7 +2101,7 @@ async function loadArea(lat, lon, radius, retry){
     .then(render)));
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','sights','claude','storie','oggi','consigli','foto','percorsi'];
+const FLT_ALL = ['mon','sights','claude','storie','consigli','foto','percorsi'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
@@ -2114,14 +2110,13 @@ function fltPanel(){
   const row = (k, label, dot, sub) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+'<span class="lb">'+esc(label)+(sub ? '<small>'+esc(sub)+'</small>' : '')+'</span></span><i></i></button>';
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
   const dot = c => d(c, '<span class="dt" style="background:'+c+'"></span>');
-  const n = tipsList(true).length + tipsList(false).length;
+  const n = tipsList().length;
   $('eFltP').innerHTML = '<div class="fh">Cosa mostrare sulla mappa</div>'+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('sights', 'Luoghi imperdibili', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'), 'visibili da lontano')+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità di Claude', dot('#6b4fa0'))+
-    row('oggi', 'Consigli del momento', d('#c99700', '<span style="font-size:12px;line-height:1">💡</span>'), 'spariscono da soli')+
-    row('consigli', 'Consigli che restano', dot('#2f7d4f'), 'li elimini tu')+
+    row('consigli', 'Consigli di Claude (cosa fare)', d('#2f7d4f', '<span style="font-size:12px;line-height:1">💡</span>'), 'anche quelli di "Cosa fare in questa zona"')+
     (n ? '<button data-tips="1" class="act"><span>Vedi o elimina i consigli ('+n+')</span></button>' : '')+
     '<button data-gort="1" class="act"><span>🧭 Percorsi '+(eCity ? 'a '+esc(eCity.virt ? 'questa zona' : eCity.n) : 'nella zona')+' ('+routesHere().length+') →</span></button>';
 }
@@ -2143,7 +2138,7 @@ function rtPanel(){
 }
 /* consigli di Claude vicini alla zona che guardi (entro 40 km dal centro della mappa) */
 let tipsCache = [];
-let tipsCacheT = [], tipsOpen = { T:false, P:false };
+
 /* città di un consiglio: campo "citta" se c'è; altrimenti il comune in cui cade; fuori dagli abitati, la città grande più vicina (entro 12 km)
    (così Mondello è "Palermo" e non "Isola delle Femmine") o, in mancanza, il comune più vicino */
 const tipTownMemo = new Map();      /* il calcolo scorre tutti i comuni: lo faccio una volta sola per punto */
@@ -2162,33 +2157,33 @@ function tipTown0(p){
 }
 const selCity = () => eCity ? (eCity.virt ? eCity.ref : eCity) : null;
 /* un consiglio / percorso è "di questa città" se sta entro il raggio della città scelta; senza città scelta, se è nella zona visibile */
-function inHere(p, temp){
-  const city = selCity();
-  /* con una città scelta: solo ciò che appartiene a lei (stesso comune, o fuori dagli abitati la città grande più vicina);
-     se la "città" è un punto fuori dai centri, anche ciò che sta entro 3 km da quel punto */
-  if (city) return tipTown(p) === city.n || (eCity && eCity.virt && km(eCity.lat, eCity.lon, p.lat, p.lon) <= 3) ||
-    (temp && km(city.lat, city.lon, p.lat, p.lon) <= Math.max(12, townKm(city) * 1.5));      /* i consigli del momento riguardano tutta la zona intorno */
+/* un consiglio appartiene a una città se cade nel suo comune (o è la città grande più vicina) oppure nei dintorni:
+   fino a 12 km per le città grandi, 6 km per le piccole */
+const zoneKm = c => townKm(c) >= 5 ? 12 : 6;
+function tipBelongs(p, c){ const city = c.ref || c; return tipTown(p) === city.n || km(c.lat, c.lon, p.lat, p.lon) <= zoneKm(city); }
+function inHere(p){
+  if (eCity) return tipBelongs(p, eCity);
   return emap.getBounds().pad(0.2).contains([p.lat, p.lon]);
 }
-function tipsList(temp){
+function tipsList(){
   const c = emap.getCenter(), city = selCity();
-  return (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && !tipExpired(p) && isTempTip(p) === temp && inHere(p, temp))
+  return (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && inHere(p))
     .map(p => ({ p, town: tipTown(p), d: km(c.lat, c.lng, p.lat, p.lon) }))
-    .sort((a, b) => (city ? 0 : a.town.localeCompare(b.town)) || a.d - b.d).slice(0, 30);
+    .sort((a, b) => (city ? 0 : a.town.localeCompare(b.town)) || a.d - b.d).slice(0, 40);
 }
-function tipsRows(temp){
-  const L1 = tipsList(temp), city = selCity();
-  const arr = L1.map(x => x.p); if (temp) tipsCacheT = arr; else tipsCache = arr;
+function tipsRows(){
+  const L1 = tipsList(), city = selCity();
+  tipsCache = L1.map(x => x.p);
   let last = null;
   return L1.map((x, i) => { const p = x.p; let head = '';
     if (!city && x.town !== last){ head = '<div class="tipcity">📍 '+esc(x.town)+'</div>'; last = x.town; }
-    return head+'<div class="tipr"><span><b>'+esc(p.title)+'</b><small>'+esc([city ? '📍 '+x.town : '', p.stops && p.stops.length ? p.stops.length+' tappe' : '', temp ? tipUntil(p) : ''].filter(Boolean).join(' · '))+'</small></span>'+
-      '<button data-tshow="'+(temp ? 'T' : '')+i+'" aria-label="Mostra sulla mappa">🗺️</button><button data-tdel="'+(temp ? 'T' : '')+i+'" aria-label="Elimina il consiglio">🗑️</button></div>'; }).join('');
+    return head+'<div class="tipr"><span><b>'+esc(p.title)+'</b><small>'+esc([city ? '📍 '+x.town : '', p.stops && p.stops.length ? p.stops.length+' tappe' : ''].filter(Boolean).join(' · '))+'</small></span>'+
+      '<button data-tshow="'+i+'" aria-label="Mostra sulla mappa">🗺️</button><button data-tdel="'+i+'" aria-label="Elimina il consiglio">🗑️</button></div>'; }).join('');
 }
 function tipsDialog(){
-  const city = selCity(), T = tipsRows(true), P = tipsRows(false);
+  const city = selCity(), R = tipsRows();
   $('eTipsT').textContent = city ? 'Consigli a '+city.n : 'Consigli in questa zona';
-  $('eTipsL').innerHTML = (T ? '<div class="zl">💡 Del momento: spariscono da soli</div>'+T : '')+(P ? '<div class="zl">Che restano: li elimini tu</div>'+P : '') || '<p class="muted">Nessun consiglio per questa zona.</p>';
+  $('eTipsL').innerHTML = R || '<p class="muted">Nessun consiglio per questa zona.</p>';
 }
 function tipsOpenDialog(){ setFltP(false); tipsDialog(); $('eTipsD').hidden = false; }
 $('eTipsOk').onclick = () => { $('eTipsD').hidden = true; };
@@ -2197,12 +2192,12 @@ $('eTipsD').addEventListener('click', e => {
   const ts = e.target.closest('[data-tshow]'); if (ts){ const p = tipFromRef(ts.dataset.tshow); if (p){ $('eTipsD').hidden = true; tipShow(p); } return; }
   const td = e.target.closest('[data-tdel]'); if (td){ const p = tipFromRef(td.dataset.tdel); if (p) tipDelete(p); }
 });
-const tipFromRef = r => r[0] === 'T' ? tipsCacheT[+r.slice(1)] : tipsCache[+r];
+const tipFromRef = r => tipsCache[+r];
 function tipShow(p){
   setFltP(false);
   emap.flyTo([p.lat, p.lon], Math.max(emap.getZoom(), 15));
   const st = p.stops && p.stops.filter(x => x.lat != null).length >= 2 ? p.stops : null;
-  showCard('<div class="ch"><span class="meta"><span class="tag-cu">'+(isTempTip(p) ? '💡 Consiglio del momento' : 'Consiglio di Claude')+'</span>'+(isTempTip(p) && tipUntil(p) ? ' · '+esc(tipUntil(p)) : '')+'</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.title)+'</h3>'+
+  showCard('<div class="ch"><span class="meta"><span class="tag-cu">Consiglio di Claude</span></span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.title)+'</h3>'+
     '<p>'+esc(p.extract || '')+'</p>'+(st ? '<button class="rt-btn" id="eTipRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
     '<div class="guide">'+srcLinks(p, eCity || placeAt(p.lat, p.lon) || {n:''})+'</div>'+
     '<div class="acts"><button id="eTipDel" class="tipdel">Elimina questo consiglio</button></div>');
@@ -2287,7 +2282,7 @@ function sameName(a, b){
 }
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
-  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind === 'da-fare' ? (isTempTip(it) ? 'oggi' : 'consigli') : it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
+  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind === 'da-fare' ? 'consigli' : it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
     .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
   const G = [];
   vis.forEach(i => { const it = eItems[i];
@@ -2301,7 +2296,7 @@ function drawArt(){
   eGroups = buildGroups();
   eGroups.forEach(g => {
     const its = g.items.map(j => eItems[j]), place = its.filter(o => !o.kind), story = its.some(o => o.kind) && fltOn('storie');
-    const cls = !place.length ? (its.every(o => o.kind === 'da-fare') ? (its.some(isTempTip) ? ' tipt' : ' tip') : ' st') : place.some(o => o.source === 'custom') ? ' cu' : '';
+    const cls = !place.length ? (its.every(o => o.kind === 'da-fare') ? ' tip' : ' st') : place.some(o => o.source === 'custom') ? ' cu' : '';
     const sel = g.items.includes(eSel);
     L.marker([g.lat, g.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
         html:'<div class="c-dot'+cls+(place.length && story ? ' hs' : '')+(sel ? ' sel' : '')+'"></div>' }), zIndexOffset: sel ? 900 : 0 })
@@ -2659,7 +2654,7 @@ async function osmRoutes(c){
 }
 async function eLoadDo(c, my){
   const LG = (REG&&REG.wikiLang)||'it';
-  const mine = (await customAll()).filter(p => p.kind === 'da-fare' && p.lat != null && km(c.lat,c.lon,p.lat,p.lon) <= 8);
+  const mine = (await customAll()).filter(p => p.kind === 'da-fare' && p.lat != null && tipBelongs(p, c));
   const name = (c.ref || c).n;
   const [wv, osm, wph] = await Promise.all([
     eWvCache[c.n] !== undefined ? eWvCache[c.n] : extracts(LG+'.wikivoyage.org', c.n).catch(() => null),
@@ -3235,7 +3230,6 @@ $('eZone').addEventListener('click', e => {
   const p = e.target.closest('[data-p]'); if (p){ const v = p.dataset.p; zonePref.has(v) ? zonePref.delete(v) : zonePref.add(v); store.set('zonePref', [...zonePref]); zoneDialog(); }
 });
 $('eZoneGo').onclick = () => { store.set('zoneTxt', $('eZoneTxt').value); $('eZone').hidden = true; shareToClaude(msgZone()); };
-function zoneEnd(){ const d = new Date(); d.setDate(d.getDate() + zoneDays()[1]); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function zoneDays(){
   const w = ZONE_WHEN.find(x => x[0] === zoneWhen), d = new Date(); d.setHours(0,0,0,0);
   let start = w[2]; if (start < 0){ start = (6 - d.getDay() + 7) % 7; }      /* prossimo sabato (oggi se è sabato) */
@@ -3264,8 +3258,8 @@ function msgZone(){
     '2. Non premiare le città solo perché sono grandi o hanno tante cose: valuta quanto vale la pena con quel meteo e per le mie preferenze. Va bene anche un borgo piccolo.\n'+
     '3. Cerca su internet, non solo su Wikipedia: siti turistici ufficiali, guide di viaggio, pagine di riserve e musei (orari e aperture), recensioni recenti.\n'+
     '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore della giornata, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
-    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare" con "temporaneo": true e "valido_fino": "'+zoneEnd()+'" '+
-    '(sono consigli legati a questo meteo: l\'app li toglie da sola dopo quella data), coordinate verificate del posto, "stops" se è un itinerario e "fonti".';
+    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare", come faresti se ti chiedessi cosa fare in quella città: '+
+    'coordinate verificate del posto, il campo "citta" con la città di riferimento, "stops" se è un itinerario e "fonti". Restano nell\'app finché non li elimino io.';
 }
 function msgCity(c){
   return '[Meteo e viaggio: città] '+c.n+' (centro '+coords(c)+'). Non sono necessariamente lì: non serve la mia posizione.\nFai tutto subito, senza chiedermi conferma.\n'+

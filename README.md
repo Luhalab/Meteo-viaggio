@@ -171,3 +171,7 @@ Pannelli (colonna in alto a destra): Livelli (sfondo e mare), Filtri (solo inter
 "Vedi o elimina i consigli" che apre una finestra con i consigli della città, divisi in "del momento" e "che restano") e
 Percorsi (un solo elenco per la città scelta: consigli di Claude con tappe, Wikivoyage, sentieri segnati, i miei percorsi;
 un interruttore per ognuno, badge con il numero di percorsi accesi, "Nascondi tutti", "Gestisci i miei percorsi").
+Consigli di Claude unificati: tutti i "da-fare" sono uguali (anche quelli nati da "Cosa fare in questa zona"): nessuna
+scadenza, un solo interruttore nei Filtri, restano finché non si eliminano; da lontano compaiono con 💡 e il nome, da vicino
+nella scheda "Cosa fare" della città e, se hanno le tappe, nei Percorsi. Appartengono a una città se cadono nel suo comune
+o entro 12 km (6 km per le città piccole). I campi "temporaneo" e "valido_fino" non sono più usati.
