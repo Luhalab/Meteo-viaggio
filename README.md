@@ -160,3 +160,4 @@ visibili (tempo, temperature, pioggia, vento) e i luoghi notevoli della zona, ch
 cercati su internet, senza premiare le città solo perché grandi. I consigli vengono salvati come normali "da-fare" (con
 "citta", "stops", "fonti"), senza scadenza.
 Scheda "Cosa fare": si disegna subito con i consigli di Claude (già sul telefono); guida Wikivoyage, sentieri OSM e foto si aggiungono man mano, ognuno con un tempo massimo (8-10 s) e un indicatore finché arrivano; la richiesta degli eventi a Wikidata si fa una volta sola per città.
+Modalità "segui" (GPS): si ferma quando ti sposti altrove con la ricerca, Esplora, i tasti zoom o qualsiasi spostamento verso un punto a più di 150 m da te; il tasto posizione la riattiva.

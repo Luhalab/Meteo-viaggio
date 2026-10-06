@@ -3340,6 +3340,15 @@ document.addEventListener('visibilitychange', () => {
     if (tracking) startTracking(); }
 });
 emap.on('dragstart', () => { setFollow(false); if (headUp) setHeadUp(false); });
+/* Se mi sposto altrove con la ricerca, "Esplora", i tasti zoom Città/Meteo ecc., la modalità "segui" si ferma:
+   altrimenti il GPS riporterebbe la mappa sulla mia posizione ad ogni aggiornamento (come in Google Maps). */
+function leaveFollowIfAway(ll){
+  if (!follow || !userPos || !ll) return;
+  const la = Array.isArray(ll) ? ll[0] : ll.lat, lo = Array.isArray(ll) ? ll[1] : (ll.lng != null ? ll.lng : ll.lon);
+  if (la == null || lo == null) return;
+  if (km(la, lo, userPos.lat, userPos.lon) > 0.15){ setFollow(false); if (headUp) setHeadUp(false); }
+}
+['flyTo', 'setView'].forEach(fn => { const orig = emap[fn].bind(emap); emap[fn] = function(){ leaveFollowIfAway(arguments[0]); return orig.apply(null, arguments); }; });
 /* se il permesso c'è già, la posizione si muove da sola fin dall'apertura */
 if (navigator.permissions && navigator.permissions.query)
   navigator.permissions.query({ name: 'geolocation' }).then(r => { if (r.state === 'granted'){ tracking = true; startTracking(); startCompass(); } }).catch(() => {});
