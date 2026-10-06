@@ -2445,5 +2445,146 @@
         "url": "https://www.holidu.it/f/agriturismi-alcamo-italia"
       }
     ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Isola delle Femmine: spiaggia, mare cristallino e tramonto",
+    "lat": 38.198295,
+    "lon": 13.2473444,
+    "citta": "Isola delle Femmine",
+    "extract": "Borgo marinaro con spiaggia sabbiosa, acque turchesi ideali per il bagno. Oggi vento minimo (12 km/h): condizioni perfette per il mare. Snorkeling sugli scogli, passeggiata nel borgo e tramonto spettacolare sulla costa. Riserva LIPU sull'isolotto (visite luglio-ottobre, gratuito).",
+    "url": null,
+    "stops": [
+      {
+        "n": "Spiaggia di Isola delle Femmine",
+        "lat": 38.198295,
+        "lon": 13.2473444
+      },
+      {
+        "n": "Lungomare verso Torre di Dentro",
+        "lat": 38.1985,
+        "lon": 13.245
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Wikivoyage",
+        "url": "https://it.wikivoyage.org/wiki/Isola_delle_Femmine"
+      },
+      {
+        "t": "The Wom Travel",
+        "url": "https://travel.thewom.it/italia/sicilia/isola-delle-femmine.html"
+      },
+      {
+        "t": "Balarm.it",
+        "url": "https://www.balarm.it/news/di-tramonti-antiche-prigioni-e-leggende-l-isola-delle-femmine-e-un-posto-da-vedere-20910"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Selinunte + Marinella: templi greci e spiaggia sotto le rovine",
+    "lat": 37.5888104,
+    "lon": 12.8244584,
+    "citta": "Castelvetrano",
+    "extract": "Parco archeologico più grande d'Europa (270 ettari, 7 templi VI sec. a.C.). Aperto 9:00-18:00, €6 intero. Pomeriggio: spiaggia Marinella sotto l'acropoli con docce e bar. Parcheggio gratuito ampio. Mattina archeo, pomeriggio bagno: perfetto mix con meteo stabile (vento 22 km/h).",
+    "url": null,
+    "stops": [
+      {
+        "n": "Parco Archeologico di Selinunte",
+        "lat": 37.5888104,
+        "lon": 12.8244584
+      },
+      {
+        "n": "Spiaggia Marinella di Selinunte",
+        "lat": 37.584,
+        "lon": 12.8404
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Museionline",
+        "url": "https://www.museionline.info/sicilia-musei-monumenti/parco-archeologico-di-selinunte"
+      },
+      {
+        "t": "The Wom Travel",
+        "url": "https://travel.thewom.it/italia/sicilia/parco-archeologico-di-selinunte.html"
+      },
+      {
+        "t": "Wikivoyage",
+        "url": "https://it.wikivoyage.org/wiki/Selinunte"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Sciacca: porto peschereccio, città d'arte e cucina di mare",
+    "lat": 37.5068142,
+    "lon": 13.0819408,
+    "citta": "Sciacca",
+    "extract": "Porto attivo (terzo della Sicilia per tonnellaggio), cuore marinaro della città. Passeggiata da Piazza Scandaliato (panorama mare) al Porto: barche colorate, street art, pesca fresca. Pranzo pesce autentico: aranci, pasta alle sarde, caciucco. Meteo coperto e vento moderato (19 km/h) è ideale per esplorare la città piuttosto che il mare.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Porto di Sciacca",
+        "lat": 37.5068142,
+        "lon": 13.0819408
+      },
+      {
+        "n": "Piazza Scandaliato",
+        "lat": 37.509,
+        "lon": 13.085
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Wikivoyage",
+        "url": "https://it.wikivoyage.org/wiki/Sciacca"
+      },
+      {
+        "t": "The Wom Travel",
+        "url": "https://travel.thewom.it/italia/sicilia/cosa-vedere-sciacca.html"
+      },
+      {
+        "t": "Sluurpy (Ristoranti)",
+        "url": "https://www.sluurpy.it/sciacca"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Scopello: borgo medievale, tonnara storica e faraglioni",
+    "lat": 38.0703537,
+    "lon": 12.8181605,
+    "citta": "Castellammare del Golfo",
+    "extract": "Piccolo borgo (200 ab.) arroccato su calette protette con faraglioni di 300m. Tonnara restaurata (sec. XVI-XX) aperta 10:30-19:00 (biglietto €8 include museo). Arrivare mattina presto, parcheggio sterrato 200m (-5€), strade strette. Bagno in calette riparate dal vento (30 km/h esterno). Pranzo nel borgo con vista mare.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Borgo di Scopello",
+        "lat": 38.0703537,
+        "lon": 12.8181605
+      },
+      {
+        "n": "Tonnara di Scopello",
+        "lat": 38.0715,
+        "lon": 12.8216
+      },
+      {
+        "n": "Faraglioni di Scopello",
+        "lat": 38.0701,
+        "lon": 12.821
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Scopellonet",
+        "url": "https://www.scopellonet.net"
+      },
+      {
+        "t": "VisitSicily",
+        "url": "https://www.visitsicily.info/it/scopello/"
+      }
+    ]
   }
 ]
