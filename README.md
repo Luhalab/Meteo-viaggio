@@ -145,37 +145,8 @@ Avvio: font caricati senza bloccare la pagina, collegamenti anticipati ai server
 Punti uniti: elementi entro 30 m (o con lo stesso nome entro 150 m, da fonti diverse) diventano un solo punto; la scheda mostra il testo principale, gli altri testi solo se diversi, le curiosità una volta sola e i link di ogni fonte.
 Percorsi: il tasto nella scheda "Cosa fare" e l'interruttore nei Filtri comandano lo stesso percorso (stesso stato acceso/spento); dalla scheda si accende e si spegne.
 Vento: km/h con freccia della direzione, nell'ora per ora e (massimo del giorno) nella tabella settimanale; senza colori (usati per le temperature): grigio chiaro sotto 20, più scuro 20-29, pastiglia grigia 30-44, pastiglia scura da 45.
-"Cosa fare in questa zona?" (modo meteo senza città scelta, in cima al pannello): finestra con quando (oggi, domani,
-weekend, 3 o 7 giorni), interessi e preferenze libere; manda a Claude "[Meteo e viaggio: zona]" con il meteo per giorno
-delle città visibili (tempo, temperature, pioggia, vento) e la richiesta di consigli scelti in base al meteo, cercati su
-internet, senza premiare le città solo perché grandi.
-Shopping: chip "Shopping" con sottofiltri (Abbigliamento, Scarpe, Sport, Souvenir e artigianato, Gioielli, Prodotti
-tipici, Altri negozi), dalle tile vettoriali; supermercati e simili esclusi.
-Luoghi notevoli nella vista meteo (da zoom 8,5): da Wikidata, misurati dal numero di Wikipedia che ne parlano (non dalla grandezza della città); da 20 lingue in su icona ★ con il nome sempre visibile, gli altri come puntini da zoom 10; anche i luoghi di Claude come puntini rosso mattone. Scheda con descrizione, Avvicinati e Wikipedia. Salvati sul telefono per 7 giorni; inclusi nella richiesta 'Cosa fare in questa zona'.
-Consigli di Claude (kind da-fare): filtro proprio (verde) separato dalle curiosità; nella vista meteo compaiono con 💡 e il nome (se hanno coordinate proprie); nei Filtri l'elenco 'Consigli di Claude in zona' con 🗺️ Mostra e 🗑️ Elimina. Eliminare nasconde il consiglio solo su questo telefono (localStorage 'hiddenTips'); il file comune non cambia.
-Shopping: categoria dal tipo OSM, dalla classe della mappa vettoriale o dal nome (es. Zara → Abbigliamento); se la mappa ne ha pochi (meno di 8) li completa da OpenStreetMap; con il chip la mappa va a zoom 16. Luoghi imperdibili: filtro proprio (★) e icona piccola e discreta.
-Consigli di Claude in due tipi: "del momento" (💡, da "Cosa fare in questa zona": campi "temporaneo": true e
-"valido_fino": "AAAA-MM-GG"; spariscono da soli dopo quella data, filtro e elenco propri, icona gialla da vicino)
-e "che restano" (verdi, si eliminano a mano). La richiesta per zona chiede a Claude di salvarli già come temporanei.
-Filtri più ordinati: gli elenchi dei consigli (del momento e che restano) sono chiusi di default (▸ N consigli a …) e si aprono
-con un tocco. Con una città scelta mostrano solo i consigli di quella città (stesso comune; fuori dagli abitati la città grande più
-vicina entro 12 km; i consigli del momento anche entro 12 km dal centro), ognuno con 📍 la sua città; senza città scelta sono
-raggruppati per città. Campo facoltativo "citta" in custom-points.json per indicare la città a mano. Lo stesso criterio vale
-per "I miei percorsi" in zona.
 GPS stabile: ogni fix passa da un filtro di Kalman semplificato (fix imprecisi pesano poco; fix molto peggiori di quello
 attuale o con timestamp vecchio scartati; un salto improvviso e poco preciso accettato solo dopo 3 fix coerenti; primo fix
 molto impreciso: attesa fino a 6 s). Il puntino si sposta con un movimento morbido (700 ms), in modalità "segui" la mappa si
 muove solo se il puntino si allontana dal centro, la direzione ha una media mobile. Se per 30 s non arriva nessun fix, o dopo
 un errore di segnale, il GPS riparte da solo; dopo oltre un minuto in background il filtro riparte da zero.
-Pannelli (colonna in alto a destra): Livelli (sfondo e mare), Filtri (solo interruttori: cosa mostrare sulla mappa, più
-"Vedi o elimina i consigli" che apre una finestra con i consigli della città, divisi in "del momento" e "che restano") e
-Percorsi (un solo elenco per la città scelta: consigli di Claude con tappe, Wikivoyage, sentieri segnati, i miei percorsi;
-un interruttore per ognuno, badge con il numero di percorsi accesi, "Nascondi tutti", "Gestisci i miei percorsi").
-Consigli di Claude unificati: tutti i "da-fare" sono uguali (anche quelli nati da "Cosa fare in questa zona"): nessuna
-scadenza, un solo interruttore nei Filtri, restano finché non si eliminano; da lontano compaiono con 💡 e il nome, da vicino
-nella scheda "Cosa fare" della città e, se hanno le tappe, nei Percorsi. Appartengono a una città se cadono nel suo comune
-o entro 12 km (6 km per le città piccole). I campi "temporaneo" e "valido_fino" non sono più usati.
-Percorsi di nuovo dentro il pannello Filtri (sezione "Percorsi a <città>", un interruttore per percorso; il numero dei
-percorsi accesi sta sul bottone Filtri). L'elenco si costruisce dai dati dei consigli di Claude con almeno 2 tappe (almeno una
-con coordinate: le altre le cerca l'app quando accendi il percorso), più i sentieri segnati OSM e "I miei percorsi": non dipende
-più dal caricamento della scheda "Cosa fare". Stesso stato acceso/spento nei Filtri e nella scheda "Cosa fare".

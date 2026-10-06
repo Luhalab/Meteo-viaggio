@@ -236,13 +236,6 @@ body.e-full{overflow:hidden}
 .eflt b.fd{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid;margin-right:10px}
 .eflt b.fd svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .eflt button>span{flex:1;display:flex;align-items:center}
-.eflt .lb{display:block}
-.eflt .lb small{display:block}
-#eFlt{position:relative}
-#eFlt .bdg{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#2470b8;color:#fff;font:700 12px/20px var(--sans);text-align:center;padding:0 5px;box-sizing:border-box}
-#eFlt .bdg[hidden]{display:none}
-.eflt .rtnote{padding:2px 10px 8px;font-size:13px;color:var(--tx2);line-height:1.4}
-.eflt .rtsrc{display:inline-block;font-size:11px;font-weight:600;color:var(--tx2);background:var(--soft);border-radius:6px;padding:1px 6px;margin-right:4px}
 .eflt button.bgr>span{display:block}
 .eflt i.rd{width:22px;border-radius:50%;background:none;border:2px solid var(--line);box-sizing:border-box}
 .eflt i.rd::after{display:none}
@@ -296,7 +289,6 @@ body.e-near .ectl .nr{display:flex}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
-.c-dot.tip{background:#2f7d4f}
 .gone{display:none!important}
 /* menu della pressione prolungata e indicazioni */
 .lpm{position:absolute;z-index:990;width:220px;background:var(--card);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.28);padding:4px;overflow:hidden}
@@ -344,38 +336,6 @@ body.gm .gchips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-w
 .gchips button{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:none;border-radius:18px;background:var(--card);color:var(--tx);font:500 14px var(--sans);box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer}
 .gchips button.on{background:var(--acc);color:#fff}
 body.poi-on .c-dot{display:none}
-.zask{padding:0 16px 8px}
-.zask[hidden]{display:none}
-.zask button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:20px;background:var(--acc-soft);color:var(--acc);font:600 14px var(--sans);padding:10px 12px;cursor:pointer}
-.zask svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
-.eflt .tipgl{display:block;width:100%;text-align:left;border:none;background:var(--soft);color:var(--tx);font:500 13.5px var(--sans);padding:9px 12px;margin:2px 0 4px;border-radius:10px;min-height:0}
-.tipcity{font:600 12px var(--sans);color:var(--tx2);padding:8px 10px 2px;text-transform:uppercase;letter-spacing:.03em}
-.tipr{display:flex;align-items:center;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
-.tipr span{flex:1;min-width:0;font:500 14px var(--sans)}
-.tipr span b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis}
-.tipr small{display:block;color:var(--tx2);font-size:12px}
-.tipr button{flex:none;width:38px;height:38px;min-height:0;border:1px solid var(--line);border-radius:10px;padding:0;justify-content:center;font-size:16px}
-.ecard .tipdel{border:1px solid #e3b5ad;background:none;color:#b4553f;border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
-.sg-tip{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-13px);cursor:pointer}
-.sg-tip span{width:24px;height:24px;border-radius:50%;background:#2f7d4f;color:#fff;font-size:13px;line-height:24px;text-align:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
-.sg-tip b{margin-top:2px;font:600 11px var(--sans);color:#1d5233;background:rgba(240,250,243,.94);border-radius:6px;padding:1px 5px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-body.poi-on .sg-tip{display:none}
-.cust .zl{font:600 13px var(--sans);color:var(--tx2);margin:12px 0 6px}
-.cust .zch{display:flex;flex-wrap:wrap;gap:6px}
-.cust .zch button{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:7px 12px;font:500 13.5px var(--sans);cursor:pointer}
-.cust .zch button.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.cust textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px;font:14px var(--sans);background:var(--card);color:var(--tx);resize:vertical}
-.sg-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(22,33,28,.6);transform:translate(-50%,-50%);cursor:pointer}
-.sg-dot.cu{background:var(--brick)}
-.sg-dot.tp{background:#2f7d4f}
-.c-dot.tipt{background:#e0a800}
-.sg-big{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-9px);cursor:pointer;opacity:.95}
-.sg-big span{width:17px;height:17px;border-radius:50%;background:#b98f3e;color:#fff;font-size:10px;line-height:17px;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
-.sg-big b{margin-top:1px;font:600 10.5px var(--sans);color:#6b5520;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
-body.poi-on .sg-dot,body.poi-on .sg-big{display:none}
-.gchips.gsub{margin-top:6px}
-.gchips.gsub[hidden]{display:none!important}
-.gchips.gsub button{height:32px;font-size:13px;padding:0 12px}
 .gchips .gsep{flex:none;width:1px;margin:6px 2px;background:rgba(0,0,0,.18)}
 .poi{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(20,36,48,.35);cursor:pointer}
 .dtools a.lnk{border:1px solid var(--line);background:var(--card);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);text-decoration:none}
@@ -383,7 +343,6 @@ body.gm #eFull,body.gm #eSeg,body.gm #eCustB,body.gm footer{display:none!importa
 body.gm .ewrap.full .ectl:not(.ezb){top:var(--gmTop)}
 body.gm .ewrap.full .ecomp{left:auto;right:10px;top:calc(var(--gmTop) + 112px)}
 body.gm .ewrap.full .erefetch,body.gm .ewrap.full .ehint{top:var(--gmTop)}
-body.gm.shop-on{--gmTop:calc(env(safe-area-inset-top,0px) + 164px)}
 body.gm .ewrap.full .erefetch.show ~ .ehint{top:calc(var(--gmTop) + 48px)}
 body.gm .ewrap.has-sheet .ectl.ezb,body.gm .ewrap.has-sheet .ezs{bottom:calc(var(--sheetH,70px) + 12px)}
 body.gm .ewrap.has-sheet .eopt,body.gm .ewrap.has-sheet .epill{bottom:calc(var(--sheetH,70px) + 68px)}
@@ -590,7 +549,6 @@ footer a{color:var(--tx2)}
     <input id="q" type="search" placeholder="Cerca qui" autocomplete="off" aria-label="Cerca una città">
     <div class="sugg" id="sugg"></div></div>
   <div class="gchips" id="eRegChips" role="group" aria-label="Nazione"></div>
-  <div class="gchips gsub" id="eShopSub" role="group" aria-label="Tipi di negozio" hidden></div>
 </header>
 
 <main>
@@ -613,8 +571,7 @@ footer a{color:var(--tx2)}
         <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
         <button id="eBg" aria-label="Sfondo della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
-        <button id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg><span class="bdg" id="eRtB" hidden></span></button>
-
+        <button id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
         <button class="nr" id="ePhoto" aria-label="Fotografa un dettaglio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
@@ -642,7 +599,6 @@ footer a{color:var(--tx2)}
     <div class="legend" id="eLegend"></div>
     <div class="card tabs" id="eWxT" hidden>
       <button class="grip" id="eGrip2" aria-label="Apri o chiudi meteo e foto" aria-expanded="false"><span></span></button>
-      <div class="zask" id="eZoneAsk" hidden><button id="eZoneAskB"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Cosa fare in questa zona? Chiedi a Claude</button></div>
       <div class="tbar" role="tablist"><button role="tab" data-w="m" class="on" aria-selected="true">Meteo</button><button role="tab" data-w="f" id="eWxTf" aria-selected="false">Foto</button></div>
       <div class="tbody"><div id="eWxPm"></div><div id="eWxPf" hidden></div></div>
     </div>
@@ -679,16 +635,6 @@ footer a{color:var(--tx2)}
       <div id="eMyRL"></div>
       <div class="acts"><button id="eMyRDel">Elimina selezionati</button><button id="eMyRAll">Elimina tutti</button></div>
       <div class="acts" style="margin-top:8px"><button class="pr" id="eMyROk">Chiudi</button></div></div></div>
-    <div class="cust" id="eZone" hidden role="dialog" aria-label="Cosa fare in questa zona"><div class="sh"><h3>Cosa fare in questa zona</h3>
-      <p class="m">Claude guarda il meteo delle città sulla mappa e cerca su internet (siti turistici, guide, recensioni) i posti più adatti, senza premiare per forza le città grandi.</p>
-      <div class="zl">Quando</div><div class="zch" id="eZoneWhen"></div>
-      <div class="zl">Cosa ti interessa</div><div class="zch" id="eZonePref"></div>
-      <div class="zl">Altre preferenze <span class="muted">(facoltativo)</span></div>
-      <textarea id="eZoneTxt" rows="3" placeholder="Es. siamo in due, niente lunghe camminate, ci piace il pesce, mezz'ora di auto al massimo…"></textarea>
-      <div class="acts"><button id="eZoneNo">Annulla</button><button class="pr" id="eZoneGo">Chiedi a Claude</button></div></div></div>
-    <div class="cust" id="eTipsD" hidden role="dialog" aria-label="Consigli di Claude"><div class="sh"><h3 id="eTipsT">Consigli di Claude</h3>
-      <p class="m">Con 🗺️ vedi il consiglio sulla mappa, con 🗑️ lo elimini (solo da questa app).</p>
-      <div id="eTipsL"></div><div class="acts"><button class="pr" id="eTipsOk">Chiudi</button></div></div></div>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap o Esri · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
@@ -981,8 +927,6 @@ function regChips(){
   $('eRegChips').innerHTML = REGIONI.map(r => '<button data-r="'+r.id+'" class="'+(REG && REG.id === r.id ? 'on' : '')+'">'+r.emoji+' '+esc(r.nome)+'</button>').join('')+
     '<span class="gsep"></span>'+Object.keys(POIC).map(k => '<button data-poi="'+k+'" class="'+(poiOn === k ? 'on' : '')+'">'+POIC[k].e+' '+POIC[k].t+'</button>').join('');
 }
-$('eShopSub').addEventListener('click', e => { const b = e.target.closest('[data-ss]'); if (!b) return;
-  shopSub[b.dataset.ss] = !shopSub[b.dataset.ss]; store.set('shopSub', shopSub); shopSubRow(); poiLoad(); });
 $('eRegChips').addEventListener('click', e => { const p = e.target.closest('[data-poi]'); if (p){ poiSet(p.dataset.poi); return; } const b = e.target.closest('[data-r]'); if (b && !(REG && REG.id === b.dataset.r)) loadRegion(b.dataset.r).then(regChips).catch(()=>{}); });
 $('regBtn').onclick = () => {
   const i = REGIONI.findIndex(r => REG && r.id===REG.id);
@@ -1807,78 +1751,6 @@ emap.on('click', e => {
 
 /* ---------- punti d'interesse da lontano (zoom 11–13): piccoli punti dorati da Wikipedia ---------- */
 let eDotKey = '', eDotTimer = null;
-/* ---------- LUOGHI NOTEVOLI nella vista meteo ----------
-   Da lontano, dove non ci sono etichette del meteo, mostro cosa c'è da vedere:
-   - i luoghi notevoli da Wikidata, misurati da quante Wikipedia ne parlano (non da quanto è grande la città);
-     oltre 20 lingue = "imperdibile": icona speciale con il nome sempre visibile;
-   - i luoghi aggiunti da Claude (punti rosso mattone piccoli).
-   Toccandoli: due righe di descrizione e "Avvicinati". Risultati salvati sul telefono per 7 giorni. */
-const eSights = L.layerGroup().addTo(emap);
-let sightList = [], sightT = null, sightKey = '';
-const SIGHT_BIG = 20, SIGHT_MIN = 6;
-/* tipi da non mostrare: comuni, frazioni, isole e regioni amministrative, strade, stazioni, aeroporti, scuole, ospedali */
-const SIGHT_SKIP = ['Q747074','Q515','Q486972','Q15089','Q16110','Q18415595','Q484170','Q55488','Q1248784','Q34442','Q3914','Q16917','Q1549591','Q5119','Q3024240','Q15284','Q1637706','Q123705','Q532','Q3957','Q2039348','Q15284','Q954172','Q1307276'];
-async function loadSights(){
-  if (eNear || emap.getZoom() < 8.5 || !(fltOn('sights') || fltOn('mon'))){ eSights.clearLayers(); sightList = []; return; }
-  const c = emap.getCenter(), b = emap.getBounds();
-  const r = Math.min(60, Math.max(8, haversine(b.getNorth(), b.getWest(), b.getSouth(), b.getEast()) / 2000));
-  const key = c.lat.toFixed(1)+','+c.lng.toFixed(1)+','+Math.round(r / 10);
-  if (key === sightKey) { drawSights(); return; }
-  sightKey = key;
-  let list = await pc.get('sg:'+key, 7 * DAY);
-  if (!list){
-    const LG = (REG && REG.wikiLang) || 'it';
-    const q = 'SELECT ?item ?itemLabel ?coord ?links ?art WHERE { SERVICE wikibase:around { ?item wdt:P625 ?coord. bd:serviceParam wikibase:center "Point('+c.lng.toFixed(4)+' '+c.lat.toFixed(4)+')"^^geo:wktLiteral; wikibase:radius "'+Math.round(r)+'". } '+
-      '?item wikibase:sitelinks ?links. FILTER(?links >= '+SIGHT_MIN+') '+
-      'FILTER NOT EXISTS { ?item wdt:P31 ?t. VALUES ?t { '+SIGHT_SKIP.map(x => 'wd:'+x).join(' ')+' } } '+
-      'OPTIONAL { ?art schema:about ?item; schema:isPartOf <https://'+LG+'.wikipedia.org/>. } '+
-      'SERVICE wikibase:label { bd:serviceParam wikibase:language "'+LG+',it,en". } } ORDER BY DESC(?links) LIMIT 60';
-    try {
-      const res = await withTimeout(fetch('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q), { headers:{ Accept:'application/sparql-results+json' } }), 15000);
-      const j = await res.json();
-      list = (j.results.bindings || []).map(x => { const m = /Point\(([-\d.]+) ([-\d.]+)\)/.exec(x.coord.value);
-        return m ? { n: x.itemLabel.value, lat: +m[2], lon: +m[1], links: +x.links.value, wd: x.item.value, art: x.art ? x.art.value : null } : null; })
-        .filter(x => x && !/^Q\d+$/.test(x.n));
-      pc.set('sg:'+key, list);
-    } catch(e){ list = []; sightKey = ''; }
-  }
-  if (eNear) return;
-  sightList = list; drawSights();
-}
-async function drawSights(){
-  eSights.clearLayers();
-  if (eNear || emap.getZoom() < 8.5) return;
-  const b = emap.getBounds().pad(0.1), z = emap.getZoom();
-  /* i più importanti sempre; quelli minori solo avvicinandosi un po' */
-  sightList.filter(x => b.contains([x.lat, x.lon]) && (x.links >= SIGHT_BIG ? fltOn('sights') : fltOn('mon') && z >= 10 && z < DOT_Z))   /* da zoom 11 i minori li mostrano già i puntini di Wikipedia */.slice(0, 40).forEach(x => {
-    const big = x.links >= SIGHT_BIG;
-    L.marker([x.lat, x.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
-        html: big ? '<div class="sg-big"><span>★</span><b>'+esc(x.n)+'</b></div>' : '<div class="sg-dot" title="'+esc(x.n)+'"></div>' }), zIndexOffset: big ? 400 : -400 })
-      .on('click', () => sightCard(x)).addTo(eSights);
-  });
-  if (fltOn('consigli') && z >= 8.5){
-    const all = await customAll(), ok = customPrecise(all);
-    all.filter(p => p.kind === 'da-fare' && ok(p) && b.contains([p.lat, p.lon])).slice(0, 30).forEach(p =>
-      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-tip"><span>💡</span><b>'+esc(p.title.split(':')[0])+'</b></div>' }), zIndexOffset:500 })
-        .on('click', () => tipShow(p)).addTo(eSights));
-  }
-  if (fltOn('claude') && z >= 9.5){
-    (await customAll()).filter(p => !p.kind && p.lat != null && b.contains([p.lat, p.lon])).slice(0, 60).forEach(p =>
-      L.marker([p.lat, p.lon], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="sg-dot cu" title="'+esc(p.title)+'"></div>' }), zIndexOffset:-300 })
-        .on('click', () => sightCard({ n: p.title, lat: p.lat, lon: p.lon, extract: p.extract, claude: true })).addTo(eSights));
-  }
-}
-async function sightCard(x){
-  const LG = (REG && REG.wikiLang) || 'it';
-  const head = '<div class="ch"><span class="meta">'+(x.claude ? '<span class="tag-cu">Aggiunto da Claude</span>' : x.links >= SIGHT_BIG ? '★ Imperdibile' : 'Da vedere')+'</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(x.n)+'</h3>';
-  const acts = '<div class="acts"><button class="ai" id="eSgGo">Avvicinati</button>'+(x.art ? '<a href="'+esc(x.art)+'" target="_blank" rel="noopener">Leggi su Wikipedia</a>' : '')+'</div>';
-  showCard(head+'<p id="eSgTx">'+esc(x.extract ? short(x.extract, 300) : 'Carico la descrizione…')+'</p>'+acts);
-  $('eSgGo').onclick = () => { $('eCard').classList.remove('show'); emap.flyTo([x.lat, x.lon], 16); };
-  if (!x.extract && x.art){ const sm = await wikiSummary(LG, decodeURIComponent(x.art.split('/wiki/')[1]).replace(/_/g, ' '));
-    if ($('eSgTx')) $('eSgTx').textContent = sm && sm.extract ? short(sm.extract, 300) : ''; }
-  else if (!x.extract && $('eSgTx')) $('eSgTx').textContent = '';
-}
-emap.on('moveend', () => { clearTimeout(sightT); if (eNear){ eSights.clearLayers(); return; } sightT = setTimeout(loadSights, 600); });
 function eRefreshDots(){
   if (eNear || emap.getZoom() < DOT_Z){ eDots.clearLayers(); eDotKey=''; return; }
   clearTimeout(eDotTimer);
@@ -2013,16 +1885,7 @@ const WFS_LIG = { base:'https://geoservizi.regione.liguria.it/geoserver/M2343/wf
 /* punti e curiosità scritti a mano (custom-points.json): li aggiunge Claude quando glielo chiedi */
 let customCache = null;
 let customAt = 0, customLoading = null;
-/* consigli eliminati dall'utente: restano nel file comune ma su questo telefono non si vedono più */
-const tipKey = p => (p.title || '')+'|'+(+p.lat).toFixed(4)+','+(+p.lon).toFixed(4);
-/* i consigli (anche quelli nati da "Cosa fare in questa zona") sono tutti uguali: non scadono e restano finché non li elimini tu */
-let hiddenTips = new Set(store.get('hiddenTips', []));
-function hideTip(p){ hiddenTips.add(tipKey(p)); store.set('hiddenTips', [...hiddenTips]); }
 async function customAll(){
-  const all = await customAllRaw();
-  return all.filter(p => p.kind !== 'da-fare' || !hiddenTips.has(tipKey(p)));
-}
-async function customAllRaw(){
   /* riletto ogni minuto: così i punti che Claude aggiunge mentre l'app è aperta arrivano da soli */
   if (customCache && Date.now() - customAt < 60000) return customCache;
   if (!customLoading) customLoading = (async () => {
@@ -2053,7 +1916,7 @@ function customPrecise(all){
 async function fetchCustomPoints(lat, lon, radius){
   const all = await customAll(), ok = customPrecise(all);
   return all.filter(p => ok(p) && p.kind !== 'evento').map(p => ({
-    title: p.title, extract: p.extract || '', thumb: p.thumb || null, lat: p.lat, lon: p.lon, kind: p.kind || null, stops: p.stops || null, temporaneo: p.temporaneo, valido_fino: p.valido_fino, fonti: p.fonti,
+    title: p.title, extract: p.extract || '', thumb: p.thumb || null, lat: p.lat, lon: p.lon, kind: p.kind || null, stops: p.stops || null,
     dist: haversine(lat, lon, p.lat, p.lon), url: p.url || null, source: 'custom' })).filter(p => p.dist <= radius);
 }
 
@@ -2100,116 +1963,25 @@ async function loadArea(lat, lon, radius, retry){
     .then(render)));
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
-const FLT_ALL = ['mon','sights','claude','storie','consigli','foto','percorsi'];
+const FLT_ALL = ['mon','claude','storie','foto','percorsi'];
 let eFlt = Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), store.get('mapFilters', {}));
 const fltOn = k => eFlt[k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 function fltPanel(){
-  const row = (k, label, dot, sub) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+'<span class="lb">'+esc(label)+(sub ? '<small>'+esc(sub)+'</small>' : '')+'</span></span><i></i></button>';
+  const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
   const dot = c => d(c, '<span class="dt" style="background:'+c+'"></span>');
-  const n = tipsList().length;
-  $('eFltP').innerHTML = '<div class="fh">Cosa mostrare sulla mappa</div>'+
+  const rs = routesHere();
+  $('eFltP').innerHTML = '<div class="fh">Sulla mappa</div>'+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
-    row('sights', 'Luoghi imperdibili', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'), 'visibili da lontano')+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
-    row('storie', 'Curiosità di Claude', dot('#6b4fa0'))+
-    row('consigli', 'Consigli di Claude (cosa fare)', d('#2f7d4f', '<span style="font-size:12px;line-height:1">💡</span>'), 'anche quelli di "Cosa fare in questa zona"')+
-    routesSection()+
-    (n ? '<div class="fh">Consigli di Claude</div><button data-tips="1" class="act"><span>Vedi o elimina i consigli ('+n+')</span></button>' : '');
-}
-/* ---------- pannello PERCORSI: un elenco solo, con un interruttore per percorso ---------- */
-function rtBadge(){ const b = $('eRtB'), n = eRoutesOn.size; b.hidden = !n; b.textContent = n; }
-/* sezione "Percorsi" dentro il pannello Filtri: un interruttore per ogni percorso della città */
-function routesSection(){
-  const rs = routesHere(), mine = myRoutes().length;
-  const where = eCity ? 'a '+(eCity.virt ? 'questa zona' : eCity.n) : 'nella zona';
-  return '<div class="fh">Percorsi '+esc(where)+'</div>'+
-    (rs.length
-      ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+
-          '<small><span class="rtsrc">'+esc(r.sub.split(' · ')[0])+'</span>'+esc(r.sub.split(' · ').slice(1).join(' · '))+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
-        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')
-      : '<div class="rtnote">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. ' : 'Scegli una città per vedere i suoi percorsi. ')+'Per crearne uno: tieni premuto sulla mappa, aggiungi le tappe e tocca «Salva percorso».</div>')+
-    (mine ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+mine+')</span></button>' : '');
-}
-function rtBadge(){ const b = $('eRtB'), n = eRoutesOn.size; b.hidden = !n; b.textContent = n; }
-/* consigli di Claude vicini alla zona che guardi (entro 40 km dal centro della mappa) */
-let tipsCache = [];
-
-/* città di un consiglio: campo "citta" se c'è; altrimenti il comune in cui cade; fuori dagli abitati, la città grande più vicina (entro 12 km)
-   (così Mondello è "Palermo" e non "Isola delle Femmine") o, in mancanza, il comune più vicino */
-const tipTownMemo = new Map();      /* il calcolo scorre tutti i comuni: lo faccio una volta sola per punto */
-function tipTown(p){
-  if (p.citta) return p.citta;
-  const mk = (REG && REG.id)+'|'+(+p.lat).toFixed(4)+','+(+p.lon).toFixed(4);
-  if (tipTownMemo.has(mk)) return tipTownMemo.get(mk);
-  const r = tipTown0(p); tipTownMemo.set(mk, r); return r;
-}
-function tipTown0(p){
-  /* calcolo a parte, senza placeAt: placeAt ricorda l'ultimo luogo "Vicino a…" e non va disturbato */
-  let near = null, nd = 1e9, big = null, bd = 1e9;
-  COMUNI.forEach(c => { const d = km(p.lat, p.lon, c.lat, c.lon); if (d < nd){ nd = d; near = c; } if ((c.pop || 0) >= 50000 && d <= 12 && d < bd){ bd = d; big = c; } });
-  if (!near) return '';
-  return nd <= townKm(near) ? near.n : (big || near).n;
-}
-const selCity = () => eCity ? (eCity.virt ? eCity.ref : eCity) : null;
-/* un consiglio / percorso è "di questa città" se sta entro il raggio della città scelta; senza città scelta, se è nella zona visibile */
-/* un consiglio appartiene a una città se cade nel suo comune (o è la città grande più vicina) oppure nei dintorni:
-   fino a 12 km per le città grandi, 6 km per le piccole */
-const zoneKm = c => townKm(c) >= 5 ? 12 : 6;
-function tipBelongs(p, c){ const city = c.ref || c; return tipTown(p) === city.n || km(c.lat, c.lon, p.lat, p.lon) <= zoneKm(city); }
-function inHere(p){
-  if (eCity) return tipBelongs(p, eCity);
-  return emap.getBounds().pad(0.2).contains([p.lat, p.lon]);
-}
-function tipsList(){
-  const c = emap.getCenter(), city = selCity();
-  return (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && !hiddenTips.has(tipKey(p)) && inHere(p))
-    .map(p => ({ p, town: tipTown(p), d: km(c.lat, c.lng, p.lat, p.lon) }))
-    .sort((a, b) => (city ? 0 : a.town.localeCompare(b.town)) || a.d - b.d).slice(0, 40);
-}
-function tipsRows(){
-  const L1 = tipsList(), city = selCity();
-  tipsCache = L1.map(x => x.p);
-  let last = null;
-  return L1.map((x, i) => { const p = x.p; let head = '';
-    if (!city && x.town !== last){ head = '<div class="tipcity">📍 '+esc(x.town)+'</div>'; last = x.town; }
-    return head+'<div class="tipr"><span><b>'+esc(p.title)+'</b><small>'+esc([city ? '📍 '+x.town : '', p.stops && p.stops.length ? p.stops.length+' tappe' : ''].filter(Boolean).join(' · '))+'</small></span>'+
-      '<button data-tshow="'+i+'" aria-label="Mostra sulla mappa">🗺️</button><button data-tdel="'+i+'" aria-label="Elimina il consiglio">🗑️</button></div>'; }).join('');
-}
-function tipsDialog(){
-  const city = selCity(), R = tipsRows();
-  $('eTipsT').textContent = city ? 'Consigli a '+city.n : 'Consigli in questa zona';
-  $('eTipsL').innerHTML = R || '<p class="muted">Nessun consiglio per questa zona.</p>';
-}
-function tipsOpenDialog(){ setFltP(false); tipsDialog(); $('eTipsD').hidden = false; }
-$('eTipsOk').onclick = () => { $('eTipsD').hidden = true; };
-$('eTipsD').addEventListener('click', e => {
-  if (e.target === $('eTipsD')){ $('eTipsD').hidden = true; return; }
-  const ts = e.target.closest('[data-tshow]'); if (ts){ const p = tipFromRef(ts.dataset.tshow); if (p){ $('eTipsD').hidden = true; tipShow(p); } return; }
-  const td = e.target.closest('[data-tdel]'); if (td){ const p = tipFromRef(td.dataset.tdel); if (p) tipDelete(p); }
-});
-const tipFromRef = r => tipsCache[+r];
-function tipShow(p){
-  setFltP(false);
-  emap.flyTo([p.lat, p.lon], Math.max(emap.getZoom(), 15));
-  const st = p.stops && p.stops.filter(x => x.lat != null).length >= 2 ? p.stops : null;
-  showCard('<div class="ch"><span class="meta"><span class="tag-cu">Consiglio di Claude</span></span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.title)+'</h3>'+
-    '<p>'+esc(p.extract || '')+'</p>'+(st ? '<button class="rt-btn" id="eTipRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
-    '<div class="guide">'+srcLinks(p, eCity || placeAt(p.lat, p.lon) || {n:''})+'</div>'+
-    '<div class="acts"><button id="eTipDel" class="tipdel">Elimina questo consiglio</button></div>');
-  if (st) $('eTipRt').onclick = () => showRoute(st, $('eTipRt'), false, { id:'tip|'+tipKey(p), title:p.title });
-  $('eTipDel').onclick = () => tipDelete(p);
-}
-function tipDelete(p){
-  if (!confirm('Eliminare il consiglio «'+p.title+'»? Non lo vedrai più in questa app.')) return;
-  hideTip(p); $('eCard').classList.remove('show');
-  eItems = eItems.filter(o => !(o.kind === 'da-fare' && tipKey(o) === tipKey(p))); drawArt(); drawSights();
-  if (!$('eFltP').hidden) fltPanel();
-  if (!$('eTipsD').hidden) tipsDialog();
-  if (eCity) eLoadDo(eCity.virt ? Object.assign({}, eCity.ref, { lat: eCity.lat, lon: eCity.lon }) : eCity, eCityReq);
-  wkFlash('Consiglio eliminato');
+    row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
+    '<div class="fh">Percorsi in zona</div>'+
+    (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
+        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
+        (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
+      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
 }
 function bgPanel(){
   const noIc = tileBase === 'clean' || (tileBase === 'vector' && Object.values(vtFlt).every(v => !v));
@@ -2247,15 +2019,14 @@ function panelClick(e){
     store.set('vt_flt', vtFlt); vtApply(); bgPanel(); return; }
   const del = e.target.closest('[data-del]');
   if (del){ if (confirm('Eliminare questo percorso?')){ const id = del.dataset.del; store.set('myRoutes', myRoutes().filter(r => r.id !== id));
-    const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } routesUI(); } return; }
-  if (e.target.closest('button[data-tips]')){ tipsOpenDialog(); return; }
+    const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } fltPanel(); } return; }
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
-  if (e.target.closest('button[data-roff]')){ clearRoutes(); return; }
+  if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts(); drawSights();
+  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts();
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);
@@ -2275,7 +2046,7 @@ function sameName(a, b){
 }
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
-  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind === 'da-fare' ? 'consigli' : it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
+  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
     .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
   const G = [];
   vis.forEach(i => { const it = eItems[i];
@@ -2289,7 +2060,7 @@ function drawArt(){
   eGroups = buildGroups();
   eGroups.forEach(g => {
     const its = g.items.map(j => eItems[j]), place = its.filter(o => !o.kind), story = its.some(o => o.kind) && fltOn('storie');
-    const cls = !place.length ? (its.every(o => o.kind === 'da-fare') ? ' tip' : ' st') : place.some(o => o.source === 'custom') ? ' cu' : '';
+    const cls = !place.length ? ' st' : place.some(o => o.source === 'custom') ? ' cu' : '';
     const sel = g.items.includes(eSel);
     L.marker([g.lat, g.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
         html:'<div class="c-dot'+cls+(place.length && story ? ' hs' : '')+(sel ? ' sel' : '')+'"></div>' }), zIndexOffset: sel ? 900 : 0 })
@@ -2319,7 +2090,6 @@ function eShowItem(i, fly){
     (rs ? '<button class="rt-btn" id="eCardRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
     '<div class="acts"><button class="ai" id="eAsk">Chiedi a Claude</button>'+links.map(o => '<a href="'+esc(o.url)+'" target="_blank" rel="noopener">'+SRC_LABEL[o.source]+'</a>').join('')+'</div>');
   if (rs) $('eCardRt').onclick = () => showRoute(rs, $('eCardRt'), false);
-  if (it.kind === 'da-fare'){ const a = $('eCard').querySelector('.acts'); const bt = document.createElement('button'); bt.className = 'tipdel'; bt.textContent = 'Elimina questo consiglio'; bt.onclick = () => tipDelete(it); a.appendChild(bt); }
   $('eAsk').onclick = () => shareToClaude(msgPlace(it));
   /* per Wikipedia carico l'introduzione completa, non solo le prime righe */
   if (it.source === 'wikipedia' && it.lang) wikiSummary(it.lang, it.title).then(s => {
@@ -2380,7 +2150,6 @@ function sheetSync(){
       $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPm').appendChild($('eWeek')); $('eWxPf').appendChild($('ePhs'));
       W.appendChild(X); X.hidden = false; X.classList.add('sheet'); X.classList.remove('open'); $('eGrip2').setAttribute('aria-expanded', false); }
     $('eWxTf').hidden = $('ePhs').hidden || !eCity;
-    $('eZoneAsk').hidden = !!eCity;
     if ($('eWxTf').hidden && !$('eWxPf').hidden) document.querySelector('#eWxT [data-w=m]').click();
   } else if (X.classList.contains('sheet')){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eAnchor').after(X); applyLayout(); }
   W.classList.toggle('has-sheet', on1 || on2);
@@ -2647,7 +2416,7 @@ async function osmRoutes(c){
 }
 async function eLoadDo(c, my){
   const LG = (REG&&REG.wikiLang)||'it';
-  const mine = (await customAll()).filter(p => p.kind === 'da-fare' && p.lat != null && tipBelongs(p, c));
+  const mine = (await customAll()).filter(p => p.kind === 'da-fare' && p.lat != null && km(c.lat,c.lon,p.lat,p.lon) <= 8);
   const name = (c.ref || c).n;
   const [wv, osm, wph] = await Promise.all([
     eWvCache[c.n] !== undefined ? eWvCache[c.n] : extracts(LG+'.wikivoyage.org', c.n).catch(() => null),
@@ -2697,20 +2466,13 @@ function routeFromBtn(b){
   const title = claude ? det.querySelector('summary').textContent : names[0]+' → '+names[names.length-1];
   return { id: title+'|'+names.join('|'), title, sub: (claude ? 'Consiglio di Claude · ' : 'Wikivoyage · ')+names.length+' tappe', stops: st, ch: !!b.dataset.ch };
 }
-/* percorsi dei consigli di Claude della città: dai dati (stesso elenco dei consigli), senza aspettare la scheda "Cosa fare".
-   Le tappe senza coordinate le cerca l'app quando accendi il percorso, purché almeno una tappa abbia le coordinate. */
-function claudeRoutes(){
-  if (!eCity) return [];
-  return (customCache || []).filter(p => p.kind === 'da-fare' && !hiddenTips.has(tipKey(p)) && Array.isArray(p.stops) && p.stops.length >= 2 &&
-      p.stops.some(x => x && x.lat != null) && inHere(p))
-    .map(p => { const names = p.stops.map(x => typeof x === 'string' ? x : x.n);
-      return { id: p.title+'|'+names.join('|'), title: p.title, sub: 'Consiglio di Claude · '+names.length+' tappe', stops: p.stops, ch: false }; });
+function routesHere(){
+  return [...document.querySelectorAll('#eDo .rt-btn[data-stops]')].filter(b => JSON.parse(b.dataset.stops).filter(x => x && x.lat != null).length >= 2).map(routeFromBtn)
+    .concat(eOsmRoutes).concat(myRoutesHere());
 }
-function routesHere(){ return claudeRoutes().concat(eOsmRoutes).concat(myRoutesHere()); }
 /* aggiorno pannello Filtri e tasti nella scheda: acceso / spento in tutti e due i posti */
 function routesUI(){
   if (!$('eFltP').hidden) fltPanel();
-  rtBadge();
   document.querySelectorAll('#eDo .rt-btn[data-stops], #eDo .rt-btn[data-osm]').forEach(b => {
     if (b.classList.contains('busy')) return;
     const id = b.dataset.osm != null ? (eOsmRoutes[+b.dataset.osm] || {}).id : routeFromBtn(b).id, on = eRoutesOn.has(id);
@@ -2745,7 +2507,8 @@ $('eMyRDel').onclick = () => { const ids = [...$('eMyRL').querySelectorAll('inpu
   if (!ids.length){ wkFlash('Seleziona i percorsi da eliminare'); return; } if (confirm('Eliminare '+ids.length+(ids.length === 1 ? ' percorso?' : ' percorsi?'))) myRDelete(ids); };
 $('eMyRAll').onclick = () => { const n = myRoutes().length; if (n && confirm('Eliminare tutti i '+n+' percorsi salvati?')) myRDelete(myRoutes().map(r => r.id)); };
 function myRoutesHere(){
-  return myRoutes().filter(r => r.stops.some(inHere))
+  const c = eCity || { lat: emap.getCenter().lat, lon: emap.getCenter().lng };
+  return myRoutes().filter(r => r.stops.some(p => km(c.lat, c.lon, p.lat, p.lon) <= 20))
     .map(r => ({ id: 'my|'+r.id, myId: r.id, title: r.title, sub: 'Il mio percorso · '+r.stops.length+' tappe', stops: r.stops, mine: true }));
 }
 function clearRoutes(){ eRoute.clearLayers(); eRoutesOn.clear(); if (typeof routesUI === 'function') routesUI(); }
@@ -3213,53 +2976,6 @@ const MSG_ADD = 'Aggiungi i luoghi non ancora presenti in custom-points.json (re
 const MSG_REPLY = 'Poi rispondimi con: cosa vedere (i luoghi più interessanti, con distanza a piedi), le curiosità più belle e cosa fare (un consiglio pratico: percorso, orari, dove mangiare o il momento migliore).';
 const near = p => { const nc = nearestComune(p.lat, p.lon); return nc ? ' (vicino a '+nc.n+')' : ''; };
 const coords = p => p.lat.toFixed(5)+', '+p.lon.toFixed(5);
-/* ---------- "Cosa fare in questa zona?": meteo delle città visibili + preferenze → messaggio per Claude ---------- */
-const ZONE_WHEN = [['oggi','Oggi',0,1],['domani','Domani',1,1],['weekend','Prossimo weekend',-1,2],['3g','Prossimi 3 giorni',0,3],['7g','Prossimi 7 giorni',0,7]];
-const ZONE_PREF = ['Mare e spiagge','Natura e sentieri','Borghi e panorami','Monumenti e musei','Shopping','Mangiare bene','Vita serale','Con bambini','Relax','Sport'];
-let zoneWhen = 'oggi', zonePref = new Set(store.get('zonePref', []));
-function zoneDialog(){
-  $('eZoneWhen').innerHTML = ZONE_WHEN.map(w => '<button data-w="'+w[0]+'" class="'+(zoneWhen === w[0] ? 'on' : '')+'">'+w[1]+'</button>').join('');
-  $('eZonePref').innerHTML = ZONE_PREF.map(p => '<button data-p="'+esc(p)+'" class="'+(zonePref.has(p) ? 'on' : '')+'">'+esc(p)+'</button>').join('');
-}
-$('eZoneAskB').onclick = () => { zoneDialog(); $('eZoneTxt').value = store.get('zoneTxt', ''); $('eZone').hidden = false; };
-$('eZoneNo').onclick = () => { $('eZone').hidden = true; };
-$('eZone').addEventListener('click', e => {
-  if (e.target === $('eZone')){ $('eZone').hidden = true; return; }
-  const w = e.target.closest('[data-w]'); if (w){ zoneWhen = w.dataset.w; zoneDialog(); return; }
-  const p = e.target.closest('[data-p]'); if (p){ const v = p.dataset.p; zonePref.has(v) ? zonePref.delete(v) : zonePref.add(v); store.set('zonePref', [...zonePref]); zoneDialog(); }
-});
-$('eZoneGo').onclick = () => { store.set('zoneTxt', $('eZoneTxt').value); $('eZone').hidden = true; shareToClaude(msgZone()); };
-function zoneDays(){
-  const w = ZONE_WHEN.find(x => x[0] === zoneWhen), d = new Date(); d.setHours(0,0,0,0);
-  let start = w[2]; if (start < 0){ start = (6 - d.getDay() + 7) % 7; }      /* prossimo sabato (oggi se è sabato) */
-  return [start, Math.min(14, start + w[3] - 1)];
-}
-function msgZone(){
-  const b = emap.getBounds(), [d0, d1] = zoneDays();
-  /* meteo delle città visibili nei giorni scelti: le 25 più popolose, per non allungare troppo il messaggio */
-  const list = eVisible.filter(c => mapData[c.n]).slice().sort((x, y) => (y.pop || 0) - (x.pop || 0)).slice(0, 25);
-  const rows = list.map(c => { const D = mapData[c.n].daily, T = mapData[c.n].time, parts = [];
-    for (let i = d0; i <= d1 && i < T.length; i++){
-      parts.push(dayLabel(T[i], i).toLowerCase()+' '+wmo(D.weather_code[i])[0].toLowerCase()+' '+Math.round(D.temperature_2m_max[i])+'°/'+Math.round(D.temperature_2m_min[i])+'°'+
-        ((D.precipitation_sum[i] || 0) >= 0.5 ? ', pioggia '+D.precipitation_sum[i].toFixed(1)+' mm' : '')+
-        (D.wind_speed_10m_max ? ', vento '+Math.round(D.wind_speed_10m_max[i])+' km/h'+(D.wind_direction_10m_dominant ? ' da '+windFrom(D.wind_direction_10m_dominant[i]) : '') : '')); }
-    return '- '+c.n+': '+parts.join('; '); }).join('\n');
-  const when = ZONE_WHEN.find(x => x[0] === zoneWhen)[1].toLowerCase(), txt = $('eZoneTxt').value.trim();
-  const sg = sightList.filter(x => b.contains([x.lat, x.lon])).slice(0, 15).map(x => x.n+(x.links >= SIGHT_BIG ? ' (molto noto)' : '')).join(', ');
-  return '[Meteo e viaggio: zona] Cosa fare '+when+' in questa zona (riquadro da '+b.getSouth().toFixed(3)+', '+b.getWest().toFixed(3)+' a '+b.getNorth().toFixed(3)+', '+b.getEast().toFixed(3)+').\n'+
-    'Fai tutto subito, senza chiedermi conferma.\n\n'+
-    'Meteo previsto nelle città della zona:\n'+(rows || '(dati meteo non ancora caricati)')+'\n\n'+
-    (sg ? 'Luoghi notevoli nella zona (da Wikidata, per farti un\'idea, non solo questi): '+sg+'.\n\n' : '')+
-    'Le mie preferenze: '+(zonePref.size ? [...zonePref].join(', ') : 'nessuna in particolare')+(txt ? '. '+txt : '')+'.\n\n'+
-    'Cosa ti chiedo:\n'+
-    '1. Consigliami 3-5 posti o attività in questa zona per '+when+', in ordine di preferenza, scegliendo in base al METEO di ciascun posto e alle mie preferenze '+
-    '(es. sole e vento debole: mare, calette, riserve come lo Zingaro o Scopello; pioggia o vento forte: musei, città d\'arte, ristoranti, shopping al coperto).\n'+
-    '2. Non premiare le città solo perché sono grandi o hanno tante cose: valuta quanto vale la pena con quel meteo e per le mie preferenze. Va bene anche un borgo piccolo.\n'+
-    '3. Cerca su internet, non solo su Wikipedia: siti turistici ufficiali, guide di viaggio, pagine di riserve e musei (orari e aperture), recensioni recenti.\n'+
-    '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore della giornata, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
-    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare", come faresti se ti chiedessi cosa fare in quella città: '+
-    'coordinate verificate del posto, il campo "citta" con la città di riferimento, "stops" se è un itinerario e "fonti". Restano nell\'app finché non li elimino io.';
-}
 function msgCity(c){
   return '[Meteo e viaggio: città] '+c.n+' (centro '+coords(c)+'). Non sono necessariamente lì: non serve la mia posizione.\nFai tutto subito, senza chiedermi conferma.\n'+
     '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità di '+c.n+'. '+MSG_ADD+'\n2. '+MSG_REPLY;
@@ -3517,47 +3233,8 @@ async function overpass(q, ms){
 /* ---------- locali a richiesta (come Google Maps): compaiono solo toccando il chip, spariscono toccandolo di nuovo ---------- */
 const POIC = {
   rist:  { t:'Ristoranti', e:'🍴', c:'#c0662b', vt:['restaurant','fast_food'], q:'nwr["amenity"~"^(restaurant|fast_food)$"]' },
-  bar:   { t:'Bar e gelaterie', e:'☕', c:'#8a5a2b', vt:['cafe','bar','beer','ice_cream'], q:'nwr["amenity"~"^(cafe|bar|pub|ice_cream)$"]' },
-  shop:  { t:'Shopping', e:'🛍️', c:'#7a4fa0', vt:null, q:'nwr["shop"]["name"]' }
+  bar:   { t:'Bar e gelaterie', e:'☕', c:'#8a5a2b', vt:['cafe','bar','beer','ice_cream'], q:'nwr["amenity"~"^(cafe|bar|pub|ice_cream)$"]' }
 };
-/* sottofiltri dello shopping: valori del tag OSM "shop" (nelle tile vettoriali è il campo subclass) */
-const SHOP_SUB = {
-  abb:    { t:'Abbigliamento', v:['clothes','boutique','fashion','fashion_accessories','bag','leather','tailor'] },
-  scarpe: { t:'Scarpe', v:['shoes'] },
-  sport:  { t:'Sport', v:['sports','outdoor','bicycle','fishing','scuba_diving','water_sports','surf'] },
-  souv:   { t:'Souvenir e artigianato', v:['gift','souvenir','art','craft','antiques','ceramics','pottery','frame'] },
-  gioie:  { t:'Gioielli', v:['jewelry','watches'] },
-  tipici: { t:'Prodotti tipici', v:['deli','wine','alcohol','confectionery','pastry','cheese','bakery','farm','beverages','chocolate','coffee','tea','seafood'] },
-  altri:  { t:'Altri negozi', v:null }
-};
-const SHOP_SKIP = ['supermarket','convenience','kiosk','car','car_repair','car_parts','fuel','motorcycle','tyres','doityourself','hardware','trade','storage_rental','funeral_directors','pawnbroker','money_lender','vacant','yes'];
-const SHOP_KNOWN = [].concat(...Object.values(SHOP_SUB).filter(x => x.v).map(x => x.v));
-let shopSub = Object.assign(Object.fromEntries(Object.keys(SHOP_SUB).map(k => [k, true])), store.get('shopSub', {}));
-/* categoria di un negozio: dal tipo OSM (shop=…), dalla classe della mappa vettoriale e, se mancano, dal nome */
-const SHOP_NAME = [
-  ['abb',    /abbigliament|moda|boutique|fashion|\bzara\b|h ?& ?m|calzedonia|intimissimi|tezenis|\bovs\b|benetton|bershka|pull ?& ?bear|stradivarius|max ?mara|liu ?jo|guess|levi|diesel|piazza italia|coin|mango|jeans|intimo|camicer/i],
-  ['scarpe', /calzatur|scarp|shoes|foot ?locker|geox|pittarello|deichmann/i],
-  ['sport',  /sport|decathlon|cisalfa|outdoor|bici|cicli|surf|diving|pesca/i],
-  ['souv',   /souvenir|ceramich|artigian|regal|gift|bottega|pupi|carretto|coral/i],
-  ['gioie',  /gioiell|oreficeri|jewel|orolog|pandora|swarovski/i],
-  ['tipici', /enotec|vini|cantina|pasticceri|dolci|panific|forno|salumer|formagg|gastronom|prodotti tipici|cioccolat|torrefaz/i]
-];
-const SHOP_CLASS = { clothing_store:'abb', shoes:'scarpe', jewelry:'gioie', gift:'souv', art_gallery:'souv', alcohol_shop:'tipici', bakery:'tipici', confectionery:'tipici' };
-function shopCat(v, cls, name){
-  if (v && SHOP_SKIP.includes(v)) return null;
-  if (['supermarket','grocery','convenience'].includes(cls)) return null;
-  const g = Object.keys(SHOP_SUB).find(k => SHOP_SUB[k].v && SHOP_SUB[k].v.includes(v)) || SHOP_CLASS[cls] || (SHOP_NAME.find(x => x[1].test(name || '')) || [])[0];
-  return g || 'altri';
-}
-function shopOk(v, cls, name){ const g = shopCat(v, cls, name); return !!g && shopSub[g]; }
-const SHOP_LABEL = { clothes:'Abbigliamento', boutique:'Boutique', shoes:'Scarpe', sports:'Articoli sportivi', outdoor:'Articoli outdoor', bicycle:'Biciclette',
-  gift:'Regali', souvenir:'Souvenir', art:'Arte', craft:'Artigianato', antiques:'Antiquariato', ceramics:'Ceramiche', jewelry:'Gioielleria', watches:'Orologi',
-  deli:'Gastronomia', wine:'Enoteca', alcohol:'Vini e liquori', confectionery:'Dolci', pastry:'Pasticceria', cheese:'Formaggi', bakery:'Panificio', books:'Libreria',
-  cosmetics:'Cosmetici', perfumery:'Profumeria', optician:'Ottica', bag:'Borse', leather:'Pelletteria', mobile_phone:'Telefonia', electronics:'Elettronica', toys:'Giocattoli' };
-function shopSubRow(){
-  const r = $('eShopSub'); r.hidden = poiOn !== 'shop';
-  r.innerHTML = Object.keys(SHOP_SUB).map(k => '<button data-ss="'+k+'" class="'+(shopSub[k] ? 'on' : '')+'">'+esc(SHOP_SUB[k].t)+'</button>').join('');
-}
 const POI_TYPE = { restaurant:'Ristorante', fast_food:'Cibo veloce', cafe:'Caffè', bar:'Bar', pub:'Pub', ice_cream:'Gelateria',
   hotel:'Hotel', guest_house:'Affittacamere', bed_and_breakfast:'B&B', hostel:'Ostello' };
 let poiOn = null, poiBox = null, poiT = null, poiList = [];
@@ -3569,14 +3246,12 @@ function vtPois(k, b){
   let fs = [];
   try { fs = vtGL.querySourceFeatures(lay.source, { sourceLayer:'poi' }); } catch(e){ return []; }
   const seen = new Set(), out = [];
-  fs.forEach(f => { const p = f.properties || {};
-    if (!p.name || f.geometry.type !== 'Point') return;
-    if (k === 'shop' ? !shopOk(p.subclass, p.class, p.name) || ['restaurant','fast_food','cafe','bar','beer','ice_cream','lodging','place_of_worship','museum','attraction','bus','railway','parking','fuel','hospital','pharmacy','school','college','library','town_hall','post','bank','toilets','drinking_water','police','park','theatre','cinema','monument','castle','harbor','ferry_terminal','campsite','zoo','stadium','swimming','golf','playground','cemetery'].includes(p.class) : !POIC[k].vt.includes(p.class)) return;
+  fs.forEach(f => { const p = f.properties || {}; if (!POIC[k].vt.includes(p.class) || !p.name || f.geometry.type !== 'Point') return;
     const [lon, lat] = f.geometry.coordinates; if (!b.contains([lat, lon])) return;
     const key = p.name+'|'+lat.toFixed(4)+','+lon.toFixed(4); if (seen.has(key)) return; seen.add(key);
     const sub = p.subclass || p.class;
     const t = { name: p['name:it'] || p.name };
-    if (k === 'shop'){ t.shop = p.subclass || p.class; t._cls = p.class; } else if (k === 'hotel') t.tourism = sub; else if (sub === 'ice_cream') t.amenity = 'ice_cream'; else t.amenity = ['restaurant','fast_food','cafe','bar','pub'].includes(sub) ? sub : p.class === 'beer' ? 'pub' : p.class;
+    if (k === 'hotel') t.tourism = sub; else if (sub === 'ice_cream') t.amenity = 'ice_cream'; else t.amenity = ['restaurant','fast_food','cafe','bar','pub'].includes(sub) ? sub : p.class === 'beer' ? 'pub' : p.class;
     out.push({ t, lat, lon, id: null, vt: true }); });
   return out;
 }
@@ -3586,18 +3261,14 @@ async function poiLoad(){
   poiBox = emap.getBounds().pad(0.4);
   const q = '[out:json][timeout:20];('+POIC[k].q.split(';').map(x => x+'('+bb+');').join('')+');out center tags 120;';
   let els = vtPois(k, b);                     /* la mappa vettoriale ha già i locali della zona: nessuna attesa */
-  /* online solo se la mappa vettoriale non c'è, o (per i negozi) se ne trova pochi: in città le tile non hanno tutti i negozi */
-  if (!els.length && !(vtGL && vtGL.isStyleLoaded()) || (k === 'shop' && els.length < 8 && emap.getZoom() >= 14)){
-    const vt = els;
-    try { const net = ((await overpass(q, 12000)).elements || []).map(el => ({ t: el.tags || {}, lat: el.lat != null ? el.lat : el.center && el.center.lat, lon: el.lon != null ? el.lon : el.center && el.center.lon, id: el.type+'/'+el.id }));
-      /* unisco: quelli della rete hanno più dettagli, quelli della mappa restano se la rete non li ha */
-      els = net.concat(vt.filter(v => !net.some(n => n.t.name === v.t.name && n.lat != null && haversine(n.lat, n.lon, v.lat, v.lon) < 60))); }
-    catch(e){ if (!vt.length){ wkFlash('Non riesco a caricare i locali: riprova tra poco'); return; } }
+  if (!els.length && !(vtGL && vtGL.isStyleLoaded())){   /* online solo se la mappa vettoriale non c'è: opzione leggera */
+    try { els = ((await overpass(q, 12000)).elements || []).map(el => ({ t: el.tags || {}, lat: el.lat != null ? el.lat : el.center && el.center.lat, lon: el.lon != null ? el.lon : el.center && el.center.lon, id: el.type+'/'+el.id })); }
+    catch(e){ wkFlash('Non riesco a caricare i locali: riprova tra poco'); return; }
   }
   if (poiOn !== k) return;
   const ctr = emap.getCenter();
   poiList = els
-    .filter(o => o.lat != null && o.t.name && (k !== 'shop' || shopOk(o.t.shop, o.t._cls, o.t.name))).map(o => Object.assign(o, { d: haversine(ctr.lat, ctr.lng, o.lat, o.lon) }))
+    .filter(o => o.lat != null && o.t.name).map(o => Object.assign(o, { d: haversine(ctr.lat, ctr.lng, o.lat, o.lon) }))
     .sort((a, b2) => a.d - b2.d).slice(0, 40);              /* al massimo 40, i più vicini: la mappa resta leggibile */
   ePoiL.clearLayers();
   poiList.forEach(o => L.marker([o.lat, o.lon], { icon: L.divIcon({ className:'', iconSize:[0,0],
@@ -3616,7 +3287,7 @@ async function poiDetails(o){
 function poiCard(o){
   if (o.vt && !o.full){ poiDetails(o).then(() => { if ($('eCard').classList.contains('show') && $('eCard').querySelector('h3') && $('eCard').querySelector('h3').textContent === o.t.name) poiCard(o); }); }
   const t = o.t, town = (placeAt(o.lat, o.lon) || {}).n || '', where = (t['addr:street'] ? t['addr:street']+(t['addr:housenumber'] ? ' '+t['addr:housenumber'] : '')+', ' : '')+town.replace(/^Vicino a /, '');
-  const typ = POI_TYPE[t.amenity] || POI_TYPE[t.tourism] || (t.shop === 'ice_cream' ? 'Gelateria' : t.shop ? (SHOP_LABEL[t.shop] || (SHOP_SUB[shopCat(t.shop, t._cls, t.name)] || {}).t || 'Negozio') : 'Locale');
+  const typ = POI_TYPE[t.amenity] || POI_TYPE[t.tourism] || (t.shop === 'ice_cream' ? 'Gelateria' : 'Locale');
   const qq = encodeURIComponent(t.name+' '+town.replace(/^Vicino a /, ''));
   const info = [t.cuisine ? 'Cucina: '+t.cuisine.replace(/;/g, ', ').replace(/_/g, ' ') : '', t.opening_hours ? 'Orari: '+t.opening_hours : '',
     (t.phone || t['contact:phone']) ? 'Tel. '+(t.phone || t['contact:phone']) : ''].filter(Boolean);
@@ -3630,12 +3301,11 @@ function poiCard(o){
   $('eCard').querySelector('[data-go]').onclick = () => dirOpen({ lat:o.lat, lng:o.lon });
 }
 function poiSet(k){
-  poiOn = poiOn === k ? null : k; ePoiL.clearLayers(); poiList = []; poiBox = null; regChips(); shopSubRow();
-  document.body.classList.toggle('poi-on', !!poiOn); document.body.classList.toggle('shop-on', poiOn === 'shop');      /* mentre cerchi locali, monumenti e punti di Claude si nascondono */
+  poiOn = poiOn === k ? null : k; ePoiL.clearLayers(); poiList = []; poiBox = null; regChips();
+  document.body.classList.toggle('poi-on', !!poiOn);      /* mentre cerchi locali, monumenti e punti di Claude si nascondono */
   if (!poiOn){ drawArt(); setHint(); if (eNear && !eItems.length && !eLoading){ const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); } return; }
   if (!poiOn) return;
-  const zMin = poiOn === 'shop' ? 16 : 14;
-  if (emap.getZoom() < zMin){ const c = emap.getZoom() < 12 && eCity ? [eCity.lat, eCity.lon] : emap.getCenter(); emap.setView(c, zMin + 1 - (poiOn === 'shop' ? 1 : 0), { animate:true }); setTimeout(poiLoad, 700); }
+  if (emap.getZoom() < 14){ const c = eCity ? [eCity.lat, eCity.lon] : emap.getCenter(); emap.setView(c, 15, { animate:true }); setTimeout(poiLoad, 600); }
   else poiLoad();
 }
 emap.on('moveend', () => { if (!poiOn || emap.getZoom() < 13) return;
