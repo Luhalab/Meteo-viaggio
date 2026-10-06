@@ -145,3 +145,9 @@ Avvio: font caricati senza bloccare la pagina, collegamenti anticipati ai server
 Punti uniti: elementi entro 30 m (o con lo stesso nome entro 150 m, da fonti diverse) diventano un solo punto; la scheda mostra il testo principale, gli altri testi solo se diversi, le curiosità una volta sola e i link di ogni fonte.
 Percorsi: il tasto nella scheda "Cosa fare" e l'interruttore nei Filtri comandano lo stesso percorso (stesso stato acceso/spento); dalla scheda si accende e si spegne.
 Vento: km/h con freccia della direzione, nell'ora per ora e (massimo del giorno) nella tabella settimanale; senza colori (usati per le temperature): grigio chiaro sotto 20, più scuro 20-29, pastiglia grigia 30-44, pastiglia scura da 45.
+"Cosa fare in questa zona?" (modo meteo senza città scelta, in cima al pannello): finestra con quando (oggi, domani,
+weekend, 3 o 7 giorni), interessi e preferenze libere; manda a Claude "[Meteo e viaggio: zona]" con il meteo per giorno
+delle città visibili (tempo, temperature, pioggia, vento) e la richiesta di consigli scelti in base al meteo, cercati su
+internet, senza premiare le città solo perché grandi.
+Shopping: chip "Shopping" con sottofiltri (Abbigliamento, Scarpe, Sport, Souvenir e artigianato, Gioielli, Prodotti
+tipici, Altri negozi), dalle tile vettoriali; supermercati e simili esclusi.
