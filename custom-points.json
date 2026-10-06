@@ -2106,5 +2106,159 @@
         "url": "https://www.balarm.it/news/e-la-cupola-piu-bella-e-famosa-di-palermo-uno-scrigno-del-barocco-finalmente-visitabile-126307"
       }
     ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "Il versetto del Corano sulla colonna del portico",
+    "lat": 38.11444,
+    "lon": 13.35611,
+    "extract": "Nel portico gotico-catalano della Cattedrale, la prima colonna a sinistra apparteneva alla basilica originaria e poi alla moschea: lo prova un versetto del Corano scolpito sul fusto. Il luogo è stato basilica bizantina, moschea e infine cattedrale normanna, fondata nel 1185 dall'arcivescovo Gualtiero Offamilio.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Wikipedia – Palermo Cathedral",
+        "url": "https://en.wikipedia.org/wiki/Palermo_Cathedral"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "La meridiana di Piazzi: il sole che segna il mezzogiorno",
+    "lat": 38.11444,
+    "lon": 13.35611,
+    "extract": "Nel 1801 l'astronomo Giuseppe Piazzi, scopritore del primo asteroide Cerere, fece realizzare in Cattedrale una meridiana. Un forellino in una cupoletta proietta l'immagine del sole su una linea di bronzo orientata nord-sud, che il sole attraversa a mezzogiorno solare. Gli estremi della linea segnano i solstizi, con i segni zodiacali lungo il percorso.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Wikipedia – Palermo Cathedral",
+        "url": "https://en.wikipedia.org/wiki/Palermo_Cathedral"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "I sarcofagi di porfido dei re normanni e svevi",
+    "lat": 38.11444,
+    "lon": 13.35611,
+    "extract": "Nelle prime due cappelle della navata destra riposano Ruggero II, la figlia Costanza, Enrico VI e Federico II, in sarcofagi di porfido. Furono spostati qui nel Settecento da altre sedi; quelli di Ruggero II e Costanza provengono dal transetto del Duomo di Cefalù. Secondo gli studi citati da Wikipedia sono tra i primi sepolcri medievali laici isolati dell'Occidente.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Wikipedia – Palermo Cathedral",
+        "url": "https://en.wikipedia.org/wiki/Palermo_Cathedral"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "Le cupole rosse non sono originali",
+    "lat": 38.10972,
+    "lon": 13.35472,
+    "extract": "Le cupole rosse di San Giovanni degli Eremiti sono diventate il simbolo arabo-normanno di Palermo, ma il colore non è quello medievale. Nell'Ottocento Giuseppe Patricolo, restaurando il complesso, trovò tracce di intonaco rosso su alcune cupole e decise di dipingerle tutte così. Ancora oggi non è chiaro perché la chiesa si dica «degli Eremiti»: forse per i monaci benedettini che vi vivevano in clausura.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Wikipedia – San Giovanni degli Eremiti",
+        "url": "https://en.wikipedia.org/wiki/San_Giovanni_degli_Eremiti"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "Il chiostro con la cisterna araba",
+    "lat": 38.10972,
+    "lon": 13.35472,
+    "extract": "Il chiostro di San Giovanni degli Eremiti è la parte meglio conservata dell'antico monastero benedettino, che Ruggero II restaurò dopo la conquista normanna. Colonnine binate con capitelli a motivi vegetali sostengono archi ogivali, in un giardino rigoglioso; vi si trova anche una cisterna di epoca araba. Nel 1882 Frances Elliot scrisse che il complesso, «totalmente orientale», starebbe bene a Baghdad o Damasco.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Wikipedia – San Giovanni degli Eremiti",
+        "url": "https://en.wikipedia.org/wiki/San_Giovanni_degli_Eremiti"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "I quattro mori di Porta Nuova",
+    "lat": 38.11222,
+    "lon": 13.35278,
+    "extract": "Sul lato verso Corso Calatafimi la porta mostra quattro grandi telamoni che raffigurano i mori sconfitti da Carlo V; secondo una fonte due hanno le braccia mozzate e due incrociate, come prigionieri. La porta celebra la conquista di Tunisi (1535) e l'ingresso di Carlo V a Palermo il 13 settembre 1535. In origine era detta «Porta dell'Aquila», ma i palermitani continuarono a chiamarla «Nuova».",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Wikipedia – Porta Nuova (Palermo)",
+        "url": "https://en.wikipedia.org/wiki/Porta_Nuova_(Palermo)"
+      },
+      {
+        "t": "University of Notre Dame – Marble",
+        "url": "https://marble.nd.edu/item/cn69m329b52"
+      }
+    ]
+  },
+  {
+    "kind": "curiosita",
+    "title": "1667: la polveriera che fece esplodere Porta Nuova",
+    "lat": 38.11222,
+    "lon": 13.35278,
+    "extract": "La prima Porta Nuova, costruita nel 1583-84 per volere del viceré Marcantonio Colonna, fu distrutta nel 1667 quando prese fuoco un deposito, secondo una fonte di polvere da sparo, ospitato nell'edificio. Venne ricostruita nel 1669 dall'architetto Gaspare Guercio, che aggiunse il tetto piramidale rivestito di maioliche con l'aquila, simbolo di Palermo.",
+    "url": null,
+    "fonti": [
+      {
+        "t": "Wikipedia – Porta Nuova (Palermo)",
+        "url": "https://en.wikipedia.org/wiki/Porta_Nuova_(Palermo)"
+      },
+      {
+        "t": "University of Notre Dame – Marble",
+        "url": "https://marble.nd.edu/item/cn69m329b52"
+      }
+    ]
+  },
+  {
+    "kind": "da-fare",
+    "title": "Palermo: Porta Nuova, Palazzo dei Normanni, Eremiti e Cattedrale a piedi",
+    "lat": 38.11222,
+    "lon": 13.35278,
+    "extract": "Giro di meno di un chilometro (circa 850 m in linea d'aria tra le tappe) nel cuore storico: parti da Porta Nuova, passa accanto al Palazzo dei Normanni, scendi ai giardini di San Giovanni degli Eremiti e risali fino alla Cattedrale. Per gli orari di Palazzo, Eremiti e Cattedrale controlla i siti ufficiali prima di andare, perché cambiano e possono esserci chiusure per funzioni.",
+    "url": null,
+    "stops": [
+      {
+        "n": "Porta Nuova",
+        "lat": 38.11222,
+        "lon": 13.35278
+      },
+      {
+        "n": "Palazzo dei Normanni e Cappella Palatina",
+        "lat": 38.1112064,
+        "lon": 13.3532496
+      },
+      {
+        "n": "Chiesa di San Giovanni degli Eremiti",
+        "lat": 38.10972,
+        "lon": 13.35472
+      },
+      {
+        "n": "Cattedrale di Palermo",
+        "lat": 38.11444,
+        "lon": 13.35611
+      }
+    ],
+    "fonti": [
+      {
+        "t": "Wikipedia – Palermo Cathedral",
+        "url": "https://en.wikipedia.org/wiki/Palermo_Cathedral"
+      },
+      {
+        "t": "Wikipedia – San Giovanni degli Eremiti",
+        "url": "https://en.wikipedia.org/wiki/San_Giovanni_degli_Eremiti"
+      },
+      {
+        "t": "Wikipedia – Porta Nuova (Palermo)",
+        "url": "https://en.wikipedia.org/wiki/Porta_Nuova_(Palermo)"
+      },
+      {
+        "t": "University of Notre Dame – Marble",
+        "url": "https://marble.nd.edu/item/cn69m329b52"
+      }
+    ]
   }
 ]
