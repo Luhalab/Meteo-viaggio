@@ -2123,7 +2123,7 @@ function fltPanel(){
     row('oggi', 'Consigli del momento', d('#c99700', '<span style="font-size:12px;line-height:1">💡</span>'), 'spariscono da soli')+
     row('consigli', 'Consigli che restano', dot('#2f7d4f'), 'li elimini tu')+
     (n ? '<button data-tips="1" class="act"><span>Vedi o elimina i consigli ('+n+')</span></button>' : '')+
-    '<div class="rtnote" style="padding-top:8px">I percorsi hanno il loro tasto: <b>Percorsi</b>, sotto questo.</div>';
+    '<button data-gort="1" class="act"><span>🧭 Percorsi '+(eCity ? 'a '+esc(eCity.virt ? 'questa zona' : eCity.n) : 'nella zona')+' ('+routesHere().length+') →</span></button>';
 }
 /* ---------- pannello PERCORSI: un elenco solo, con un interruttore per percorso ---------- */
 function rtBadge(){ const b = $('eRtB'), n = eRoutesOn.size; b.hidden = !n; b.textContent = n; }
@@ -2258,6 +2258,7 @@ function panelClick(e){
   if (del){ if (confirm('Eliminare questo percorso?')){ const id = del.dataset.del; store.set('myRoutes', myRoutes().filter(r => r.id !== id));
     const k = 'my|'+id; if (eRoutesOn.has(k)){ eRoute.removeLayer(eRoutesOn.get(k)); eRoutesOn.delete(k); } routesUI(); } return; }
   if (e.target.closest('button[data-tips]')){ tipsOpenDialog(); return; }
+  if (e.target.closest('button[data-gort]')){ setRtP(true); return; }
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
   if (e.target.closest('button[data-roff]')){ clearRoutes(); return; }
