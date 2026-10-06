@@ -177,3 +177,9 @@ Filtri separati per modalità: in vista meteo (da lontano) monumenti, luoghi agg
 scelte in modo indipendente (localStorage "mapFilters2"). In vista meteo non c'è l'elenco dei percorsi: compaiono solo i consigli
 (e i percorsi) nati dalla richiesta "Cosa fare in questa zona", con 💡 sulla mappa e nei Filtri.
 Consigli della richiesta di zona: linguetta "Consigli (N)" accanto a Meteo e Foto nel pannello della vista meteo (visibile solo se ce ne sono); toccando un consiglio il pannello si abbassa, la mappa va sul punto (restando in vista meteo) e si apre la scheda; ogni riga ha l'interruttore del percorso (se ha le tappe) e ✕ per toglierlo. Non compaiono più nel pannello Filtri.
+Risparmio di token (messaggi a Claude): i messaggi sono compatti (meteo con città simili su una riga, valori arrotondati, al massimo
+16 città), portano i LIMITI di ricerca (modalità Veloce: 3 ricerche, 3 consigli, 150 parole; Approfondito: 8 ricerche, 5 consigli,
+300 parole), l'elenco dei titoli già presenti nell'app (così Claude non rilegge il file per i doppioni) e dicono di salvare le voci
+nuove in custom-inbox.json (piccolo) senza stampare i file. L'app legge custom-points.json + custom-inbox.json (no-cache, ETag, ogni 3
+minuti). La stessa richiesta mandata entro 30 minuti chiede conferma. L'app non chiama mai API a pagamento: i token si consumano solo
+nelle chat di Claude.

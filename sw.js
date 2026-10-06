@@ -5,7 +5,7 @@
    - mappa (tile e stile): copia salvata subito, aggiornata in background; al massimo ~4000 tile, poi si tolgono le più vecchie;
    - custom-points.json: sempre dalla rete (i punti di Claude devono essere aggiornati), copia salvata solo se sei offline.
    Previsioni, monumenti e testi li salva l'app stessa (IndexedDB) con le loro scadenze. */
-const V = 'v87';
+const V = 'v88';
 const SHELL = 'viaggio-shell-'+V, LIBS = 'viaggio-libs', TILES = 'viaggio-tiles';
 const FILES = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest', './region-italia.json', './region-svizzera.json'];
 const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
@@ -57,7 +57,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin === self.location.origin){
-    if (url.pathname.endsWith('custom-points.json')) { e.respondWith(networkFirst(SHELL, req)); return; }
+    if ((url.pathname.endsWith('custom-points.json') || url.pathname.endsWith('custom-inbox.json'))) { e.respondWith(networkFirst(SHELL, req)); return; }
     if (url.pathname.startsWith('/api/')) return;
     if (req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) { e.respondWith(pageFirst(req, e)); return; }
     e.respondWith(staleWhileRevalidate(SHELL, req, e)); return;

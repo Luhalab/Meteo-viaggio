@@ -688,6 +688,8 @@ footer a{color:var(--tx2)}
       <p class="m" id="eZoneP">Claude guarda il meteo delle città sulla mappa e cerca su internet (siti turistici, guide, recensioni) i posti più adatti, senza premiare per forza le città grandi.</p>
       <div class="zl">Quando</div><div class="zch" id="eZoneWhen"></div>
       <div class="zl">Cosa ti interessa</div><div class="zch" id="eZonePref"></div>
+      <div class="zl">Quanto approfondire</div><div class="zch" id="eZoneDepth"></div>
+      <div class="rtnote" style="padding:4px 0 0" id="eZoneDepthN"></div>
       <div class="zl">Altre preferenze <span class="muted">(facoltativo)</span></div>
       <textarea id="eZoneTxt" rows="3" placeholder="Es. siamo in due, niente lunghe camminate, ci piace il pesce, mezz'ora di auto al massimo…"></textarea>
       <div class="acts"><button id="eZoneNo">Annulla</button><button class="pr" id="eZoneGo">Chiedi a Claude</button></div></div></div>
@@ -889,19 +891,8 @@ const mapData = {}, pending = new Set();
 const mapDay = 0;   /* giorno mostrato sulla mappa: oggi */
 /* Sfondo mappa. Ordine: CARTO se hai una chiave, altrimenti Esri (veloce e pulito),
    con OpenStreetMap come rete di sicurezza se Esri non risponde. */
-const CARTO_KEY = '';
-const TILE_OPTS = { maxZoom:19, updateWhenZooming:false, keepBuffer:3 };
-let tileProvider = CARTO_KEY ? 'carto' : 'esri';
 /* Sfondo sempre chiaro, anche con l'app in tema scuro: così le tile restano in cache
    quando cambi tema e non vengono riscaricate. */
-function tileLayerFor(p){
-  if (p==='carto') return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png?key='+CARTO_KEY,
-    Object.assign({subdomains:'abcd', attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'}, TILE_OPTS));
-  if (p==='esri') return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-    Object.assign({maxNativeZoom:16, attribution:'Sfondo Esri, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}, TILE_OPTS));
-  return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    Object.assign({attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}, TILE_OPTS));
-}
 let fetchTimer = null;
 let fetchQueue = [];
 function fetchMissing(list){
@@ -2022,10 +2013,14 @@ const WFS_LIG = { base:'https://geoservizi.regione.liguria.it/geoserver/M2343/wf
 let customCache = null;
 let customAt = 0, customLoading = null;
 async function customAll(){
-  /* riletto ogni minuto: così i punti che Claude aggiunge mentre l'app è aperta arrivano da soli */
-  if (customCache && Date.now() - customAt < 60000) return customCache;
+  /* riletto ogni 3 minuti: così i punti che Claude aggiunge mentre l'app è aperta arrivano da soli.
+     Due file: custom-points.json (grande, raramente modificato) e custom-inbox.json (piccolo: dove Claude aggiunge le voci nuove,
+     così non deve leggere e riscrivere il file grande ogni volta). "no-cache" = il browser chiede solo se è cambiato (ETag). */
+  if (customCache && Date.now() - customAt < 180000) return customCache;
   if (!customLoading) customLoading = (async () => {
-    try { const r = await fetch('custom-points.json', {cache:'no-store'}); if (r.ok){ customCache = await r.json(); customAt = Date.now(); zoneScan(); } }
+    const load = async f => { try { const r = await fetch(f, {cache:'no-cache'}); return r.ok ? await r.json() : null; } catch(e){ return null; } };
+    try { const [a, b] = await Promise.all([load('custom-points.json'), load('custom-inbox.json')]);
+      if (a){ const seen = new Set(a.map(tipKey)); customCache = a.concat((Array.isArray(b) ? b : []).filter(x => x && x.lat != null && !seen.has(tipKey(x)))); customAt = Date.now(); zoneScan(); } }
     catch(e){} if (!customCache) customCache = [];
     customLoading = null; return customCache; })();
   return customLoading;
@@ -2288,7 +2283,6 @@ const SRC_LABEL = { osm:'Vedi su OpenStreetMap', swiss:'Vedi su geo.admin.ch', '
 function eShowItem(i, fly){
   const it = eItems[i]; if (!it) return; eSel = i; drawArt(); renderMon();
   if (fly || !eNear) emap.flyTo([it.lat,it.lon], Math.max(emap.getZoom(), 16)); else emap.panTo([it.lat,it.lon]);
-  const lbl = SRC_LABEL[it.source];
   const tag = it.kind === 'curiosita' ? 'Curiosità di Claude' : it.kind === 'da-fare' ? 'Consiglio di Claude' : 'Aggiunto da Claude';
   /* tutto quello che sta nello stesso punto: altre fonti sul luogo e curiosità/consigli (senza doppioni) */
   const grp = (eGroups.find(g => g.items.includes(i)) || { items:[i] }).items.map(j => eItems[j]);
@@ -3229,8 +3223,29 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && wa
 
 /* ---------- condividi con Claude (come Cicerone) ---------- */
 /* ---------- messaggi per Claude: completi, così agisce subito senza fare domande ---------- */
-const MSG_ADD = 'Aggiungi i luoghi non ancora presenti in custom-points.json (repo GitHub '+POINTS_REPO+'), con coordinate di ogni luogo da Google Maps, Wikipedia o OpenStreetMap (Nominatim), le curiosità come voci "kind": "curiosita" e i consigli su cosa vedere e fare come voci "kind": "da-fare" (titolo breve, 2-4 frasi, coordinate del centro).';
+/* Messaggi per Claude: pensati per consumare POCHI token. Il costo non sta nel messaggio ma in quello che Claude fa dopo
+   (ricerche web, lettura e riscrittura dei file): per questo ogni messaggio dà dei limiti, dice di non stampare i file
+   e porta con sé l'elenco di ciò che l'app ha già, così Claude non deve rileggere il file per evitare i doppioni. */
+let zoneDepth = store.get('zoneDepth', 'fast');
+const MSG_SAVE = 'SALVATAGGIO: scrivi le voci nuove in custom-inbox.json (repo GitHub '+POINTS_REPO+', array JSON; crealo se manca), NON in custom-points.json. Usa UNO script (python, oppure curl+jq) che legge il file, aggiunge le voci e fa un solo commit. Non stampare né incollare nella chat il contenuto di custom-points.json o di custom-inbox.json.';
+function msgBudget(kind){
+  if (kind === 'zona') return zoneDepth === 'deep'
+    ? 'LIMITI (per non consumare troppi token): al massimo 8 ricerche web e 6 pagine aperte in tutto; 4-5 consigli; risposta di al massimo 300 parole.'
+    : 'LIMITI (per non consumare troppi token): al massimo 3 ricerche web e 3 pagine aperte in tutto; 3 consigli; risposta di al massimo 150 parole. Fermati appena hai informazioni sufficienti; non rileggere pagine già viste.';
+  return 'LIMITI: al massimo 4 ricerche web e 3 pagine aperte; risposta breve.';
+}
+/* titoli già presenti nell'app vicino a un punto: evitano a Claude di leggere il file per cercare i doppioni */
+function existingTitles(lat, lon, r, n){
+  const seen = new Set();
+  (customCache || []).forEach(p => { if (p.lat != null && p.kind !== 'evento' && km(lat, lon, p.lat, p.lon) <= r) seen.add(p.title.length > 60 ? p.title.slice(0, 57)+'…' : p.title); });
+  return [...seen].slice(0, n || 25).join('; ');
+}
+const MSG_ADD = 'Aggiungi solo i luoghi non ancora presenti, con coordinate di ogni luogo da Google Maps, Wikipedia o OpenStreetMap (Nominatim), le curiosità come voci "kind": "curiosita" e i consigli su cosa vedere e fare come voci "kind": "da-fare" (titolo breve, 2-4 frasi, coordinate del centro).';
 const MSG_REPLY = 'Poi rispondimi con: cosa vedere (i luoghi più interessanti, con distanza a piedi), le curiosità più belle e cosa fare (un consiglio pratico: percorso, orari, dove mangiare o il momento migliore).';
+function msgTail(lat, lon, r){
+  const ex = existingTitles(lat, lon, r);
+  return '\n'+(ex ? 'Già nell\'app qui vicino (non ripeterli): '+ex+'.\n' : '')+MSG_SAVE+'\n'+msgBudget('altro');
+}
 const near = p => { const nc = nearestComune(p.lat, p.lon); return nc ? ' (vicino a '+nc.n+')' : ''; };
 const coords = p => p.lat.toFixed(5)+', '+p.lon.toFixed(5);
 /* ---------- "Cosa fare in questa zona?": meteo delle città visibili + preferenze → messaggio per Claude ---------- */
@@ -3240,6 +3255,8 @@ let zoneWhen = 'oggi', zonePref = new Set(store.get('zonePref', []));
 function zoneDialog(){
   $('eZoneWhen').innerHTML = ZONE_WHEN.map(w => '<button data-w="'+w[0]+'" class="'+(zoneWhen === w[0] ? 'on' : '')+'">'+w[1]+'</button>').join('');
   $('eZonePref').innerHTML = ZONE_PREF.map(p => '<button data-p="'+esc(p)+'" class="'+(zonePref.has(p) ? 'on' : '')+'">'+esc(p)+'</button>').join('');
+  $('eZoneDepth').innerHTML = [['fast','Veloce'],['deep','Approfondito']].map(d => '<button data-d="'+d[0]+'" class="'+(zoneDepth === d[0] ? 'on' : '')+'">'+d[1]+'</button>').join('');
+  $('eZoneDepthN').textContent = zoneDepth === 'deep' ? 'Fino a 5 consigli e 8 ricerche: usa molti più token del tuo abbonamento.' : '3 consigli e al massimo 3 ricerche: usa pochi token (consigliato).';
 }
 let zoneCity = null;
 /* city = null: la zona che vedi sulla mappa; city = una città scelta: consigli per quella città e i suoi dintorni, in base al suo meteo */
@@ -3256,9 +3273,16 @@ $('eZoneNo').onclick = () => { $('eZone').hidden = true; };
 $('eZone').addEventListener('click', e => {
   if (e.target === $('eZone')){ $('eZone').hidden = true; return; }
   const w = e.target.closest('[data-w]'); if (w){ zoneWhen = w.dataset.w; zoneDialog(); return; }
+  const dp = e.target.closest('[data-d]'); if (dp){ zoneDepth = dp.dataset.d; store.set('zoneDepth', zoneDepth); zoneDialog(); return; }
   const p = e.target.closest('[data-p]'); if (p){ const v = p.dataset.p; zonePref.has(v) ? zonePref.delete(v) : zonePref.add(v); store.set('zonePref', [...zonePref]); zoneDialog(); }
 });
 $('eZoneGo').onclick = () => {
+  /* stessa richiesta mandata da poco: avviso, perché rimandarla consuma altri token e i consigli sono già qui */
+  const key = (zoneCity ? zoneCity.n : 'zona|'+emap.getCenter().lat.toFixed(1)+','+emap.getCenter().lng.toFixed(1))+'|'+zoneWhen+'|'+zoneDepth+'|'+[...zonePref].sort().join(',')+'|'+$('eZoneTxt').value.trim();
+  const last = store.get('zoneLast', null);
+  if (last && last.key === key && Date.now() - last.t < 30 * 60e3 &&
+      !confirm('Hai già mandato questa richiesta '+Math.max(1, Math.round((Date.now() - last.t) / 60000))+' minuti fa. Rimandarla consuma altri token: i consigli nuovi li trovi nella linguetta Consigli. Mandarla lo stesso?')) return;
+  store.set('zoneLast', { key, t: Date.now() });
   store.set('zoneTxt', $('eZoneTxt').value); $('eZone').hidden = true;
   if (zoneCity) zoneAskMark(zoneCity.lat, zoneCity.lon, 40);
   else { const b = emap.getBounds(), c = emap.getCenter(); zoneAskMark(c.lat, c.lng, km(b.getSouth(), b.getWest(), b.getNorth(), b.getEast()) / 2 + 10); }
@@ -3269,107 +3293,101 @@ function zoneDays(){
   let start = w[2]; if (start < 0){ start = (6 - d.getDay() + 7) % 7; }      /* prossimo sabato (oggi se è sabato) */
   return [start, Math.min(14, start + w[3] - 1)];
 }
-function msgZone(){
-  const b = emap.getBounds(), [d0, d1] = zoneDays();
-  /* meteo delle città visibili nei giorni scelti: le 25 più popolose, per non allungare troppo il messaggio */
-  const list = eVisible.filter(c => mapData[c.n]).slice().sort((x, y) => (y.pop || 0) - (x.pop || 0)).slice(0, 25);
-  const rows = list.map(c => { const D = mapData[c.n].daily, T = mapData[c.n].time, parts = [];
-    for (let i = d0; i <= d1 && i < T.length; i++){
-      parts.push(dayLabel(T[i], i).toLowerCase()+' '+wmo(D.weather_code[i])[0].toLowerCase()+' '+Math.round(D.temperature_2m_max[i])+'°/'+Math.round(D.temperature_2m_min[i])+'°'+
-        ((D.precipitation_sum[i] || 0) >= 0.5 ? ', pioggia '+D.precipitation_sum[i].toFixed(1)+' mm' : '')+
-        (D.wind_speed_10m_max ? ', vento '+Math.round(D.wind_speed_10m_max[i])+' km/h'+(D.wind_direction_10m_dominant ? ' da '+windFrom(D.wind_direction_10m_dominant[i]) : '') : '')); }
-    return '- '+c.n+': '+parts.join('; '); }).join('\n');
-  const when = ZONE_WHEN.find(x => x[0] === zoneWhen)[1].toLowerCase(), txt = $('eZoneTxt').value.trim();
-  const sg = sightList.filter(x => b.contains([x.lat, x.lon])).slice(0, 15).map(x => x.n+(x.links >= SIGHT_BIG ? ' (molto noto)' : '')).join(', ');
-  return '[Meteo e viaggio: zona] Cosa fare '+when+' in questa zona (riquadro da '+b.getSouth().toFixed(3)+', '+b.getWest().toFixed(3)+' a '+b.getNorth().toFixed(3)+', '+b.getEast().toFixed(3)+').\n'+
-    'Fai tutto subito, senza chiedermi conferma.\n\n'+
-    'Meteo previsto nelle città della zona:\n'+(rows || '(dati meteo non ancora caricati)')+'\n\n'+
-    (sg ? 'Luoghi notevoli nella zona (da Wikidata, per farti un\'idea, non solo questi): '+sg+'.\n\n' : '')+
-    'Le mie preferenze: '+(zonePref.size ? [...zonePref].join(', ') : 'nessuna in particolare')+(txt ? '. '+txt : '')+'.\n\n'+
-    'Cosa ti chiedo:\n'+
-    '1. Consigliami 3-5 posti o attività in questa zona per '+when+', in ordine di preferenza, scegliendo in base al METEO di ciascun posto e alle mie preferenze '+
-    '(es. sole e vento debole: mare, calette, riserve come lo Zingaro o Scopello; pioggia o vento forte: musei, città d\'arte, ristoranti, shopping al coperto).\n'+
-    '2. Non premiare le città solo perché sono grandi o hanno tante cose: valuta quanto vale la pena con quel meteo e per le mie preferenze. Va bene anche un borgo piccolo.\n'+
-    '3. Cerca su internet, non solo su Wikipedia: siti turistici ufficiali, guide di viaggio, pagine di riserve e musei (orari e aperture), recensioni recenti.\n'+
-    '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore della giornata, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
-    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare", come faresti se ti chiedessi cosa fare in quella città: '+
-    'coordinate verificate del posto, il campo "citta" con la città di riferimento, "stops" se è un itinerario e "fonti". Restano nell\'app finché non li elimino io.';
+/* meteo di un giorno in forma compatta: "dom 4 coperto 21/18 0.5mm v12E" (temperature/vento arrotondati per raggruppare le città simili) */
+const WX_DIR = ['N','NE','E','SE','S','SO','O','NO'];
+const windLetter = d => WX_DIR[Math.round(((d % 360) + 360) % 360 / 45) % 8];
+function wxCompactDay(D, T, i, coarse){
+  const g = k => D[k] ? D[k][i] : null, q = (v, st) => coarse ? Math.round(v / st) * st : Math.round(v);
+  const r = g('precipitation_sum') || 0, w = g('wind_speed_10m_max'), dr = g('wind_direction_10m_dominant');
+  return dayLabel(T[i], i).toLowerCase()+' '+wmo(g('weather_code'))[0].toLowerCase()+' '+q(g('temperature_2m_max'), 2)+'/'+q(g('temperature_2m_min'), 2)+
+    (r >= 0.5 ? ' '+(r < 10 ? r.toFixed(1) : Math.round(r))+'mm' : '')+(w != null ? ' v'+q(w, 5)+(dr != null ? windLetter(dr) : '') : '');
 }
-/* testo del meteo di un giorno (per i messaggi a Claude) */
-function dayWxText(D, T, i, label){
-  const g = k => D[k] ? D[k][i] : null;
-  const pp = g('precipitation_probability_max'), uv = g('uv_index_max');
-  return (label || dayLabel(T[i], i)).toLowerCase()+': '+wmo(g('weather_code'))[0].toLowerCase()+', '+Math.round(g('temperature_2m_max'))+'°/'+Math.round(g('temperature_2m_min'))+'°'+
-    ((g('precipitation_sum') || 0) >= 0.5 ? ', pioggia '+g('precipitation_sum').toFixed(1)+' mm' : ', niente pioggia')+(pp != null ? ' (probabilità '+Math.round(pp)+'%)' : '')+
-    (g('wind_speed_10m_max') != null ? ', vento '+Math.round(g('wind_speed_10m_max'))+' km/h'+(g('wind_direction_10m_dominant') != null ? ' da '+windFrom(g('wind_direction_10m_dominant')) : '') : '')+
-    (uv != null ? ', UV '+Math.round(uv) : '');
+/* città con lo stesso meteo (a meno di 2° e 5 km/h) su una riga sola: stesso contenuto, molte meno parole */
+function wxGroups(list, d0, d1){
+  const groups = new Map();
+  list.forEach(c => { const m = mapData[c.n]; if (!m) return; const parts = [];
+    for (let i = d0; i <= d1 && i < m.time.length; i++) parts.push(wxCompactDay(m.daily, m.time, i, true));
+    const sig = parts.join('; '); if (!groups.has(sig)) groups.set(sig, []); groups.get(sig).push(c.n); });
+  return [...groups.entries()].map(([sig, names]) => '- '+names.join(', ')+': '+sig).join('\n');
+}
+function msgZone(){
+  const b = emap.getBounds(), c0 = emap.getCenter(), [d0, d1] = zoneDays(), deep = zoneDepth === 'deep';
+  const r = Math.min(40, km(b.getSouth(), b.getWest(), b.getNorth(), b.getEast()) / 2);
+  const list = eVisible.filter(c => mapData[c.n]).slice().sort((x, y) => (y.pop || 0) - (x.pop || 0)).slice(0, 16);
+  const rows = wxGroups(list, d0, d1);
+  const when = ZONE_WHEN.find(x => x[0] === zoneWhen)[1].toLowerCase(), txt = $('eZoneTxt').value.trim();
+  const sg = sightList.filter(x => b.contains([x.lat, x.lon])).slice(0, 10).map(x => x.n+(x.links >= SIGHT_BIG ? '*' : '')).join(', ');
+  const ex = existingTitles(c0.lat, c0.lng, r);
+  return '[Meteo e viaggio: zona] Cosa fare '+when+' in questa zona (da '+b.getSouth().toFixed(2)+', '+b.getWest().toFixed(2)+' a '+b.getNorth().toFixed(2)+', '+b.getEast().toFixed(2)+'). Fai tutto subito, senza chiedermi conferma.\n\n'+
+    'Meteo (v = vento km/h, valori arrotondati):\n'+(rows || '(dati meteo non ancora caricati)')+'\n\n'+
+    (sg ? 'Luoghi notevoli (* = molto noti): '+sg+'.\n' : '')+
+    (ex ? 'Già nell\'app (non riproporli): '+ex+'.\n' : '')+
+    'Preferenze: '+(zonePref.size ? [...zonePref].join(', ') : 'nessuna in particolare')+(txt ? '. '+txt : '')+'.\n\n'+
+    'Dammi '+(deep ? '4-5' : '3')+' consigli in ordine, scelti in base al METEO di ciascun posto e alle mie preferenze (sole e vento debole: mare, calette, riserve; pioggia o vento forte: musei, chiese, mercati coperti, ristoranti). '+
+    'Non premiare le città solo perché sono grandi: va bene anche un borgo. Per ognuno: perché lì con questo meteo, cosa fare, orario migliore, una dritta pratica e la fonte (meglio siti ufficiali, non solo Wikipedia).\n'+
+    'Salvali come "kind": "da-fare" con coordinate verificate, "citta", "stops" se è un itinerario e "fonti".\n\n'+
+    msgBudget('zona')+'\n'+MSG_SAVE;
 }
 function msgCityWx(c){
-  const [d0, d1] = zoneDays(), base = c.ref || c, txt = $('eZoneTxt').value.trim();
+  const [d0, d1] = zoneDays(), base = c.ref || c, txt = $('eZoneTxt').value.trim(), deep = zoneDepth === 'deep';
   const when = ZONE_WHEN.find(x => x[0] === zoneWhen)[1].toLowerCase();
-  /* meteo della città: quello dettagliato se è già caricato, altrimenti quello della mappa */
   const own = (typeof city !== 'undefined' && city && city.n === c.n && cw) ? { D: cw.daily, T: cw.time } : (mapData[c.n] ? { D: mapData[c.n].daily, T: mapData[c.n].time } : null);
-  let days = '';
-  if (own) for (let i = d0; i <= d1 && i < own.T.length; i++) days += '- '+dayWxText(own.D, own.T, i)+'\n';
-  /* ora per ora del primo giorno (se il meteo dettagliato è caricato): serve a scegliere il momento giusto */
+  let days = [];
+  if (own) for (let i = d0; i <= d1 && i < own.T.length; i++) days.push(wxCompactDay(own.D, own.T, i, false));
+  /* ora per ora del primo giorno: serve a scegliere il momento giusto */
   let hours = '';
   if (cw && city && city.n === c.n && cw.hourly){
     const H = cw.hourly, day = cw.time[d0];
     const hh = cw.htime.map((t, i) => [t, i]).filter(x => x[0].startsWith(day) && +x[0].slice(11, 13) >= 8 && +x[0].slice(11, 13) <= 22 && +x[0].slice(11, 13) % 2 === 0).map(x => x[1]);
     hours = hh.map(i => cw.htime[i].slice(11, 13)+'h '+Math.round(H.temperature_2m[i])+'° '+wmo(H.weather_code[i])[0].toLowerCase()+
-      (H.precipitation_probability[i] != null ? ' pioggia '+Math.round(H.precipitation_probability[i])+'%' : '')+' vento '+Math.round(H.wind_speed_10m[i] || 0)).join('; ');
+      (H.precipitation_probability[i] != null && H.precipitation_probability[i] >= 20 ? ' pioggia '+Math.round(H.precipitation_probability[i])+'%' : '')+' v'+Math.round(H.wind_speed_10m[i] || 0)).join('; ');
   }
-  /* dintorni: le città vicine con il loro meteo, per confrontare dove conviene andare */
+  /* dintorni: le città vicine, raggruppate se hanno lo stesso meteo, solo per i primi 2 giorni */
   const near = eVisible.filter(x => x.n !== c.n && mapData[x.n] && km(c.lat, c.lon, x.lat, x.lon) <= 30)
     .sort((a, b) => km(c.lat, c.lon, a.lat, a.lon) - km(c.lat, c.lon, b.lat, b.lon)).slice(0, 8);
-  const nearTxt = near.map(x => { const D = mapData[x.n].daily, T = mapData[x.n].time, parts = [];
-    for (let i = d0; i <= Math.min(d1, d0 + 2) && i < T.length; i++) parts.push(dayWxText(D, T, i));
-    return '- '+x.n+' (a '+Math.round(km(c.lat, c.lon, x.lat, x.lon))+' km): '+parts.join('; '); }).join('\n');
-  const sg = sightList.filter(x => km(c.lat, c.lon, x.lat, x.lon) <= 25).slice(0, 15).map(x => x.n+(x.links >= SIGHT_BIG ? ' (molto noto)' : '')).join(', ');
-  const nm = base.n;
-  return '[Meteo e viaggio: città e meteo] Cosa fare '+when+' a '+nm+' e nei dintorni (centro '+coords(c)+').\n'+
-    'Fai tutto subito, senza chiedermi conferma. Non sono necessariamente lì.\n\n'+
-    'Meteo previsto a '+nm+':\n'+(days || '(dati meteo non ancora caricati)')+'\n'+
-    (hours ? '\nOra per ora ('+dayLabel(cw.time[d0], d0).toLowerCase()+'): '+hours+'\n' : '')+
-    (nearTxt ? '\nMeteo nei dintorni (per confrontare):\n'+nearTxt+'\n' : '')+
-    (sg ? '\nLuoghi notevoli nei dintorni (da Wikidata, per farti un\'idea, non solo questi): '+sg+'.\n' : '')+
-    '\nLe mie preferenze: '+(zonePref.size ? [...zonePref].join(', ') : 'nessuna in particolare')+(txt ? '. '+txt : '')+'.\n\n'+
-    'Cosa ti chiedo:\n'+
-    '1. Consigliami 3-5 cose da fare a '+nm+' e nei dintorni (entro circa mezz\'ora) per '+when+', in ordine di preferenza, scegliendo in base al METEO e alle mie preferenze '+
-    '(es. sole e vento debole: mare, calette, riserve, passeggiate; pioggia o vento forte: musei, chiese, mercati coperti, ristoranti, shopping al coperto). Dimmi anche a che ora conviene andare, guardando il meteo ora per ora.\n'+
-    '2. Non premiare un posto solo perché è grande o ha tante cose: conta quanto vale la pena con questo meteo e per le mie preferenze. Va bene anche un borgo piccolo vicino.\n'+
-    '3. Cerca su internet, non solo su Wikipedia: siti turistici ufficiali, guide di viaggio, orari di riserve e musei, recensioni recenti.\n'+
-    '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
-    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare": coordinate verificate del posto, il campo "citta" con "'+nm+'" (o la città di riferimento), "stops" se è un itinerario e "fonti". Restano nell\'app finché non li elimino io.';
+  const nearTxt = wxGroups(near, d0, Math.min(d1, d0 + 1));
+  const sg = sightList.filter(x => km(c.lat, c.lon, x.lat, x.lon) <= 25).slice(0, 10).map(x => x.n+(x.links >= SIGHT_BIG ? '*' : '')).join(', ');
+  const ex = existingTitles(c.lat, c.lon, 15), nm = base.n;
+  return '[Meteo e viaggio: città e meteo] Cosa fare '+when+' a '+nm+' e nei dintorni (centro '+coords(c)+'). Fai tutto subito, senza chiedermi conferma. Non sono necessariamente lì.\n\n'+
+    'Meteo a '+nm+' (v = vento km/h):\n'+(days.length ? days.map(d => '- '+d).join('\n') : '(dati meteo non ancora caricati)')+'\n'+
+    (hours ? 'Ora per ora ('+dayLabel(cw.time[d0], d0).toLowerCase()+'): '+hours+'\n' : '')+
+    (nearTxt ? '\nDintorni (valori arrotondati):\n'+nearTxt+'\n' : '')+
+    (sg ? '\nLuoghi notevoli (* = molto noti): '+sg+'.\n' : '')+
+    (ex ? 'Già nell\'app (non riproporli): '+ex+'.\n' : '')+
+    '\nPreferenze: '+(zonePref.size ? [...zonePref].join(', ') : 'nessuna in particolare')+(txt ? '. '+txt : '')+'.\n\n'+
+    'Dammi '+(deep ? '4-5' : '3')+' cose da fare a '+nm+' e nei dintorni (entro circa mezz\'ora) in ordine, scelte in base al METEO e alle mie preferenze (sole e vento debole: mare, calette, passeggiate; pioggia o vento forte: musei, chiese, mercati coperti, ristoranti). '+
+    'Dimmi anche a che ora conviene andare, guardando il meteo ora per ora. Non premiare un posto solo perché è grande: va bene un borgo vicino. Per ognuno: perché lì con questo meteo, cosa fare, una dritta pratica e la fonte (meglio siti ufficiali, non solo Wikipedia).\n'+
+    'Salvali come "kind": "da-fare" con coordinate verificate, "citta": "'+nm+'", "stops" se è un itinerario e "fonti".\n\n'+
+    msgBudget('zona')+'\n'+MSG_SAVE;
 }
 function msgCity(c){
   return '[Meteo e viaggio: città] '+c.n+' (centro '+coords(c)+'). Non sono necessariamente lì: non serve la mia posizione.\nFai tutto subito, senza chiedermi conferma.\n'+
-    '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità di '+c.n+'. '+MSG_ADD+'\n2. '+MSG_REPLY;
+    '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità di '+c.n+'. '+MSG_ADD+'\n2. '+MSG_REPLY+msgTail(c.lat, c.lon, 6);
 }
 function msgEvents(c){
   const [a, b] = evRange(), n = (c.ref || c).n;
   return '[Meteo e viaggio: eventi] '+n+' (centro '+coords(c.ref || c)+'), dal '+isoDay(a)+' al '+isoDay(b)+'.\nFai tutto subito, senza chiedermi conferma.\n'+
     '1. Cerca gli eventi in programma in questo periodo a '+n+' e dintorni (entro 15 km): sagre, feste, concerti, mostre, manifestazioni. '+
     'Usa siti affidabili: comune, pro loco, regione, ente del turismo, siti di eventi e giornali locali.\n'+
-    '2. Aggiungi ogni evento a custom-points.json (repo GitHub '+POINTS_REPO+') con "kind": "evento", "inizio" e "fine" (AAAA-MM-GG), '+
+    '2. Aggiungi ogni evento con "kind": "evento", "inizio" e "fine" (AAAA-MM-GG), '+
     '"luogo", coordinate del luogo, un "extract" di 2-3 frasi e "fonti" con le pagine consultate. Solo eventi con date confermate.\n'+
-    '3. Rispondimi con l\'elenco degli eventi aggiunti e le fonti.';
+    '3. Rispondimi con l\'elenco degli eventi aggiunti e le fonti, in breve.\n'+MSG_SAVE+'\n'+msgBudget('altro');
 }
 function msgHere(p){
   return '[Meteo e viaggio: posizione] Sono a '+coords(p)+near(p)+'.\nFai tutto subito, senza chiedermi conferma.\n'+
-    '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità entro circa 1 km da qui. '+MSG_ADD+'\n2. '+MSG_REPLY;
+    '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità entro circa 1 km da qui. '+MSG_ADD+'\n2. '+MSG_REPLY+msgTail(p.lat, p.lon, 1.5);
 }
 function msgPhoto(p){
   return '[Meteo e viaggio: foto] Sono a '+coords(p)+near(p)+'. Ti mando la foto di quello che sto guardando.\nFai tutto subito.\n'+
     '1. Riconosci cosa c\'è nella foto e raccontamelo: storia, arte e curiosità.\n'+
-    '2. Se non è già in custom-points.json aggiungilo (repo GitHub '+POINTS_REPO+'). Se non sei sicuro di cosa sia, dimmi l\'ipotesi più probabile e chiedimi conferma prima di aggiungerlo.\n'+
-    '3. Dimmi cosa vedere qui vicino e un consiglio su cosa fare.';
+    '2. Se non è già nell\'app aggiungilo. Se non sei sicuro di cosa sia, dimmi l\'ipotesi più probabile e chiedimi conferma prima di aggiungerlo.\n'+
+    '3. Dimmi cosa vedere qui vicino e un consiglio su cosa fare.'+msgTail(p.lat, p.lon, 0.5);
 }
 function msgPlace(it){
   return '[Meteo e viaggio: luogo] '+it.title+(eCity?' a '+eCity.n:'')+' ('+coords(it)+').\nFai tutto subito.\n'+
     '1. Raccontami storia, arte e curiosità di questo luogo e cosa guardare quando sono lì.\n'+
-    '2. Se trovi curiosità interessanti non ancora presenti, aggiungile a custom-points.json (repo GitHub '+POINTS_REPO+') come voci "kind": "curiosita".\n'+
-    '3. Suggeriscimi cosa vedere vicino.';
+    '2. Se trovi curiosità interessanti non ancora presenti, aggiungile come voci "kind": "curiosita".\n'+
+    '3. Suggeriscimi cosa vedere vicino.'+msgTail(it.lat, it.lon, 0.5);
 }
 async function shareToClaude(text, file){
   try {
