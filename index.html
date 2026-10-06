@@ -342,6 +342,27 @@ body.poi-on .c-dot{display:none}
 .sg-big span{width:17px;height:17px;border-radius:50%;background:#b98f3e;color:#fff;font-size:10px;line-height:17px;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .sg-big b{margin-top:1px;font:600 10.5px var(--sans);color:#6b5520;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 body.poi-on .sg-dot,body.poi-on .sg-big{display:none}
+.zask{padding:0 16px 8px}
+.zask[hidden]{display:none}
+.zask button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:20px;background:var(--acc-soft);color:var(--acc);font:600 14px var(--sans);padding:10px 12px;cursor:pointer}
+.zask svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.eflt .tipgl{display:block;width:100%;text-align:left;border:none;background:var(--soft);color:var(--tx);font:500 13.5px var(--sans);padding:9px 12px;margin:2px 0 4px;border-radius:10px;min-height:0}
+.tipcity{font:600 12px var(--sans);color:var(--tx2);padding:8px 10px 2px;text-transform:uppercase;letter-spacing:.03em}
+.tipr{display:flex;align-items:center;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
+.tipr span{flex:1;min-width:0;font:500 14px var(--sans)}
+.tipr span b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.tipr small{display:block;color:var(--tx2);font-size:12px}
+.tipr button{flex:none;width:38px;height:38px;min-height:0;border:1px solid var(--line);border-radius:10px;padding:0;justify-content:center;font-size:16px}
+.ecard .tipdel{border:1px solid #e3b5ad;background:none;color:#b4553f;border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
+.sg-tip{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-13px);cursor:pointer}
+.sg-tip span{width:24px;height:24px;border-radius:50%;background:#2f7d4f;color:#fff;font-size:13px;line-height:24px;text-align:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.sg-tip b{margin-top:2px;font:600 11px var(--sans);color:#1d5233;background:rgba(240,250,243,.94);border-radius:6px;padding:1px 5px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+body.poi-on .sg-tip{display:none}
+.cust .zl{font:600 13px var(--sans);color:var(--tx2);margin:12px 0 6px}
+.cust .zch{display:flex;flex-wrap:wrap;gap:6px}
+.cust .zch button{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:7px 12px;font:500 13.5px var(--sans);cursor:pointer}
+.cust .zch button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.cust textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px;font:14px var(--sans);background:var(--card);color:var(--tx);resize:vertical}
 .gchips .gsep{flex:none;width:1px;margin:6px 2px;background:rgba(0,0,0,.18)}
 .poi{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(20,36,48,.35);cursor:pointer}
 .dtools a.lnk{border:1px solid var(--line);background:var(--card);color:var(--acc);border-radius:999px;padding:6px 12px;font:500 13px var(--sans);text-decoration:none}
@@ -605,6 +626,7 @@ footer a{color:var(--tx2)}
     <div class="legend" id="eLegend"></div>
     <div class="card tabs" id="eWxT" hidden>
       <button class="grip" id="eGrip2" aria-label="Apri o chiudi meteo e foto" aria-expanded="false"><span></span></button>
+      <div class="zask" id="eZoneAsk" hidden><button id="eZoneAskB"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Cosa fare in questa zona? Chiedi a Claude</button></div>
       <div class="tbar" role="tablist"><button role="tab" data-w="m" class="on" aria-selected="true">Meteo</button><button role="tab" data-w="f" id="eWxTf" aria-selected="false">Foto</button></div>
       <div class="tbody"><div id="eWxPm"></div><div id="eWxPf" hidden></div></div>
     </div>
@@ -641,6 +663,13 @@ footer a{color:var(--tx2)}
       <div id="eMyRL"></div>
       <div class="acts"><button id="eMyRDel">Elimina selezionati</button><button id="eMyRAll">Elimina tutti</button></div>
       <div class="acts" style="margin-top:8px"><button class="pr" id="eMyROk">Chiudi</button></div></div></div>
+    <div class="cust" id="eZone" hidden role="dialog" aria-label="Cosa fare in questa zona"><div class="sh"><h3>Cosa fare in questa zona</h3>
+      <p class="m">Claude guarda il meteo delle città sulla mappa e cerca su internet (siti turistici, guide, recensioni) i posti più adatti, senza premiare per forza le città grandi.</p>
+      <div class="zl">Quando</div><div class="zch" id="eZoneWhen"></div>
+      <div class="zl">Cosa ti interessa</div><div class="zch" id="eZonePref"></div>
+      <div class="zl">Altre preferenze <span class="muted">(facoltativo)</span></div>
+      <textarea id="eZoneTxt" rows="3" placeholder="Es. siamo in due, niente lunghe camminate, ci piace il pesce, mezz'ora di auto al massimo…"></textarea>
+      <div class="acts"><button id="eZoneNo">Annulla</button><button class="pr" id="eZoneGo">Chiedi a Claude</button></div></div></div>
     <footer>
       Previsioni: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> con modello ICON-2I di ItaliaMeteo-ARPAE (primi giorni) · Mare: Open-Meteo Marine ·
       Meduse: <a href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist</a> · Mappa © OpenStreetMap o Esri · Monumenti: Wikipedia (CC BY-SA), OpenStreetMap, inventari ufficiali ·
@@ -2223,6 +2252,7 @@ function sheetSync(){
       $('wxS').open = true; $('eWxPm').appendChild($('wxS')); $('eWxPm').appendChild($('eWeek')); $('eWxPf').appendChild($('ePhs'));
       W.appendChild(X); X.hidden = false; X.classList.add('sheet'); X.classList.remove('open'); $('eGrip2').setAttribute('aria-expanded', false); }
     $('eWxTf').hidden = $('ePhs').hidden || !eCity;
+    $('eZoneAsk').hidden = !!eCity;
     if ($('eWxTf').hidden && !$('eWxPf').hidden) document.querySelector('#eWxT [data-w=m]').click();
   } else if (X.classList.contains('sheet')){ X.classList.remove('sheet', 'open'); X.hidden = true; $('eAnchor').after(X); applyLayout(); }
   W.classList.toggle('has-sheet', on1 || on2);
@@ -3049,6 +3079,53 @@ const MSG_ADD = 'Aggiungi i luoghi non ancora presenti in custom-points.json (re
 const MSG_REPLY = 'Poi rispondimi con: cosa vedere (i luoghi più interessanti, con distanza a piedi), le curiosità più belle e cosa fare (un consiglio pratico: percorso, orari, dove mangiare o il momento migliore).';
 const near = p => { const nc = nearestComune(p.lat, p.lon); return nc ? ' (vicino a '+nc.n+')' : ''; };
 const coords = p => p.lat.toFixed(5)+', '+p.lon.toFixed(5);
+/* ---------- "Cosa fare in questa zona?": meteo delle città visibili + preferenze → messaggio per Claude ---------- */
+const ZONE_WHEN = [['oggi','Oggi',0,1],['domani','Domani',1,1],['weekend','Prossimo weekend',-1,2],['3g','Prossimi 3 giorni',0,3],['7g','Prossimi 7 giorni',0,7]];
+const ZONE_PREF = ['Mare e spiagge','Natura e sentieri','Borghi e panorami','Monumenti e musei','Shopping','Mangiare bene','Vita serale','Con bambini','Relax','Sport'];
+let zoneWhen = 'oggi', zonePref = new Set(store.get('zonePref', []));
+function zoneDialog(){
+  $('eZoneWhen').innerHTML = ZONE_WHEN.map(w => '<button data-w="'+w[0]+'" class="'+(zoneWhen === w[0] ? 'on' : '')+'">'+w[1]+'</button>').join('');
+  $('eZonePref').innerHTML = ZONE_PREF.map(p => '<button data-p="'+esc(p)+'" class="'+(zonePref.has(p) ? 'on' : '')+'">'+esc(p)+'</button>').join('');
+}
+$('eZoneAskB').onclick = () => { zoneDialog(); $('eZoneTxt').value = store.get('zoneTxt', ''); $('eZone').hidden = false; };
+$('eZoneNo').onclick = () => { $('eZone').hidden = true; };
+$('eZone').addEventListener('click', e => {
+  if (e.target === $('eZone')){ $('eZone').hidden = true; return; }
+  const w = e.target.closest('[data-w]'); if (w){ zoneWhen = w.dataset.w; zoneDialog(); return; }
+  const p = e.target.closest('[data-p]'); if (p){ const v = p.dataset.p; zonePref.has(v) ? zonePref.delete(v) : zonePref.add(v); store.set('zonePref', [...zonePref]); zoneDialog(); }
+});
+$('eZoneGo').onclick = () => { store.set('zoneTxt', $('eZoneTxt').value); $('eZone').hidden = true; shareToClaude(msgZone()); };
+function zoneDays(){
+  const w = ZONE_WHEN.find(x => x[0] === zoneWhen), d = new Date(); d.setHours(0,0,0,0);
+  let start = w[2]; if (start < 0){ start = (6 - d.getDay() + 7) % 7; }      /* prossimo sabato (oggi se è sabato) */
+  return [start, Math.min(14, start + w[3] - 1)];
+}
+function msgZone(){
+  const b = emap.getBounds(), [d0, d1] = zoneDays();
+  /* meteo delle città visibili nei giorni scelti: le 25 più popolose, per non allungare troppo il messaggio */
+  const list = eVisible.filter(c => mapData[c.n]).slice().sort((x, y) => (y.pop || 0) - (x.pop || 0)).slice(0, 25);
+  const rows = list.map(c => { const D = mapData[c.n].daily, T = mapData[c.n].time, parts = [];
+    for (let i = d0; i <= d1 && i < T.length; i++){
+      parts.push(dayLabel(T[i], i).toLowerCase()+' '+wmo(D.weather_code[i])[0].toLowerCase()+' '+Math.round(D.temperature_2m_max[i])+'°/'+Math.round(D.temperature_2m_min[i])+'°'+
+        ((D.precipitation_sum[i] || 0) >= 0.5 ? ', pioggia '+D.precipitation_sum[i].toFixed(1)+' mm' : '')+
+        (D.wind_speed_10m_max ? ', vento '+Math.round(D.wind_speed_10m_max[i])+' km/h'+(D.wind_direction_10m_dominant ? ' da '+windFrom(D.wind_direction_10m_dominant[i]) : '') : '')); }
+    return '- '+c.n+': '+parts.join('; '); }).join('\n');
+  const when = ZONE_WHEN.find(x => x[0] === zoneWhen)[1].toLowerCase(), txt = $('eZoneTxt').value.trim();
+  const sg = sightList.filter(x => b.contains([x.lat, x.lon])).slice(0, 15).map(x => x.n+(x.links >= SIGHT_BIG ? ' (molto noto)' : '')).join(', ');
+  return '[Meteo e viaggio: zona] Cosa fare '+when+' in questa zona (riquadro da '+b.getSouth().toFixed(3)+', '+b.getWest().toFixed(3)+' a '+b.getNorth().toFixed(3)+', '+b.getEast().toFixed(3)+').\n'+
+    'Fai tutto subito, senza chiedermi conferma.\n\n'+
+    'Meteo previsto nelle città della zona:\n'+(rows || '(dati meteo non ancora caricati)')+'\n\n'+
+    (sg ? 'Luoghi notevoli nella zona (da Wikidata, per farti un\'idea, non solo questi): '+sg+'.\n\n' : '')+
+    'Le mie preferenze: '+(zonePref.size ? [...zonePref].join(', ') : 'nessuna in particolare')+(txt ? '. '+txt : '')+'.\n\n'+
+    'Cosa ti chiedo:\n'+
+    '1. Consigliami 3-5 posti o attività in questa zona per '+when+', in ordine di preferenza, scegliendo in base al METEO di ciascun posto e alle mie preferenze '+
+    '(es. sole e vento debole: mare, calette, riserve come lo Zingaro o Scopello; pioggia o vento forte: musei, città d\'arte, ristoranti, shopping al coperto).\n'+
+    '2. Non premiare le città solo perché sono grandi o hanno tante cose: valuta quanto vale la pena con quel meteo e per le mie preferenze. Va bene anche un borgo piccolo.\n'+
+    '3. Cerca su internet, non solo su Wikipedia: siti turistici ufficiali, guide di viaggio, pagine di riserve e musei (orari e aperture), recensioni recenti.\n'+
+    '4. Per ogni consiglio: perché proprio lì con questo meteo, cosa fare, il momento migliore della giornata, una dritta pratica (parcheggio, biglietti, cosa portare) e le fonti.\n'+
+    '5. Salva ognuno dei consigli in custom-points.json (repo '+POINTS_REPO+') come "kind": "da-fare", come faresti se ti chiedessi cosa fare in quella città: '+
+    'coordinate verificate del posto, il campo "citta" con la città di riferimento, "stops" se è un itinerario e "fonti". Restano nell\'app finché non li elimino io.';
+}
 function msgCity(c){
   return '[Meteo e viaggio: città] '+c.n+' (centro '+coords(c)+'). Non sono necessariamente lì: non serve la mia posizione.\nFai tutto subito, senza chiedermi conferma.\n'+
     '1. Cerca monumenti, luoghi d\'arte e di storia e curiosità di '+c.n+'. '+MSG_ADD+'\n2. '+MSG_REPLY;

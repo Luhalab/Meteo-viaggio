@@ -154,3 +154,8 @@ Luoghi imperdibili nella vista meteo (da zoom 8,5): da Wikidata, misurati dal nu
 grandezza della città); da 20 lingue in su icona ★ piccola con il nome, gli altri come puntini da zoom 10; anche i luoghi di
 Claude come puntini rosso mattone. Filtro "Luoghi imperdibili" nel pannello Filtri. Scheda con descrizione, "Avvicinati" e
 Wikipedia. Salvati sul telefono per 7 giorni.
+"Cosa fare in questa zona?" (modo meteo senza città scelta, in cima al pannello): finestra con quando (oggi, domani, weekend,
+3 o 7 giorni), interessi e preferenze libere; manda a Claude "[Meteo e viaggio: zona]" con il meteo per giorno delle città
+visibili (tempo, temperature, pioggia, vento) e i luoghi notevoli della zona, chiedendo consigli scelti in base al meteo e
+cercati su internet, senza premiare le città solo perché grandi. I consigli vengono salvati come normali "da-fare" (con
+"citta", "stops", "fonti"), senza scadenza.
