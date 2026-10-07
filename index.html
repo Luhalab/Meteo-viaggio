@@ -3160,6 +3160,7 @@ emap.on('zoomend moveend', () => {
   }
   if (eNear){
     const c = emap.getCenter();
+    if (!eCity){ const p0 = placeAt(c.lat, c.lng); if (p0) eSelectCity(p0, {noArea:true}); }   /* città azzerata (tocco su zona vuota da lontano) e area già caricata: la riscelgo, altrimenti il pannello resta vuoto */
     if (!eArea || haversine(c.lat, c.lng, eArea.lat, eArea.lon) > eArea.radius*0.85){
       const pl = placeAt(c.lat, c.lng); if (pl && pl !== eCity) eSelectCity(pl, {noArea:true});
       loadArea(c.lat, c.lng, 1800);
