@@ -3293,20 +3293,20 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden && wa
    (ricerche web, lettura e riscrittura dei file): per questo ogni messaggio dà dei limiti, dice di non stampare i file
    e porta con sé l'elenco di ciò che l'app ha già, così Claude non deve rileggere il file per evitare i doppioni. */
 let zoneDepth = store.get('zoneDepth', 'fast');
-const MSG_SAVE = 'SALVATAGGIO: scrivi le voci nuove in custom-inbox.json (repo GitHub '+POINTS_REPO+', array JSON; crealo se manca), NON in custom-points.json. Usa UNO script (python, oppure curl+jq) che legge il file, aggiunge le voci e fa un solo commit. Non stampare né incollare nella chat il contenuto di custom-points.json o di custom-inbox.json.';
+const MSG_SAVE = 'SALVATAGGIO: solo in custom-inbox.json (repo '+POINTS_REPO+'), con UN solo script e UN solo commit; non stampare i file.';
 function msgBudget(kind){
   if (kind === 'zona') return zoneDepth === 'deep'
     ? 'LIMITI (per non consumare troppi token): al massimo 8 ricerche web e 6 pagine aperte in tutto; 4-5 consigli; risposta di al massimo 300 parole.'
-    : 'LIMITI (per non consumare troppi token): al massimo 3 ricerche web e 3 pagine aperte in tutto; 3 consigli; risposta di al massimo 150 parole. Fermati appena hai informazioni sufficienti; non rileggere pagine già viste.';
-  return 'LIMITI: al massimo 4 ricerche web e 3 pagine aperte; risposta breve.';
+    : 'LIMITI (per non consumare troppi token): al massimo 3 ricerche web e 3 pagine aperte in tutto; 3 consigli; risposta di al massimo 150 parole. Fermati appena hai informazioni sufficienti; non rileggere pagine già viste. Usa i risultati di ricerca; apri una pagina solo per orari o date.';
+  return 'LIMITI: al massimo 4 ricerche web e 3 pagine aperte (solo per orari, date o coordinate); risposta breve.';
 }
 /* titoli già presenti nell'app vicino a un punto: evitano a Claude di leggere il file per cercare i doppioni */
 function existingTitles(lat, lon, r, n){
   const rows = [];                                   /* i più vicini per primi: se il limite taglia l'elenco, restano quelli che contano */
   (customCache || []).forEach(p => { if (p.lat == null || p.kind === 'evento') return; const d = km(lat, lon, p.lat, p.lon);
-    if (d <= r) rows.push([d, p.title.length > 60 ? p.title.slice(0, 57)+'…' : p.title]); });
+    if (d <= r) rows.push([d, p.title.length > 48 ? p.title.slice(0, 45)+'…' : p.title]); });
   rows.sort((a, b) => a[0] - b[0]);
-  return [...new Set(rows.map(x => x[1]))].slice(0, n || 25).join('; ');
+  return [...new Set(rows.map(x => x[1]))].slice(0, n || 15).join('; ');
 }
 const MSG_ADD = 'Aggiungi solo i luoghi non ancora presenti, con coordinate di ogni luogo da Google Maps, Wikipedia o OpenStreetMap (Nominatim), le curiosità come voci "kind": "curiosita" e i consigli su cosa vedere e fare come voci "kind": "da-fare" (titolo breve, 2-4 frasi, coordinate del centro).';
 const MSG_REPLY = 'Poi rispondimi con: cosa vedere (i luoghi più interessanti, con distanza a piedi), le curiosità più belle e cosa fare (un consiglio pratico: percorso, orari, dove mangiare o il momento migliore).';

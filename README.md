@@ -45,7 +45,7 @@ Ogni voce: `title`, `lat`, `lon`, `extract`, `url` (null); facoltativi `fonti` (
 - Valgono solo il giorno in cui arrivano: spariscono a mezzanotte (controllo all'apertura, al ritorno nell'app e ogni 10 minuti). Restano come consigli della modalità città, dove le frasi sul meteo del giorno ("Oggi vento minimo, 12 km/h") sono tolte dal testo.
 
 ## Risparmio di token
-Messaggi compatti con LIMITI di ricerca: Veloce (3 ricerche, 3 consigli, 150 parole) o Approfondito (8, 5, 300). Includono l'elenco dei titoli già presenti vicino al punto (i più vicini per primi, al massimo 25) così Claude non rilegge il file; le voci nuove vanno in `custom-inbox.json`. Stessa richiesta entro 30 minuti: chiede conferma. I token si consumano solo nelle chat di Claude.
+Messaggi compatti con LIMITI di ricerca: Veloce (3 ricerche, 3 consigli, 150 parole) o Approfondito (8, 5, 300). Includono l'elenco dei titoli già presenti vicino al punto (i 15 più vicini, titoli tagliati a 48 caratteri). Le regole complete di salvataggio stanno solo nelle istruzioni del progetto Guida D'Arte: il messaggio ne porta un richiamo di una riga così Claude non rilegge il file; le voci nuove vanno in `custom-inbox.json`. Stessa richiesta entro 30 minuti: chiede conferma. I token si consumano solo nelle chat di Claude.
 
 ## Velocità e cache
 Service worker: pagina dalla rete entro 2,5 s (altrimenti copia salvata), librerie e tile (~4000) salvate. IndexedDB: previsioni 30 minuti (offline fino a un giorno), monumenti 3 giorni, testi, foto e sentieri 7 giorni; pulizia dopo 14 giorni. Riapre nell'ultima zona e zoom. Rotazione mappa: plugin leaflet-rotate (jsDelivr), opzionale.
