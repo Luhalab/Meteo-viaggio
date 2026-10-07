@@ -1,1 +1,86 @@
-[]
+[
+ {
+  "title": "Mazara: Satiro e Casbah al coperto",
+  "lat": 37.6537292,
+  "lon": 12.5886912,
+  "kind": "da-fare",
+  "citta": "Mazara del Vallo",
+  "url": null,
+  "extract": "Cielo coperto e vento debole (20 km/h): giornata ideale per il centro storico. Visita il Museo del Satiro Danzante, nella ex chiesa di Sant'Egidio, poi perditi nei vicoli della Casbah e fai tappa alla cattedrale. Meglio la mattina, a museo quasi vuoto. Dritta: gli orari variano (9-18 o fino alle 19:15 a seconda delle fonti), chiama lo 0923 933917; pranzo con pesce fresco al porto.",
+  "stops": [
+   {
+    "n": "Museo del Satiro Danzante",
+    "lat": 37.6518811,
+    "lon": 12.588328
+   },
+   {
+    "n": "Cattedrale del Santissimo Salvatore",
+    "lat": 37.6511034,
+    "lon": 12.5904559
+   },
+   {
+    "n": "Casbah"
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Museionline – Museo del Satiro Danzante",
+    "url": "https://www.museionline.info/musei/museo-del-satiro-danzante"
+   }
+  ]
+ },
+ {
+  "title": "Monreale: mosaici e chiostro con cielo coperto",
+  "lat": 38.0826321,
+  "lon": 13.2919931,
+  "kind": "da-fare",
+  "citta": "Monreale",
+  "url": null,
+  "extract": "Con il cielo coperto i mosaici dorati e il chiostro benedettino si visitano senza sole in faccia e senza caldo. Entra nel Duomo, poi chiostro e terrazze con vista sulla Conca d'Oro. Meglio la mattina presto, prima dei bus turistici. Dritta: esiste un biglietto cumulativo del complesso; il chiostro costa circa 6 euro, ma orari discordanti tra le fonti, verifica prima.",
+  "stops": [
+   {
+    "n": "Duomo di Monreale",
+    "lat": 38.0820313,
+    "lon": 13.2922777
+   },
+   {
+    "n": "Chiostro dei Benedettini"
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Museionline – Chiostro di S. Maria La Nuova",
+    "url": "https://www.museionline.info/tipologie-museo/chiostro-di-s-maria-la-nuova-in-monreale"
+   },
+   {
+    "t": "BlogSicilia – biglietto unico del complesso",
+    "url": "https://www.blogsicilia.it/palermo/monreale-un-percorso-di-visita-inedito-per-scoprire-i-suoi-beni-monumentali-foto/408509/"
+   }
+  ]
+ },
+ {
+  "title": "Erice sotto la pioggia: chiese e dolci",
+  "lat": 38.0377933,
+  "lon": 12.5865474,
+  "kind": "da-fare",
+  "citta": "Erice",
+  "url": null,
+  "extract": "Pioggia debole e vento da sud: Erice si gira a piedi tra chiese e botteghe, con pause al coperto. Visita la Chiesa Matrice con la Torre di Re Federico, poi pausa dolce da Maria Grammatico (genovesi e pasta di mandorla). Meglio metà mattina. Dritta: con vento forte la funivia da Trapani può chiudere, controlla il sito ufficiale o sali in auto.",
+  "stops": [
+   {
+    "n": "Chiesa Matrice (Real Duomo)"
+   },
+   {
+    "n": "Pasticceria Maria Grammatico",
+    "lat": 38.0377933,
+    "lon": 12.5865474
+   }
+  ],
+  "fonti": [
+   {
+    "t": "TheWom – guida a Erice",
+    "url": "https://travel.thewom.it/italia/sicilia/erice.html"
+   }
+  ]
+ }
+]
