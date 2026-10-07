@@ -82,5 +82,84 @@
     "url": "https://travel.thewom.it/italia/sicilia/erice.html"
    }
   ]
+ },
+ {
+  "title": "Isola delle Femmine: riserva e mare calmo",
+  "kind": "da-fare",
+  "citta": "Isola delle Femmine",
+  "lat": 38.198295,
+  "lon": 13.2473444,
+  "extract": "Vento quasi assente (10 km/h da E) e cielo coperto ma mite: la giornata giusta per il lungomare e il porticciolo, con vista sull'isolotto della Riserva naturale orientata, gestita dalla LIPU. Le visite alla riserva sono su prenotazione, da luglio a ottobre, dalle 9 alle 17.30: prenota prima. Meglio la mattina, con meno caldo e mare più liscio. Dritta: l'isola è un luogo di tutela, resta sui sentieri e rispetta il regolamento.",
+  "url": null,
+  "fonti": [
+   {
+    "t": "Regione Siciliana – Decalogo della Riserva (gestione LIPU)",
+    "url": "https://orbs.regione.sicilia.it/images/Decalogo_RNO_Isola_delle_Femmine_Italiano.pdf"
+   },
+   {
+    "t": "Balarm – scheda della Riserva (visite su prenotazione)",
+    "url": "https://www.balarm.it/luoghi/riserva-naturale-orientata-isola-delle-femmine-isola-delle-femmine-2590"
+   }
+  ]
+ },
+ {
+  "title": "Castelvetrano: Efebo, stucchi e pane nero",
+  "kind": "da-fare",
+  "citta": "Castelvetrano",
+  "lat": 37.6828513,
+  "lon": 12.7955336,
+  "extract": "Cielo coperto e 26/22 gradi: ideale per un giro al coperto in un borgo senza folla. Parti dal Museo Civico Selinuntino, dove spicca l'Efebo in bronzo (480-460 a.C.), poi vai a San Domenico, con gli stucchi di Antonino Ferraro (1574-77). Mattina per il museo, pausa pranzo con il pane nero di Castelvetrano (grano tumminia, forno a legna). Dritta: gli orari del museo vanno confermati direttamente.",
+  "url": null,
+  "stops": [
+   {
+    "n": "Museo Civico Selinuntino",
+    "lat": 37.6764691,
+    "lon": 12.7916048
+   },
+   {
+    "n": "Chiesa di San Domenico",
+    "lat": 37.6772229,
+    "lon": 12.7945993
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Museionline – Museo Civico Selinuntino",
+    "url": "https://www.museionline.info/musei/museo-civico-selinuntino"
+   },
+   {
+    "t": "Wikivoyage – Castelvetrano",
+    "url": "https://de.wikivoyage.org/wiki/Castelvetrano"
+   }
+  ]
+ },
+ {
+  "title": "Iato: antiquarium e teatro greco",
+  "kind": "da-fare",
+  "citta": "San Giuseppe Jato",
+  "lat": 37.9704862,
+  "lon": 13.1824889,
+  "extract": "Vento debole (15 km/h) e cielo coperto: poco caldo per un'uscita tra natura e archeologia, adatta ai bambini. L'Antiquarium di San Cipirello (ingresso gratuito, mar-sab 9.30-18.30, dom 9.30-13.30) conserva le statue del teatro; sopra c'è Monte Iato, con agorà e teatro greco. Dritta: la scheda CoopCulture segnala il parco come temporaneamente chiuso, quindi telefona prima (091 8573083).",
+  "url": null,
+  "stops": [
+   {
+    "n": "Antiquarium Jetino (Via Roma 320, San Cipirello)"
+   },
+   {
+    "n": "Parco archeologico di Monte Iato",
+    "lat": 37.9677752,
+    "lon": 13.1955468
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Museionline – Antiquarium Jetino",
+    "url": "https://museionline.info/sicilia-musei-monumenti/antiquarium-jetino"
+   },
+   {
+    "t": "CoopCulture – Parco archeologico di Monte Iato",
+    "url": "https://ecm-coopculture.inera.it/en/poi/monte-iato-archaeology-park"
+   }
+  ]
  }
 ]
