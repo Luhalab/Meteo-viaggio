@@ -2198,6 +2198,15 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
+/* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
+const APP_V = 'v96';
+let verLatest = null, verAt = 0;
+const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
+function verCheck(){
+  if (Date.now() - verAt < 60000) return; verAt = Date.now();
+  fetch('sw.js?v=' + verAt, { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(t => { const m = /const V = '([^']+)'/.exec(t);
+    if (m){ verLatest = m[1]; if (!$('eFltP').hidden) fltPanel(); if (!$('eBgP').hidden) bgPanel(); } }).catch(() => {});
+}
 function fltPanel(){
   const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
@@ -2220,6 +2229,7 @@ function fltPanel(){
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
         (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
       : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
+  $('eFltP').insertAdjacentHTML('beforeend', verHtml());
 }
 function bgPanel(){
   const noIc = tileBase === 'clean' || (tileBase === 'vector' && Object.values(vtFlt).every(v => !v));
@@ -2229,6 +2239,7 @@ function bgPanel(){
     (REG && REG.mare ? '<div class="fh">Sulla mappa, da lontano</div>'+
       '<button data-ly="wx" class="bgr'+(eLayerMode === 'wx' ? ' on' : '')+'"><span>Meteo delle città</span><i class="rd"></i></button>'+
       '<button data-ly="sea" class="bgr'+(eLayerMode === 'sea' ? ' on' : '')+'"><span>Mare e meduse<small>onde, temperatura dell\'acqua e avvistamenti di meduse</small></span><i class="rd"></i></button>' : '');
+  $('eBgP').insertAdjacentHTML('beforeend', verHtml());
 }
 /* con la mappa vettoriale le icone si spengono tutte insieme; se il telefono non la regge uso le mappe classiche */
 function setIcons(on){
@@ -2236,8 +2247,8 @@ function setIcons(on){
   if (tileBase === 'vector') vtApply();
   else { tileBase = on ? 'osm' : 'clean'; store.set('mapBase', tileBase); setETiles(true); }
 }
-function setFltP(o){ if (o){ fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
-function setBgP(o){ if (o){ bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
+function setFltP(o){ if (o){ verCheck(); fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setBgP(o){ if (o){ verCheck(); bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
 function panelClick(e){

@@ -8,6 +8,7 @@ App web per turisti (Italia e Svizzera) in una pagina, pensata per il telefono. 
 - `index.html`: tutta l'app (HTML, CSS e un solo `<script>` di JS, ~3.700 righe). `sw.js`: cache offline (alzare `V` a ogni modifica). `manifest.webmanifest`, `icon-*.png`: installazione come app.
 - `region-italia.json` (7.894 comuni + 105 punti mare), `region-svizzera.json` (1.415 località): elenco città per regione.
 - `custom-points.json` (grande, ~190 voci) e `custom-inbox.json` (piccolo): voci aggiunte da Claude. Quando l'inbox supera ~30 voci, unirla al file grande con uno script.
+- `tools/versione.py`: alza la versione in `sw.js` e `index.html` insieme. La versione si vede nei pannelli Livelli e Filtri ("App v96 · è l'ultima disponibile", oppure "disponibile vXX: chiudi e riapri l'app"; confronto con `sw.js` sul sito, sempre dalla rete).
 - `tools/doppioni.py`: segnala voci simili (stesso tipo, titolo simile, entro 1,5 km); non modifica nulla.
 
 ## Schermata
@@ -54,6 +55,6 @@ Service worker: pagina dalla rete entro 2,5 s (altrimenti copia salvata), librer
 Open-Meteo · iNaturalist · Wikipedia, Wikivoyage, Wikidata, Wikimedia Commons · OpenStreetMap, Overpass, Nominatim · geo.admin.ch · patrimonioculturale-er.it · Regione Liguria · OpenFreeMap · Esri · ISTAT · GeoNames.
 
 ## Per riprendere il lavoro
-- Modo di lavorare: modifiche piccole e testate (controllo sintassi con `node --check` sul `<script>`), poi `git pull --rebase` (l'altra chat "Guida D'Arte" committa su `custom-points.json` e `custom-inbox.json`), alza `V` in `sw.js`, aggiorna qui solo la sezione che cambia (niente cronologia: c'è `git log`) e `git push`. Rispondere in italiano, in modo conciso.
+- Modo di lavorare: modifiche piccole e testate (controllo sintassi con `node --check` sul `<script>`), poi `git pull --rebase` (l'altra chat "Guida D'Arte" committa su `custom-points.json` e `custom-inbox.json`), alza la versione con `python3 tools/versione.py` (aggiorna `V` in `sw.js` e `APP_V` in `index.html`), aggiorna qui solo la sezione che cambia (niente cronologia: c'è `git log`) e `git push`. Rispondere in italiano, in modo conciso.
 - Token: NON leggere né stampare `custom-points.json` (116 KB); per cercare una voce usare uno script che stampa solo quella. Il README è breve e si può leggere intero.
 - Da ricordare: il progetto "Guida D'Arte" deve scrivere solo in `custom-inbox.json`, non leggere mai il file grande e rispettare i LIMITI del messaggio. Il token GitHub fine-grained va rinnovato alla scadenza e non incollato in chat. I consigli di zona li toglie l'utente con ✕ (vale solo su quel telefono).
