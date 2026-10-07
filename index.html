@@ -2031,19 +2031,36 @@ async function customAll(){
    Filtri, percorso acceso a richiesta). Gli altri percorsi, in modalità meteo, restano nascosti. */
 const tipKey = p => (p.title || '')+'|'+(+p.lat).toFixed(4)+','+(+p.lon).toFixed(4);
 let zoneAsk = store.get('zoneAsk', null), zoneFound = new Set(store.get('zoneFound', []));
+/* i consigli di zona dipendono dal meteo di quel giorno: valgono fino a mezzanotte, poi spariscono da soli (restano nei percorsi/consigli della città, senza meteo) */
+const todayStr = () => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+let zoneDay = store.get('zoneDay', {});
+function zoneExpire(){
+  const t = todayStr(); let ch = false;
+  [...zoneFound].forEach(k => { if (zoneDay[k] === t) return;       /* senza data (vecchi) o di un altro giorno: scaduto */
+    zoneFound.delete(k); delete zoneDay[k]; ch = true;
+    if (zoneAsk && zoneAsk.base.indexOf(k) < 0) zoneAsk.base.push(k);   /* non lo ritrovo come \"nuovo\" */
+    try { const p = (customCache || []).find(x => tipKey(x) === k);
+      if (p && zoneRouteOf(p) && !eNear){ const id = zoneRouteId(p); if (eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); } } } catch(e){} });
+  if (ch){ store.set('zoneFound', [...zoneFound]); store.set('zoneDay', zoneDay); if (zoneAsk) store.set('zoneAsk', zoneAsk); }
+  return ch;
+}
+/* in modalità città le frasi sul meteo di un giorno (\"Oggi vento minimo, 28°\") non valgono più: le tolgo dal testo dei consigli */
+const WX_RE = /\d\s?°|\d\s?km\/h|\bprevisioni\b|\bmeteo\b|\btemperatur[ae]\b|\b(oggi|stasera|stamattina|domani|dopodomani)\b.*\b(vento|ventoso|sole|soleggiat\w*|nuvol\w*|piogg\w*|piove|caldo|fresco|afa|mare|onde|cielo|sereno|gradi|temporal\w*)\b/i;
+const noWx = t => String(t || '').split(/(?<=[.!?])\s+/).filter(x => !WX_RE.test(x)).join(' ').trim();
 async function zoneAskMark(lat, lon, r){
   const all = await customAll();
   zoneAsk = { t: Date.now(), base: all.filter(p => p.kind === 'da-fare' && p.lat != null).map(tipKey).filter(k => !zoneFound.has(k)), lat, lon, r };
   store.set('zoneAsk', zoneAsk);
 }
 function zoneScan(){
+  const ex = zoneExpire(); if (ex) setTimeout(() => { if (typeof zoneTabSync === 'function'){ if (typeof drawSights === 'function') drawSights(); zoneTabSync(); } }, 0);
   if (!zoneAsk) return false;
   if (Date.now() - zoneAsk.t > 14 * 864e5){ zoneAsk = null; store.set('zoneAsk', null); return false; }
   const base = new Set(zoneAsk.base); let ch = false;
   (customCache || []).forEach(p => { if (p.kind !== 'da-fare' || p.lat == null) return;
     const k = tipKey(p); if (base.has(k) || zoneFound.has(k) || km(zoneAsk.lat, zoneAsk.lon, p.lat, p.lon) > zoneAsk.r) return;
-    zoneFound.add(k); ch = true; });
-  if (ch){ store.set('zoneFound', [...zoneFound]); setTimeout(() => { if (typeof zoneTabSync === 'function') zoneTabSync(); }, 0); }
+    zoneFound.add(k); zoneDay[k] = todayStr(); ch = true; });
+  if (ch){ store.set('zoneFound', [...zoneFound]); store.set('zoneDay', zoneDay); setTimeout(() => { if (typeof zoneTabSync === 'function') zoneTabSync(); }, 0); }
   return ch;
 }
 let zoneTipsCache = [];
@@ -2064,6 +2081,7 @@ function zoneToggleRoute(p){
 }
 /* linguetta "Consigli" accanto a Meteo e Foto: i consigli della tua richiesta; toccandone uno si vede dov'è sulla mappa */
 function zoneTabSync(){
+  zoneExpire();
   const tips = zoneTips(), tab = $('eWxTz');
   tab.hidden = !tips.length; tab.textContent = 'Consigli ('+tips.length+')';
   if (!tips.length && !$('eWxPz').hidden) document.querySelector('#eWxT [data-w=m]').click();
@@ -2076,6 +2094,7 @@ function zonePanel(){
     return '<div class="ztr"><button class="zmain" data-zshow="'+i+'"><b>'+esc(p.title)+'</b><small>📍 '+esc([t, st ? st.length+' tappe' : ''].filter(Boolean).join(' · '))+'</small></button>'+
       (st ? '<button data-zr="'+i+'" class="zsw'+(on ? ' on' : '')+'" aria-label="Mostra il percorso"></button>' : '')+'<button data-zdel="'+i+'" aria-label="Togli il consiglio">✕</button></div>'; }).join('');
 }
+setInterval(() => { if (zoneExpire()){ drawSights(); routesUI(); zoneTabSync(); } }, 600000);   /* app lasciata aperta a mezzanotte */
 function zoneLocate(p){
   sheetOpen(false);                                                    /* abbasso il pannello per vedere la mappa */
   let done = false; const show = () => { if (done) return; done = true; zoneTipCard(p); };
@@ -2101,6 +2120,7 @@ function zoneTipCard(p){
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', async () => {
   if (document.hidden){ hiddenAt = Date.now(); return; }
+  if (zoneExpire()){ drawSights(); routesUI(); zoneTabSync(); }
   if (Date.now() - hiddenAt < 15000) return;
   const before = JSON.stringify(customCache || []); customAt = 0;
   const now = JSON.stringify(await customAll());
@@ -2303,7 +2323,7 @@ function eShowItem(i, fly){
   const links = grp.filter(o => o.url && SRC_LABEL[o.source]).filter((o, k, A) => A.findIndex(x => x.source === o.source) === k);
   const rs = routeOf(it);
   showCard('<div class="ch"><span class="meta">'+(it.source==='custom'?'<span class="tag-cu">'+tag+'</span> · ':'')+'a '+formatDist(it.dist)+' dal centro</span><button class="x" aria-label="Chiudi">✕</button></div>'+
-    '<h3>'+esc(it.title)+'</h3><div class="cb">'+(it.thumb?'<img src="'+esc(it.thumb)+'" alt="">':'')+'<p id="eCardTx">'+(esc(it.extract)||'Nessuna descrizione disponibile.')+'</p></div>'+
+    '<h3>'+esc(it.title)+'</h3><div class="cb">'+(it.thumb?'<img src="'+esc(it.thumb)+'" alt="">':'')+'<p id="eCardTx">'+(esc(it.kind === 'da-fare' ? noWx(it.extract) : it.extract)||'Nessuna descrizione disponibile.')+'</p></div>'+
     others.map(o => '<p style="margin-top:10px"><b>'+esc(o.title)+'</b> <span class="muted" style="font-size:12px">· '+esc(o.source === 'custom' ? 'Claude' : o.source === 'wikipedia' ? 'Wikipedia' : o.source === 'osm' ? 'OpenStreetMap' : 'inventario ufficiale')+'</span><br>'+esc(short(o.extract, 500))+'</p>').join('')+
     near.map(o => '<p style="margin-top:10px"><b>'+esc(o.title)+'</b><br>'+esc(o.extract)+'</p>').join('')+
     (rs ? '<button class="rt-btn" id="eCardRt">'+RT_IC+'Mostra il percorso sulla mappa</button>' : '')+
@@ -2656,7 +2676,7 @@ async function eLoadDo(c, my){
        gli altri consigli restano voci singole */
     const routeTips = mine.filter(p => routeOf(p)), plainTips = mine.filter(p => !routeOf(p));
     const tipHtml = p => { const rs = routeOf(p);
-      return '<details><summary>'+esc(p.title)+'</summary><p>'+esc(p.extract||'')+'</p>'+
+      return '<details><summary>'+esc(p.title)+'</summary><p>'+esc(noWx(p.extract))+'</p>'+
         (rs ? '<button class="rt-btn" data-stops="'+esc(JSON.stringify(rs))+'">'+RT_IC+'Mostra il percorso sulla mappa</button><br>' : '')+
         srcLinks(p, c)+'<span class="tag-cu">Consiglio di Claude</span></details>'; };
     const osmHtml = (r, i) => '<details><summary>'+esc(r.title)+'</summary><small class="muted">'+esc(r.sub)+'</small>'+(r.desc ? '<p>'+esc(short(r.desc, 300))+'</p>' : '')+
