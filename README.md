@@ -1,9 +1,11 @@
 # Meteo e viaggio
 
+Repo `Luhalab/Meteo-viaggio` (branch `main`, deploy automatico su Vercel). Questo README è anche il riassunto per ripartire in una chat nuova: vedi "Per riprendere il lavoro" in fondo.
+
 App web per turisti (Italia e Svizzera) in una pagina, pensata per il telefono. Sito statico: nessuna build, nessuna API key, nessuna API a pagamento. Su Vercel: Framework Preset "Other".
 
 ## File
-- `index.html`: tutta l'app (HTML, CSS, JS). `sw.js`: cache offline (alzare `V` a ogni modifica). `manifest.webmanifest`, `icon-*.png`: installazione come app.
+- `index.html`: tutta l'app (HTML, CSS e un solo `<script>` di JS, ~3.700 righe). `sw.js`: cache offline (alzare `V` a ogni modifica). `manifest.webmanifest`, `icon-*.png`: installazione come app.
 - `region-italia.json` (7.894 comuni + 105 punti mare), `region-svizzera.json` (1.415 località): elenco città per regione.
 - `custom-points.json` (grande, ~190 voci) e `custom-inbox.json` (piccolo): voci aggiunte da Claude. Quando l'inbox supera ~30 voci, unirla al file grande con uno script.
 - `tools/doppioni.py`: segnala voci simili (stesso tipo, titolo simile, entro 1,5 km); non modifica nulla.
@@ -51,5 +53,7 @@ Service worker: pagina dalla rete entro 2,5 s (altrimenti copia salvata), librer
 ## Fonti
 Open-Meteo · iNaturalist · Wikipedia, Wikivoyage, Wikidata, Wikimedia Commons · OpenStreetMap, Overpass, Nominatim · geo.admin.ch · patrimonioculturale-er.it · Regione Liguria · OpenFreeMap · Esri · ISTAT · GeoNames.
 
-## Per chi modifica
-`git pull --rebase` (un'altra chat committa sui file `custom-*`), alza `V` in `sw.js`, aggiorna qui solo la sezione che cambia (niente cronologia: c'è `git log`).
+## Per riprendere il lavoro
+- Modo di lavorare: modifiche piccole e testate (controllo sintassi con `node --check` sul `<script>`), poi `git pull --rebase` (l'altra chat "Guida D'Arte" committa su `custom-points.json` e `custom-inbox.json`), alza `V` in `sw.js`, aggiorna qui solo la sezione che cambia (niente cronologia: c'è `git log`) e `git push`. Rispondere in italiano, in modo conciso.
+- Token: NON leggere né stampare `custom-points.json` (116 KB); per cercare una voce usare uno script che stampa solo quella. Il README è breve e si può leggere intero.
+- Da ricordare: il progetto "Guida D'Arte" deve scrivere solo in `custom-inbox.json`, non leggere mai il file grande e rispettare i LIMITI del messaggio. Il token GitHub fine-grained va rinnovato alla scadenza e non incollato in chat. I consigli di zona li toglie l'utente con ✕ (vale solo su quel telefono).
