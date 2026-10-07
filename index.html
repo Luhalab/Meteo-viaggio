@@ -2177,19 +2177,26 @@ const fltMode = () => eNear ? 'near' : 'far';
 const fltOn = k => eFlt[fltMode()][k] !== false;
 /* due pannelli: "Filtri" (cosa vedere sulla mappa e percorsi) e "Sfondo" (tipo di mappa, icone, scritte) */
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
+let otherRoutesCache = [];
 function fltPanel(){
   const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
   const dot = c => d(c, '<span class="dt" style="background:'+c+'"></span>');
   const rs = eNear ? routesHere() : [];
+  /* percorsi accesi che non sono della città corrente (per esempio uno a Scopello mentre sei a Castellammare): restano sulla mappa e qui si tolgono */
+  otherRoutesCache = [...eRoutesOn.keys()].filter(id => !rs.some(r => r.id === id));
+  const osec = otherRoutesCache.length ? '<div class="fh">'+(eNear && rs.length ? 'Altri percorsi accesi' : 'Percorsi accesi')+' ('+otherRoutesCache.length+')</div>'+
+    otherRoutesCache.map((id, i) => { const d = eRouteDefs.get(id) || {};
+      return '<button data-rx="'+i+'" class="bgr on"><span class="rtl"><span class="rtc" style="background:'+(d.color || '#2470b8')+'"></span><span>'+esc(d.title || 'Percorso')+'</span></span><i></i></button>'; }).join('')+
+    (eNear && rs.length ? '' : '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>') : '';
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
     (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
-    (eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
-    (!eNear ? '' : rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+ROUTE_COLORS[i % ROUTE_COLORS.length]+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
+    osec+(eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
+    (!eNear ? '' : rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+routeColor(r, i)+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
         (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
       : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
@@ -2234,6 +2241,8 @@ function panelClick(e){
   const rb = e.target.closest('button[data-r]');
   if (rb){ const r = routesHere()[+rb.dataset.r]; if (r) toggleRoute(r, +rb.dataset.r, false); return; }
   if (e.target.closest('button[data-roff]')){ clearRoutes(); fltPanel(); return; }
+  const rx = e.target.closest('button[data-rx]'); if (rx){ const id = otherRoutesCache[+rx.dataset.rx];
+    if (id && eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); routesUI(); } return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
@@ -2684,9 +2693,21 @@ $('eDo').addEventListener('click', e => {
   const b = e.target.closest('.rt-btn[data-stops]'); if (!b) return;
   const r = routeFromBtn(b), list = routesHere(), i = list.findIndex(x => x.id === r.id);
   if (eRoutesOn.has(r.id) || i >= 0) toggleRoute(i >= 0 ? list[i] : r, Math.max(0, i), true);
-  else showRoute(r.stops, b, r.ch, { id: r.id, title: r.title }); });
+  else { eRouteDefs.set(r.id, Object.assign({}, r, { color: '#2470b8' })); showRoute(r.stops, b, r.ch, { id: r.id, title: r.title }); } });
 
 /* Mostra un percorso: cerco i luoghi su OpenStreetMap (Nominatim) vicino alla città e li unisco con un percorso a piedi */
+/* Durante lo zoom con due dita le linee (percorsi, indicazioni) si ridisegnano a ogni fotogramma: prima Leaflet le ingrandiva
+   come un'immagine (grosse, sgranate, fuori posto) e le ridisegnava solo a gesto finito. Qui ricalcolo i punti allo zoom
+   attuale e poi faccio ridisegnare. */
+const vecRedraw = () => {
+  const rs = new Set([emap._renderer].concat(Object.values(emap._paneRenderers || {})));
+  const was = emap._animatingZoom; emap._animatingZoom = false;          /* durante il pinch Leaflet "congela" i limiti di disegno: li ricalcolo */
+  try {
+    rs.forEach(r => { if (r && r._reset) r._reset(); });                                          /* limiti e posizione del disegno */
+    Object.values(emap._layers).forEach(l => { if (l._renderer && l._project && l._reset) l._reset(); });   /* punti delle linee allo zoom attuale */
+  } finally { emap._animatingZoom = was; }
+};
+emap.on('zoom', vecRedraw);
 const eRoute = L.layerGroup().addTo(emap);
 const eRouteStarts = L.layerGroup();          /* sulla mappa solo da vicino */
 const eRoutesOn = new Map();          /* id -> livello del percorso disegnato */
@@ -2699,9 +2720,23 @@ function routeFromBtn(b){
   const title = claude ? det.querySelector('summary').textContent : names[0]+' → '+names[names.length-1];
   return { id: title+'|'+names.join('|'), title, sub: (claude ? 'Consiglio di Claude · ' : 'Wikivoyage · ')+names.length+' tappe', stops: st, ch: !!b.dataset.ch };
 }
+/* Elenco dei percorsi: quelli dei consigli di Claude entro 12 km dal centro della mappa (i 8 più vicini) (dai dati, senza aspettare la scheda
+   "Cosa fare"), i sentieri segnati, i miei percorsi, e SEMPRE i percorsi che hai acceso: se ti sposti altrove
+   (per esempio da Castellammare a Scopello) restano nell'elenco, accesi, e li puoi spegnere quando vuoi. */
+const eRouteDefs = new Map();      /* percorsi accesi: id -> definizione (titolo, tappe, colore) */
+const routeColor = (r, i) => (eRoutesOn.has(r.id) && eRouteDefs.get(r.id) && eRouteDefs.get(r.id).color) || ROUTE_COLORS[i % ROUTE_COLORS.length];
+function claudeRoutes(){
+  const c = emap.getCenter();
+  return (customCache || []).filter(p => p.kind === 'da-fare' && p.lat != null && Array.isArray(p.stops) && p.stops.length >= 2 &&
+      p.stops.some(x => x && x.lat != null) && km(c.lat, c.lng, p.lat, p.lon) <= 12)
+    .sort((a, b) => km(c.lat, c.lng, a.lat, a.lon) - km(c.lat, c.lng, b.lat, b.lon)).slice(0, 8)
+    .map(p => { const names = p.stops.map(x => typeof x === 'string' ? x : x.n);
+      return { id: p.title+'|'+names.join('|'), title: p.title, sub: 'Consiglio di Claude · '+names.length+' tappe', stops: p.stops, ch: false }; });
+}
 function routesHere(){
-  return [...document.querySelectorAll('#eDo .rt-btn[data-stops]')].filter(b => JSON.parse(b.dataset.stops).filter(x => x && x.lat != null).length >= 2).map(routeFromBtn)
-    .concat(eOsmRoutes).concat(myRoutesHere());
+  const base = claudeRoutes().concat(eOsmRoutes).concat(myRoutesHere()), ids = new Set(base.map(r => r.id));
+  const extra = [...eRoutesOn.keys()].filter(id => !ids.has(id) && eRouteDefs.has(id)).map(id => eRouteDefs.get(id));
+  return base.concat(extra);
 }
 /* aggiorno pannello Filtri e tasti nella scheda: acceso / spento in tutti e due i posti */
 function routesUI(){
@@ -2760,7 +2795,8 @@ function drawOsmRoute(r, col, card){
 }
 function toggleRoute(r, i, card){
   if (eRoutesOn.has(r.id)){ eRoute.removeLayer(eRoutesOn.get(r.id)); eRoutesOn.delete(r.id); routesUI(); return; }
-  const col = ROUTE_COLORS[i % ROUTE_COLORS.length];
+  const col = (eRouteDefs.get(r.id) && eRouteDefs.get(r.id).color) || ROUTE_COLORS[i % ROUTE_COLORS.length];
+  eRouteDefs.set(r.id, Object.assign({}, r, { color: col }));
   if (r.osm){ drawOsmRoute(r, col, card); return; }
   showRoute(r.stops, null, r.ch, { id: r.id, color: col, card, title: r.title });
 }
@@ -2819,6 +2855,7 @@ async function showRoute(stops, btn, churches, opt){
   const id = opt.id || ('btn|'+names.join('|')), col = opt.color || '#2470b8';
   if (eRoutesOn.has(id)) eRoute.removeLayer(eRoutesOn.get(id));
   const lay = L.layerGroup().addTo(eRoute); eRoutesOn.set(id, lay);
+  if (!eRouteDefs.has(id)) eRouteDefs.set(id, { id, title: opt.title || 'Percorso', stops, color: opt.color });
   let line = null, info = '';
   if (ok.length >= 2){
     try {
@@ -3042,7 +3079,7 @@ function eSelectCity(c, opts){
   const heavy = () => {
     if (tok !== selTok) return;                       /* nel frattempo ho scelto un'altra città */
     if (!same){ if (!opts.zoom && (opts.src === 'search' || opts.src === 'tap')){ eKeepCity = true; setTimeout(cityVisible, 400); }   /* città appena scelta: deve restare visibile */
-      if (!(opts && opts.noArea)){ clearRoutes(); eRouteStarts.clearLayers(); }   /* spostando la mappa il percorso resta */
+      eRouteStarts.clearLayers();      /* i percorsi accesi restano sulla mappa anche cambiando città: si tolgono dal pannello Filtri */
       const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
       openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
     if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }

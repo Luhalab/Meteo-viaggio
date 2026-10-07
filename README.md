@@ -183,3 +183,4 @@ Risparmio di token (messaggi a Claude): i messaggi sono compatti (meteo con citt
 nuove in custom-inbox.json (piccolo) senza stampare i file. L'app legge custom-points.json + custom-inbox.json (no-cache, ETag, ogni 3
 minuti). La stessa richiesta mandata entro 30 minuti chiede conferma. L'app non chiama mai API a pagamento: i token si consumano solo
 nelle chat di Claude.
+Percorsi accesi: restano sulla mappa anche cambiando città o zona (per esempio da Castellammare a Scopello) e restano nell'elenco dei Filtri, accesi, finché non li spegni. L'elenco mostra i percorsi dei consigli entro 12 km dal centro della mappa (al massimo 8). Zoom con due dita: le linee dei percorsi e delle indicazioni si ridisegnano a ogni fotogramma (prima venivano ingrandite come un'immagine).
