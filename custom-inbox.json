@@ -206,5 +206,101 @@
     "url": "https://www.italia.it/it/sicilia/palermo/mondello"
    }
   ]
+ },
+ {
+  "title": "Sferracavallo: calette, scogli e pesce",
+  "lat": 38.19847,
+  "lon": 13.27715,
+  "url": null,
+  "kind": "da-fare",
+  "citta": "Isola delle Femmine",
+  "extract": "Borgata marinara di Palermo dentro l'area marina protetta Capo Gallo–Isola delle Femmine: calette e scogli (Baia del Corallo, Barcarello) e tanti ristoranti di pesce. Prima del bagno controlla la balneabilità sul portale del Ministero della Salute, perché in alcuni tratti è variata negli ultimi anni. Domani previsti 27–29° tra le 10 e le 12 con vento di 1–7 km/h: mare calmo, meglio bagno e passeggiata in mattinata e pranzo a pesce prima delle 14, quando sale la probabilità di pioggia (25%).",
+  "fonti": [
+   {
+    "t": "Balarm – Spiaggia di Barcarello",
+    "url": "https://www.balarm.it/luoghi/spiaggia-di-barcarello-sferracavallo-palermo-2554"
+   },
+   {
+    "t": "Spiagge.it – Golfo di Palermo",
+    "url": "https://www.spiagge.it/magazine/le-spiagge-piu-belle-del-golfo-di-palermo/"
+   },
+   {
+    "t": "Balarm – Mare di Sferracavallo",
+    "url": "https://www.balarm.it/news/per-fortuna-qui-l-estate-non-e-ancora-finita-il-mare-di-sferracavallo-e-finalmente-pulito-148077"
+   }
+  ]
+ },
+ {
+  "title": "Palermo: Cappella Palatina e Martorana",
+  "lat": 38.110884,
+  "lon": 13.353512,
+  "url": null,
+  "kind": "da-fare",
+  "citta": "Isola delle Femmine",
+  "extract": "Due tra i più begli interni arabo-normanni di Palermo, patrimonio UNESCO: la Cappella Palatina nel Palazzo dei Normanni (voluta da Ruggero II, consacrata nel 1140) e la chiesa della Martorana (Santa Maria dell'Ammiraglio) in piazza Bellini, con i mosaici bizantini. Dritta: arriva all'apertura per evitare la coda e controlla orari e biglietti sul sito della Fondazione Federico II. Domani coperto con pioggia 25–30% tra le 14 e le 16 (28°, vento 10 km/h): al chiuso è il piano B più sicuro.",
+  "stops": [
+   {
+    "n": "Cappella Palatina",
+    "lat": 38.110884,
+    "lon": 13.353512
+   },
+   {
+    "n": "Chiesa della Martorana",
+    "lat": 38.1147354,
+    "lon": 13.362893
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Arte.it – Palazzo dei Normanni",
+    "url": "https://www.arte.it/guida-arte/palermo/da-vedere/museo/palazzo-reale-o-dei-normanni-3155/immagini"
+   },
+   {
+    "t": "MuseiOnline – Palazzo dei Normanni",
+    "url": "https://www.museionline.info/palermo-musei-e-monumenti/palazzo-dei-normanni-palermo"
+   },
+   {
+    "t": "Travel365 – Palermo in un giorno",
+    "url": "https://www.travel365.it/palermo-itinerario-1-giorno.htm"
+   }
+  ]
+ },
+ {
+  "title": "Mercato del Capo: street food e chiese",
+  "lat": 38.1186189,
+  "lon": 13.3540701,
+  "url": null,
+  "kind": "da-fare",
+  "citta": "Isola delle Femmine",
+  "extract": "Il mercato storico che si apre da Porta Carini, tra banchi di pesce, friggitorie e street food; nel mercato si nasconde la chiesa barocca dell'Immacolata Concezione. Dritta: orario indicato 7–20 (mercoledì e domenica fino alle 13), la mattina è il momento più vivo. Domani giovedì, poco nuvoloso fino a 27° alle 10 e vento 1 km/h: vai al mattino, prima della pioggia possibile (25–30%) del primo pomeriggio.",
+  "fonti": [
+   {
+    "t": "Dissapore – Mercato del Capo",
+    "url": "https://www.dissapore.com/spesa/mercato-del-capo-a-palermo-cosa-non-perdere/"
+   },
+   {
+    "t": "TheWom – Palermo in 3 giorni",
+    "url": "https://travel.thewom.it/italia/sicilia/palermo/cosa-vedere-a-palermo-in-3-giorni.html"
+   }
+  ]
+ },
+ {
+  "title": "Centro Commerciale Poseidon (Carini)",
+  "lat": 38.1739802,
+  "lon": 13.2184819,
+  "url": null,
+  "kind": "da-fare",
+  "citta": "Isola delle Femmine",
+  "extract": "Il centro commerciale più vicino a Isola delle Femmine: aperto nel 2010 a Carini, circa 26.000 mq e oltre 75 negozi, con Decathlon, Unieuro e supermercato Decò, più bar e ristoranti. Orario 9–21 secondo gli elenchi online: verificalo sul sito del centro. Domani pioggia 25–30% tra le 14 e le 16 con 28° e vento 10 km/h: se il cielo si chiude, qui fai shopping e pranzo al coperto a pochi chilometri.",
+  "fonti": [
+   {
+    "t": "IGD – comunicato su Poseidon (2026)",
+    "url": "https://www.gruppoigd.it/wp-content/uploads/2026/04/29042026_CS-IGD-Service-_Poseidon_last.pdf"
+   },
+   {
+    "t": "OrariDiApertura24 – Centro Poseidon",
+    "url": "https://www.oraridiapertura24.it/filiale/Carini-Parcheggio-2062700L.html.html"
+   }
+  ]
  }
 ]
