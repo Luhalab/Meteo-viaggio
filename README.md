@@ -54,6 +54,10 @@ Service worker: pagina dalla rete entro 2,5 s (altrimenti copia salvata), librer
 ## Fonti
 Open-Meteo · iNaturalist · Wikipedia, Wikivoyage, Wikidata, Wikimedia Commons · OpenStreetMap, Overpass, Nominatim · geo.admin.ch · patrimonioculturale-er.it · Regione Liguria · OpenFreeMap · Esri · ISTAT · GeoNames.
 
+## Da fare dopo le vacanze (decisioni dell'utente: per ora l'app resta così)
+- **Dividere `index.html`** (285 KB: CSS 45, JS 222, HTML 16): `style.css` + circa 8 file JS tagliati sulle sezioni già marcate (meteo, mappa meteo, monumenti, schede, navigazione, Claude, GPS, locali; la sezione "monumenti e curiosità" è 50 KB e va divisa in due). Script classici caricati in ordine, nessuna riscrittura; aggiornare `sw.js` (elenco file) e provare nel browser di prova dopo ogni pezzo; cominciare dal CSS. Beneficio: ordine e meno rischi, token e velocità quasi invariati.
+- **"Vera app"** (da decidere cosa manca oggi: aspetto, scheda su Play o GPS in background): 1) PWA rifinita (icone maskable, scorciatoie, pulsante Installa), gratis; 2) APK con TWA via pwabuilder.com (Play: 25 $ una tantum, APK a mano gratis); 3) Capacitor, solo se serve GPS in background o notifiche (compilazione esterna, es. GitHub Actions: serve il permesso Workflows sul token); 4) riscrittura nativa: sconsigliata. Consiglio: livello 1 per primo.
+
 ## Per riprendere il lavoro
 - Modo di lavorare: modifiche piccole e testate (controllo sintassi con `node --check` sul `<script>`), poi `git pull --rebase` (l'altra chat "Guida D'Arte" committa su `custom-points.json` e `custom-inbox.json`), alza la versione con `python3 tools/versione.py` (aggiorna `V` in `sw.js` e `APP_V` in `index.html`), aggiorna qui solo la sezione che cambia (niente cronologia: c'è `git log`) e `git push`. Rispondere in italiano, in modo conciso.
 - Token: NON leggere né stampare `custom-points.json` (116 KB); per cercare una voce usare uno script che stampa solo quella. Il README è breve e si può leggere intero.
