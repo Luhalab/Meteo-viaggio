@@ -2426,6 +2426,12 @@ function cityVisible(){
 }
 let eKeepCity = false;
 emap.on('moveend', () => { clearTimeout(saveViewT); saveViewT = setTimeout(saveView, 500); });
+/* Il riquadro di una città (Leaflet) misura la sua larghezza una volta sola, quando si apre: se in quel momento la pagina sta ancora
+   cambiando (pannello che sale, font, volo della mappa) resta spostato rispetto al segnaposto. Lo rimisuro subito dopo l'apertura
+   e a ogni fine spostamento, zoom o cambio di dimensione. */
+const popFix = p => { if (p && p._map && p._container){ try { p._updateLayout(); p._updatePosition(); } catch(e){} } };
+emap.on('popupopen', e => { const p = e.popup; requestAnimationFrame(() => popFix(p)); [150, 450, 1000].forEach(t => setTimeout(() => popFix(p), t)); });
+emap.on('moveend zoomend resize', () => popFix(emap._popup));
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveView(); });
 window.addEventListener('pagehide', saveView);
 emap.on('moveend', () => { if (eKeepCity){ eKeepCity = false; setTimeout(cityVisible, 50); } });
