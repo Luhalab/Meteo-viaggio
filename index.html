@@ -3293,9 +3293,11 @@ function msgBudget(kind){
 }
 /* titoli già presenti nell'app vicino a un punto: evitano a Claude di leggere il file per cercare i doppioni */
 function existingTitles(lat, lon, r, n){
-  const seen = new Set();
-  (customCache || []).forEach(p => { if (p.lat != null && p.kind !== 'evento' && km(lat, lon, p.lat, p.lon) <= r) seen.add(p.title.length > 60 ? p.title.slice(0, 57)+'…' : p.title); });
-  return [...seen].slice(0, n || 25).join('; ');
+  const rows = [];                                   /* i più vicini per primi: se il limite taglia l'elenco, restano quelli che contano */
+  (customCache || []).forEach(p => { if (p.lat == null || p.kind === 'evento') return; const d = km(lat, lon, p.lat, p.lon);
+    if (d <= r) rows.push([d, p.title.length > 60 ? p.title.slice(0, 57)+'…' : p.title]); });
+  rows.sort((a, b) => a[0] - b[0]);
+  return [...new Set(rows.map(x => x[1]))].slice(0, n || 25).join('; ');
 }
 const MSG_ADD = 'Aggiungi solo i luoghi non ancora presenti, con coordinate di ogni luogo da Google Maps, Wikipedia o OpenStreetMap (Nominatim), le curiosità come voci "kind": "curiosita" e i consigli su cosa vedere e fare come voci "kind": "da-fare" (titolo breve, 2-4 frasi, coordinate del centro).';
 const MSG_REPLY = 'Poi rispondimi con: cosa vedere (i luoghi più interessanti, con distanza a piedi), le curiosità più belle e cosa fare (un consiglio pratico: percorso, orari, dove mangiare o il momento migliore).';

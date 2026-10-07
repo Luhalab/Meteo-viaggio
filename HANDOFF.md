@@ -10,6 +10,8 @@ Il dettaglio funzione per funzione è nel `README.md` (lungo: leggilo solo se se
 - `custom-inbox.json` (piccolo): dove l'altra chat aggiunge le voci nuove; l'app legge i due file insieme. Quando supera ~30 voci, unirlo al file grande con uno script.
 - `region-italia.json`, `region-svizzera.json`: comuni.
 
+- `tools/doppioni.py`: segnala voci simili (stesso tipo, titolo simile, vicine) in custom-points + inbox; non modifica nulla. Lancialo ogni tanto: `python3 tools/doppioni.py`.
+
 ## Come funziona
 - Due modalità: **meteo** (zoom < 14: etichette meteo, ★ luoghi imperdibili, tabella settimanale) e **città** (zoom ≥ 14: monumenti, curiosità, consigli, percorsi, eventi). Tasto Esplora/Torna al meteo e zoom Città/Meteo.
 - Interfaccia tipo Google Maps: ricerca + chip (Italia/Svizzera, Ristoranti, Bar e gelaterie) in alto, Livelli e Filtri a destra, pannello in basso con 3 posizioni (chiuso/metà/tutto), trascinabile.

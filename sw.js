@@ -5,7 +5,7 @@
    - mappa (tile e stile): copia salvata subito, aggiornata in background; al massimo ~4000 tile, poi si tolgono le più vecchie;
    - custom-points.json: sempre dalla rete (i punti di Claude devono essere aggiornati), copia salvata solo se sei offline.
    Previsioni, monumenti e testi li salva l'app stessa (IndexedDB) con le loro scadenze. */
-const V = 'v90';
+const V = 'v91';
 const SHELL = 'viaggio-shell-'+V, LIBS = 'viaggio-libs', TILES = 'viaggio-tiles';
 const FILES = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest', './region-italia.json', './region-svizzera.json'];
 const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
