@@ -21,7 +21,7 @@ App web per turisti (Italia e Svizzera) in una pagina, pensata per il telefono. 
 Open-Meteo (modello ICON-2I) e Open-Meteo Marine. Ora per ora (6, 8 … 22 e "adesso") e tabella "La settimana a confronto" (7 o 15 giorni, stella sulla città migliore; modi Sulla mappa, Cerca, Scegli). Vento in km/h con freccia. Le città cercate e scelte restano salvate.
 
 ## Mappa e luoghi
-- Sfondi (Filtri): vettoriale OpenFreeMap con MapLibre (predefinito, torna alla classica se il telefono non regge), OpenStreetMap classica, Esri senza icone dei locali.
+- Sfondi (Filtri): vettoriale OpenFreeMap con MapLibre (predefinito, torna alla classica se il telefono non regge), OpenStreetMap classica, Esri senza icone dei locali. Con il vettoriale l'animazione di zoom di Leaflet è spenta (`_zoomAnimated = false`): in quel caso il plugin di rotazione non ruota i riquadri, quindi a ogni apertura li forziamo a `_zoomAnimated = true` e li rimisuriamo (`popFix`), altrimenti con la mappa ruotata si staccano dalla città.
 - Monumenti da più fonti (OSM/Overpass, Wikipedia, geo.admin.ch, patrimonioculturale-er.it, Regione Liguria), ognuna con un tempo massimo. Punti entro 30 m (o stesso nome entro 150 m) uniti in uno.
 - Foto: striscia con le immagini Wikipedia della città; il visore ha "Mostra sulla mappa" (coordinate di Commons, altrimenti stimate).
 - Locali (chip): dalla mappa vettoriale, Overpass solo se manca; al massimo 40; orari e telefono da OSM solo al tocco.
