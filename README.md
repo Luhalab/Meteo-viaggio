@@ -1,188 +1,55 @@
 # Meteo e viaggio
 
-App web per turisti, Italia e Svizzera, in una pagina.
+App web per turisti (Italia e Svizzera) in una pagina, pensata per il telefono. Sito statico: nessuna build, nessuna API key, nessuna API a pagamento. Su Vercel: Framework Preset "Other".
 
-## Com'è fatta
-Una sola pagina. In alto una mappa dettagliata (OpenStreetMap; nei filtri si può scegliere lo sfondo Esri World Street Map, senza icone dei locali): da lontano mostra le città con il meteo (o mare e meduse);
-da zoom 14 in su mostra anche la mappa di Cicerone con chiese, monumenti, castelli e opere,
-la scheda di ogni punto e "Chiedi a Claude". Schermo intero, "Segna questo punto", "Fotografa un dettaglio".
-Scelta una città, sotto la mappa compaiono sezioni a scomparsa: meteo (adesso, 15 giorni, ora per ora),
-mare e meduse, foto, monumenti, curiosità e leggende.
+## File
+- `index.html`: tutta l'app (HTML, CSS, JS). `sw.js`: cache offline (alzare `V` a ogni modifica). `manifest.webmanifest`, `icon-*.png`: installazione come app.
+- `region-italia.json` (7.894 comuni + 105 punti mare), `region-svizzera.json` (1.415 località): elenco città per regione.
+- `custom-points.json` (grande, ~190 voci) e `custom-inbox.json` (piccolo): voci aggiunte da Claude. Quando l'inbox supera ~30 voci, unirla al file grande con uno script.
+- `tools/doppioni.py`: segnala voci simili (stesso tipo, titolo simile, entro 1,5 km); non modifica nulla.
 
-Senza città scelta, sotto la mappa c'è la tabella "La settimana a confronto" con tre modi:
-- **Sulla mappa** (predefinito): le città visibili, che cambiano spostando o ingrandendo la mappa.
-- **Cerca**: si aggiungono le città con la ricerca; la mappa mostra solo quelle e le inquadra.
-- **Scegli**: tenendo premuto su una città della mappa la si aggiunge o toglie; la mappa resta libera.
-Le città cercate e scelte restano salvate sul telefono.
+## Schermata
+- Mappa a schermo intero. In alto: ricerca (con tasto tema) e chip Italia/Svizzera, Ristoranti, Bar e gelaterie. A destra: Livelli e Filtri. In basso a destra: posizione e zoom Città/Meteo. In basso: pannello a 3 posizioni (chiuso, metà, tutto), che segue il dito.
+- Due modalità secondo lo zoom. **Meteo** (sotto 14): città con il meteo, luoghi imperdibili ★ (da zoom 8,5, da Wikidata), livello Mare e meduse (solo dove c'è il mare); pannello con linguette Meteo, Foto, Consigli. **Città** (da 14): monumenti, curiosità, consigli, percorsi, eventi; pannello con Curiosità, Cosa fare, Eventi. "Esplora"/"Torna al meteo" passa dall'una all'altra.
+- Fuori dai centri abitati crea il luogo "Vicino a …" con i dati di quel punto e le curiosità della città più vicina.
+- Tasto posizione: 1° tocco segue, 2° ruota la mappa, 3° nord in alto. GPS con filtro di Kalman, riavvio automatico se non arrivano fix.
+- Personalizza la pagina: ordine e visibilità dei blocchi (salvati sul telefono).
 
-Fuori dai centri abitati l'app non si aggancia per forza a una città: crea il luogo "Vicino a …"
-con meteo, mare, foto e monumenti di quel punto preciso, e curiosità e consigli della città più vicina.
-Con il GPS già consentito, all'apertura mostra subito il posto in cui ti trovi.
+## Meteo
+Open-Meteo (modello ICON-2I) e Open-Meteo Marine. Ora per ora (6, 8 … 22 e "adesso") e tabella "La settimana a confronto" (7 o 15 giorni, stella sulla città migliore; modi Sulla mappa, Cerca, Scegli). Vento in km/h con freccia. Le città cercate e scelte restano salvate.
 
-Filtri della mappa (tasto imbuto): monumenti e punti di Claude, e la scelta dello sfondo:
-- Vettoriale (predefinita): OpenFreeMap disegnata da MapLibre (caricata solo se scelta), in un livello sotto Leaflet
-  allineato a ogni spostamento, zoom e rotazione. Icone dello sfondo accendibili per categoria, scritte grandi nitide.
-  Se il telefono non regge la grafica vettoriale, l'app torna da sola alla mappa classica.
-- OpenStreetMap classica, con tutte le icone dei locali.
-- Senza icone dei locali (Esri World Street Map).
-Le scelte restano salvate.
+## Mappa e luoghi
+- Sfondi (Filtri): vettoriale OpenFreeMap con MapLibre (predefinito, torna alla classica se il telefono non regge), OpenStreetMap classica, Esri senza icone dei locali.
+- Monumenti da più fonti (OSM/Overpass, Wikipedia, geo.admin.ch, patrimonioculturale-er.it, Regione Liguria), ognuna con un tempo massimo. Punti entro 30 m (o stesso nome entro 150 m) uniti in uno.
+- Foto: striscia con le immagini Wikipedia della città; il visore ha "Mostra sulla mappa" (coordinate di Commons, altrimenti stimate).
+- Locali (chip): dalla mappa vettoriale, Overpass solo se manca; al massimo 40; orari e telefono da OSM solo al tocco.
+- Filtri separati per modalità (meteo: monumenti, luoghi di Claude e curiosità spenti; città: tutto acceso), salvati in `mapFilters2`.
+- Eventi (15 giorni, 15 km): voci `"kind": "evento"` (campi `inizio`, `fine`, `luogo`), Wikidata, feste di Wikivoyage. "Cerca eventi con Claude" manda `[Meteo e viaggio: eventi]`.
 
-Percorsi: nei consigli di Wikivoyage, i paragrafi con "da X a Y" o con un elenco di tappe (giro, percorso, itinerario)
-hanno il tasto "Mostra il percorso sulla mappa": le tappe vengono cercate con Nominatim vicino alla città
-(una richiesta al secondo, risultati salvati) e unite con il percorso a piedi di routing.openstreetmap.de.
+## Indicazioni e percorsi
+- Pressione lunga sulla mappa: indicazioni (auto e piedi con routing.openstreetmap.de, nomi da Nominatim, "Apri in Google Maps"), con tappe intermedie. "Salva percorso" → `myRoutes` sul telefono; "Gestisci i miei percorsi" nei Filtri. Il percorso attivo resta 24 h (`navActive`).
+- Percorsi dei consigli: campo `stops` (tappe in ordine, nome + lat/lon facoltativi; senza coordinate cerca il nome tra i luoghi noti e poi su Nominatim, 1 richiesta al secondo). Anche paragrafi Wikivoyage "da X a Y" e sentieri OSM (route=hiking/foot).
+- Elenco percorsi (Filtri, solo modalità città): consigli entro 12 km dal centro, al massimo 8. I percorsi accesi restano sulla mappa cambiando zona finché non li spegni.
 
-Sulla mappa c'è il tasto posizione: 1° tocco centra e segue, 2° tocco gira la mappa nella direzione in cui vai,
-3° tocco torna con il nord in alto (la bussola in alto a sinistra fa lo stesso).
-Tutti i tasti della mappa stanno in basso, a portata di pollice: a destra lo zoom a cursore (da zoom 9 al massimo, movimento continuo, un livello ogni 26 px di dito, + e − alle estremità),
-in fila a sinistra posizione, opzioni, segna punto e foto; la bussola in alto a sinistra. A schermo intero il tasto opzioni
-offre: rotazione seguendo la direzione, rotazione con due dita, nord in alto,
-blocca la mappa, schermo sempre acceso. La rotazione usa il plugin leaflet-rotate (jsDelivr); se non si carica,
-l'app funziona senza rotazione.
+## Voci di Claude (custom-points.json e custom-inbox.json)
+Ogni voce: `title`, `lat`, `lon`, `extract`, `url` (null); facoltativi `fonti` (`[{"t","url"}]`), `stops`, `kind`.
+- senza `kind`: luogo (punto sulla mappa, rosso mattone); `"curiosita"`: leggenda o aneddoto; `"da-fare"`: consiglio; `"evento"`.
+- Curiosità e consigli legati a un luogo usano le coordinate di quel luogo (non il centro città) e compaiono sulla mappa con un anello viola; più voci sullo stesso luogo hanno le stesse coordinate. Solo quelle generiche usano il centro città.
+- L'app legge i due file insieme (no-cache, ogni 3 minuti, al ritorno nell'app) e toglie i doppioni (stesso titolo e coordinate).
 
-## Struttura
-- `index.html` — l'app (il "motore", uguale per tutte le regioni)
-- `region-italia.json` — 7.894 comuni + 105 punti mare
-- `region-svizzera.json` — 1.415 località, senza mare
-- `custom-points.json` — punti e curiosità aggiunti a mano da Claude
-- `sw.js`, `manifest.webmanifest`, `icon-*.png` — installazione come app
+## Chiedi a Claude e consigli di zona
+- Il tasto apre la chat del progetto con un messaggio `[Meteo e viaggio: città | posizione | foto | luogo | zona | città e meteo | eventi]`. In modalità meteo ("Cosa fare in questa zona" o città scelta) chiede consigli in base al meteo e alle preferenze (quando, interessi, testo libero).
+- Segna quali consigli esistono già (`zoneAsk`, 14 giorni); i consigli nuovi nella zona chiesta diventano "consigli della tua richiesta" (`zoneFound`): linguetta "Consigli (N)", 💡 sulla mappa, interruttore del percorso, ✕ per toglierli (solo su quel telefono).
+- Valgono solo il giorno in cui arrivano: spariscono a mezzanotte (controllo all'apertura, al ritorno nell'app e ogni 10 minuti). Restano come consigli della modalità città, dove le frasi sul meteo del giorno ("Oggi vento minimo, 12 km/h") sono tolte dal testo.
 
-## Punti e curiosità aggiunti da Claude
-`custom-points.json` è una lista. Ogni voce:
-```json
-{ "title": "Nome", "lat": 37.85, "lon": 15.28, "extract": "Descrizione breve", "url": null }
-```
-Con `"kind": "curiosita"` la voce compare tra le curiosità della città più vicina invece che come punto sulla mappa.
-Sulla mappa i punti aggiunti da Claude sono rosso mattone, gli altri dorati.
+## Risparmio di token
+Messaggi compatti con LIMITI di ricerca: Veloce (3 ricerche, 3 consigli, 150 parole) o Approfondito (8, 5, 300). Includono l'elenco dei titoli già presenti vicino al punto (i più vicini per primi, al massimo 25) così Claude non rilegge il file; le voci nuove vanno in `custom-inbox.json`. Stessa richiesta entro 30 minuti: chiede conferma. I token si consumano solo nelle chat di Claude.
 
-## Fonti (nessuna API key)
-Open-Meteo con modello ICON-2I di ItaliaMeteo-ARPAE · Open-Meteo Marine · iNaturalist ·
-Wikipedia e Wikivoyage (CC BY-SA) · Wikimedia Commons · OpenStreetMap e Overpass ·
-geo.admin.ch (beni culturali KGS) · patrimonioculturale-er.it · Regione Liguria ·
-sfondo mappa Esri, con OpenStreetMap di riserva · comuni italiani ISTAT · località svizzere GeoNames
+## Velocità e cache
+Service worker: pagina dalla rete entro 2,5 s (altrimenti copia salvata), librerie e tile (~4000) salvate. IndexedDB: previsioni 30 minuti (offline fino a un giorno), monumenti 3 giorni, testi, foto e sentieri 7 giorni; pulizia dopo 14 giorni. Riapre nell'ultima zona e zoom. Rotazione mappa: plugin leaflet-rotate (jsDelivr), opzionale.
 
-## Pubblicazione
-Sito statico: su Vercel scegliere Framework Preset "Other", senza build.
+## Fonti
+Open-Meteo · iNaturalist · Wikipedia, Wikivoyage, Wikidata, Wikimedia Commons · OpenStreetMap, Overpass, Nominatim · geo.admin.ch · patrimonioculturale-er.it · Regione Liguria · OpenFreeMap · Esri · ISTAT · GeoNames.
 
-Curiosità e consigli di Claude sulla mappa (punti viola, filtro proprio): compaiono solo se hanno le coordinate del luogo
-preciso (non quelle del centro città, condivise da più voci). Toccando un luogo si vedono anche le curiosità entro 80 m; i luoghi con curiosità hanno un anello viola. Nella sezione Curiosità, "Mostra sulla mappa" porta al luogo.
-Un consiglio "da-fare" può avere il campo "stops": tappe in ordine, ognuna {"n": nome, "lat", "lon"} (coordinate facoltative:
-senza, l'app cerca il nome tra i luoghi noti e poi su OpenStreetMap). Senza "stops", l'app prova a leggere "da X a Y" nel titolo.
-
-Pagina (ottobre 2026): sotto la mappa le schede "Curiosità e leggende" / "Cosa vedere e fare" (altezza limitata,
-la mappa resta in vista), poi meteo (aperto) e tabella settimanale. Mare e meduse resta come livello della mappa;
-foto e monumenti stanno solo sulla mappa (foto di Wikimedia Commons come miniature tonde, da zoom 12).
-Tasti: "Filtri" (monumenti, luoghi di Claude, curiosità, foto, partenze dei percorsi + elenco dei percorsi in zona,
-ognuno accendibile, anche più insieme e con colori diversi) e "Sfondo" (tipo di mappa, icone dello sfondo, scritte grandi).
-
-Due modi secondo lo zoom: da lontano (sotto zoom 14) meteo, tabella settimanale e livello mare e meduse;
-da vicino (zoom 14+) monumenti, foto, percorsi e le schede curiosità / cose da fare. Il tasto sotto il nome
-della città ("Esplora …" / "Torna al meteo") passa dall'uno all'altro; anche "Vai alla città" nel fumetto.
-
-Foto: non più sulla mappa. Nel modo meteo, scelta una città, sotto il nome compare una striscia con le immagini
-della voce di Wikipedia della città (prima la foto principale; solo jpg grandi, senza stemmi e mappe); toccandole
-si apre il visore a tutto schermo. Nei filtri compaiono solo i percorsi con almeno 2 tappe con coordinate.
-
-Pagina personalizzabile (tasto "Personalizza la pagina" in fondo): ordine e visibilità dei blocchi Esplora,
-Chiedi a Claude, Mappa, Meteo/Mare, Foto, schede Curiosità/Cosa fare, Meteo, Settimana (salvati sul telefono).
-L'ordine predefinito tiene sopra la mappa solo blocchi che non cambiano con lo zoom, così la mappa non salta.
-Tolto il riquadro di giudizio della giornata ("Tempo incerto…") dalla sezione meteo.
-
-Zoom: due tasti in basso a destra, "Città" (zoom 16) e "Meteo" (zoom 9), centrati sulla città scelta o sulla posizione.
-Curiosità e consigli chiusi di default, con le fonti (campo "fonti": [{"t","url"}] o "url"; altrimenti "cerca su Wikipedia").
-"Cosa vedere e fare": foto della guida Wikivoyage, sentieri segnati da OpenStreetMap (relazioni route=hiking/foot,
-con tracciato vero, anche nei filtri dei percorsi), testi Wikivoyage e consigli di Claude, con fonti.
-A schermo intero e da vicino, curiosità e cose da fare diventano un pannello in basso: chiuso mostra le linguette,
-aperto occupa metà schermo.
-A schermo intero e da lontano, con una città scelta, il pannello in basso ha "Meteo" e "Foto".
-Nei pannelli: toccare la linguetta già scelta chiude, un'altra linguetta apre; si possono anche trascinare su e giù.
-Meteo essenziale: solo la fila ora per ora di oggi (con "adesso" al centro) e la tabella settimanale, con la città
-scelta sempre presente ed evidenziata e la stella sulla settimana migliore; tolti condizioni attuali, 15 giorni e testi.
-Nel pannello a schermo intero la linguetta Meteo contiene entrambe.
-
-Interfaccia tipo Google Maps (ottobre 2026): la mappa occupa tutto lo schermo; in alto ricerca (con tasto tema) e chip
-delle nazioni (REGIONI: per aggiungerne una basta un nuovo elemento); a destra in alto livelli (mappa con / senza icone)
-e filtri; a destra in basso posizione e zoom Città / Meteo; in basso il pannello con testata del luogo (nome, meteo,
-Esplora, Chiedi a Claude) e linguette Meteo/Foto da lontano, Curiosità/Cosa fare da vicino. "Mare e meduse" è una scelta nel pannello Livelli (solo da lontano, solo dove c'è il mare).
-Foto: nel visore "Mostra sulla mappa" usa le coordinate del file su Commons; se mancano e la foto ritrae un luogo noto,
-lo cerca tra i luoghi noti e poi su OpenStreetMap ("stimata"); le foto di cibo senza coordinate non vanno sulla mappa.
-Pannello a tre posizioni (chiuso, metà, tutto lo schermo) che segue il dito come su Google Maps: al rilascio va sulla posizione più vicina, con un gesto veloce sulla successiva; dal contenuto in cima si trascina giù, le righe orizzontali scorrono normalmente.
-Tabella: 7 o 15 giorni (la stella della città migliore usa la media sul periodo scelto); toccando una città la si sceglie
-(mappa e ora per ora seguono), toccando un giorno (cella o intestazione) l'ora per ora mostra quel giorno.
-Ora per ora: solo le ore 6, 8, 10 … 22, più l'ora attuale ("adesso"). Pannello animato (anche all'apertura da chiuso), trascinamento aggiornato una volta per fotogramma.
-
-Linguetta "Eventi" (accanto a Curiosità e Cosa fare): eventi nei prossimi 15 giorni entro 15 km, da custom-points.json
-("kind": "evento", con "inizio", "fine" AAAA-MM-GG, "luogo", coordinate, "extract", "fonti") e da Wikidata (eventi con data
-e coordinate); poi le feste tradizionali dalla guida Wikivoyage (date indicative). Il tasto "Cerca eventi con Claude" manda
-il messaggio "[Meteo e viaggio: eventi]" all'altra chat, che li cerca su comune, pro loco, regione e siti di eventi.
-Gli eventi non compaiono come punti fissi sulla mappa (solo con "Mostra sulla mappa").
-
-Indicazioni: tenendo premuto sulla mappa. Da vicino si aprono subito; da lontano compare un piccolo menu
-("Confronta il meteo di …" / "Indicazioni fin qui"). Partenza = posizione GPS (modificabile toccando A e poi la mappa),
-arrivo = punto premuto (modificabile allo stesso modo). Auto e a piedi calcolati insieme (routing.openstreetmap.de),
-nomi dei punti da Nominatim, "Apri in Google Maps" per la navigazione.
-Indicazioni: la mappa non si sposta da sola (tasto "Mostra tutto"); tappe intermedie ("+ Aggiungi tappa", poi tocco sulla
-mappa; mentre scegli la scheda si nasconde); "Salva percorso" li salva sul telefono (localStorage "myRoutes") e li mostra
-nei filtri della zona ("Il mio percorso", eliminabili). Ricerca: oltre ai comuni, "Cerca … come via o luogo" (Nominatim
-vicino alla città o alla zona); dal risultato: indicazioni fin lì, o partenza/tappa/arrivo se le indicazioni sono aperte.
-Locali a richiesta: chip Ristoranti, Bar, Gelaterie, Hotel accanto alle nazioni (Overpass, al massimo 40 nella zona,
-si aggiornano spostando la mappa, spariscono toccando di nuovo il chip); scheda con orari, telefono, link a Google
-(foto e recensioni), TripAdvisor e "Indicazioni fin qui".
-Locali: prima dalle tile vettoriali già scaricate (nessuna richiesta), altrimenti Overpass con server di riserva (kumi.systems, private.coffee); orari e telefono chiesti a OpenStreetMap solo toccando il locale. Con un chip acceso monumenti e punti di Claude si nascondono.
-Chip dei locali ridotti a Ristoranti e Bar e gelaterie, presi solo dalla mappa vettoriale (online solo se la vettoriale manca). Spegnendo il chip i monumenti tornano (ricaricati se mancano); se una fonte dei monumenti non risponde e non c'è nulla, l'app riprova da sola una volta.
-Monumenti: ogni fonte ha un tempo massimo e i punti compaiono man mano che arrivano (una fonte lenta non blocca più tutto). Gli eventi non contano nel decidere se una curiosità è legata a un luogo preciso.
-Percorso attivo: chiudendo la scheda delle indicazioni il percorso resta sulla mappa, con un riquadro in basso
-(tempo · km, tocca per riaprire, ✕ per togliere); resta anche riaprendo l'app per 24 ore (localStorage "navActive").
-I miei percorsi: salvati nel browser del telefono finché non li elimini; Filtri → "Gestisci i miei percorsi" per vederli
-tutti, mostrarli, eliminarne alcuni o tutti.
-
-Avvio veloce: service worker con pagina dalla rete se risponde entro 2,5 s (altrimenti copia salvata), librerie salvate
-una volta, tile della mappa salvate (fino a ~4000) e aggiornate in background. L'app salva in IndexedDB previsioni
-(riusate per 30 minuti, offline fino a un giorno), monumenti per zona (3 giorni senza richiedere, poi aggiornati),
-testi di Wikipedia/Wikivoyage, foto e sentieri (7 giorni); pulizia automatica dopo 14 giorni. Riaprendo entro 12 ore
-riparte dall'ultima zona e città.
-Riapertura come Google Maps: la mappa nasce già nell'ultima zona e zoom (salvati a ogni spostamento e quando esci dall'app), poi torna la città scelta; senza limite di tempo. Il salto automatico sulla posizione GPS avviene solo la prima volta.
-Avvio: font caricati senza bloccare la pagina, collegamenti anticipati ai server, motore della mappa vettoriale scaricato in parallelo, mare e meduse scaricati solo quando si sceglie quel livello, niente clessidre sulla mappa mentre arrivano le previsioni; colore della schermata d'avvio uguale alla mappa.
-Punti uniti: elementi entro 30 m (o con lo stesso nome entro 150 m, da fonti diverse) diventano un solo punto; la scheda mostra il testo principale, gli altri testi solo se diversi, le curiosità una volta sola e i link di ogni fonte.
-Percorsi: il tasto nella scheda "Cosa fare" e l'interruttore nei Filtri comandano lo stesso percorso (stesso stato acceso/spento); dalla scheda si accende e si spegne.
-Vento: km/h con freccia della direzione, nell'ora per ora e (massimo del giorno) nella tabella settimanale; senza colori (usati per le temperature): grigio chiaro sotto 20, più scuro 20-29, pastiglia grigia 30-44, pastiglia scura da 45.
-GPS stabile: ogni fix passa da un filtro di Kalman semplificato (fix imprecisi pesano poco; fix molto peggiori di quello
-attuale o con timestamp vecchio scartati; un salto improvviso e poco preciso accettato solo dopo 3 fix coerenti; primo fix
-molto impreciso: attesa fino a 6 s). Il puntino si sposta con un movimento morbido (700 ms), in modalità "segui" la mappa si
-muove solo se il puntino si allontana dal centro, la direzione ha una media mobile. Se per 30 s non arriva nessun fix, o dopo
-un errore di segnale, il GPS riparte da solo; dopo oltre un minuto in background il filtro riparte da zero.
-Luoghi imperdibili nella vista meteo (da zoom 8,5): da Wikidata, misurati dal numero di Wikipedia che ne parlano (non dalla
-grandezza della città); da 20 lingue in su icona ★ piccola con il nome, gli altri come puntini da zoom 10; anche i luoghi di
-Claude come puntini rosso mattone. Filtro "Luoghi imperdibili" nel pannello Filtri. Scheda con descrizione, "Avvicinati" e
-Wikipedia. Salvati sul telefono per 7 giorni.
-"Cosa fare in questa zona?" (modo meteo senza città scelta, in cima al pannello): finestra con quando (oggi, domani, weekend,
-3 o 7 giorni), interessi e preferenze libere; manda a Claude "[Meteo e viaggio: zona]" con il meteo per giorno delle città
-visibili (tempo, temperature, pioggia, vento) e i luoghi notevoli della zona, chiedendo consigli scelti in base al meteo e
-cercati su internet, senza premiare le città solo perché grandi. I consigli vengono salvati come normali "da-fare" (con
-"citta", "stops", "fonti"), senza scadenza.
-Scheda "Cosa fare": si disegna subito con i consigli di Claude (già sul telefono); guida Wikivoyage, sentieri OSM e foto si aggiungono man mano, ognuno con un tempo massimo (8-10 s) e un indicatore finché arrivano; la richiesta degli eventi a Wikidata si fa una volta sola per città.
-Modalità "segui" (GPS): si ferma quando ti sposti altrove con la ricerca, Esplora, i tasti zoom o qualsiasi spostamento verso un punto a più di 150 m da te; il tasto posizione la riattiva.
-Scheda "Cosa fare": i percorsi (consigli di Claude con tappe e sentieri segnati) sono raggruppati in un'unica voce "Percorsi (N)", con ogni percorso come sotto-voce; gli altri consigli restano voci singole.
-"Chiedi a Claude" in modalità meteo (da lontano) con una città scelta: apre la finestra delle preferenze (quando, interessi, testo
-libero) e manda "[Meteo e viaggio: città e meteo]" con il meteo della città giorno per giorno (cielo, temperature, pioggia, vento,
-UV), l'ora per ora del primo giorno, il meteo delle città vicine, i luoghi notevoli e le preferenze, chiedendo consigli scelti in
-base al meteo e alle preferenze, cercati su internet. Da vicino resta la richiesta di aggiungere punti e curiosità.
-Scelta di una città (ricerca, fumetto, tabella): il volo della mappa parte da solo e il lavoro pesante (meteo, foto, monumenti, segnaposto) parte a volo finito, o dopo 2,8 s al massimo; sotto ai 250 km di distanza volo di 1,6 s, oltre un salto netto; la mappa vettoriale si ridisegna una volta sola per fotogramma.
-Modalità meteo e percorsi: nel pannello Filtri, in modalità meteo (da lontano), non c'è più l'elenco "Percorsi in zona" (resta da vicino);
-"Gestisci i miei percorsi" resta sempre. Quando mandi a Claude "Cosa fare in questa zona" (o "Chiedi a Claude" in modalità meteo con
-una città) l'app segna quali consigli esistono già (localStorage "zoneAsk"); i consigli "da-fare" nuovi che arrivano dopo nella zona
-chiesta (entro il raggio della richiesta) diventano "consigli della tua richiesta" ("zoneFound", per 14 giorni): in modalità meteo si vedono
-con 💡 e il nome, nei Filtri c'è l'elenco con 🗺️, interruttore del percorso (senza cambiare zoom) e ✕ per toglierli.
-Filtri separati per modalità: in vista meteo (da lontano) monumenti, luoghi aggiunti da Claude e curiosità sono spenti di default
-(restano i luoghi imperdibili ★ e i consigli della richiesta di zona); in vista città sono tutti accesi. Le due serie ricordano le
-scelte in modo indipendente (localStorage "mapFilters2"). In vista meteo non c'è l'elenco dei percorsi: compaiono solo i consigli
-(e i percorsi) nati dalla richiesta "Cosa fare in questa zona", con 💡 sulla mappa e nei Filtri.
-Consigli della richiesta di zona: linguetta "Consigli (N)" accanto a Meteo e Foto nel pannello della vista meteo (visibile solo se ce ne sono); toccando un consiglio il pannello si abbassa, la mappa va sul punto (restando in vista meteo) e si apre la scheda; ogni riga ha l'interruttore del percorso (se ha le tappe) e ✕ per toglierlo. Non compaiono più nel pannello Filtri.
-Risparmio di token (messaggi a Claude): i messaggi sono compatti (meteo con città simili su una riga, valori arrotondati, al massimo
-16 città), portano i LIMITI di ricerca (modalità Veloce: 3 ricerche, 3 consigli, 150 parole; Approfondito: 8 ricerche, 5 consigli,
-300 parole), l'elenco dei titoli già presenti nell'app (così Claude non rilegge il file per i doppioni) e dicono di salvare le voci
-nuove in custom-inbox.json (piccolo) senza stampare i file. L'app legge custom-points.json + custom-inbox.json (no-cache, ETag, ogni 3
-minuti). La stessa richiesta mandata entro 30 minuti chiede conferma. L'app non chiama mai API a pagamento: i token si consumano solo
-nelle chat di Claude.
-Percorsi accesi: restano sulla mappa anche cambiando città o zona (per esempio da Castellammare a Scopello) e restano nell'elenco dei Filtri, accesi, finché non li spegni. L'elenco mostra i percorsi dei consigli entro 12 km dal centro della mappa (al massimo 8). Zoom con due dita: le linee dei percorsi e delle indicazioni si ridisegnano a ogni fotogramma (prima venivano ingrandite come un'immagine).
-Consigli di zona (linguetta "Consigli" in modalità meteo): valgono solo il giorno in cui arrivano e spariscono da soli a mezzanotte (controllo all'apertura, al ritorno nell'app e ogni 10 minuti); quelli di prima della modifica sono scaduti subito. I consigli con tappe restano tra i percorsi e i consigli della modalità città, dove le frasi sul meteo del giorno ("Oggi vento minimo, 12 km/h") vengono tolte dal testo.
-Controllo doppioni: `python3 tools/doppioni.py` segnala consigli/curiosità/luoghi simili (stesso tipo, titolo simile, entro 1,5 km) senza modificare nulla. Elenco titoli anti-doppioni nel messaggio a Claude: ora ordinato dal più vicino al più lontano (massimo 25).
+## Per chi modifica
+`git pull --rebase` (un'altra chat committa sui file `custom-*`), alza `V` in `sw.js`, aggiorna qui solo la sezione che cambia (niente cronologia: c'è `git log`).

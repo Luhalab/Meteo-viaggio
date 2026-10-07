@@ -1,8 +1,8 @@
 # Meteo e viaggio — riassunto per ripartire in una chat nuova
 
 Repo `Luhalab/Meteo-viaggio` (branch `main`, deploy automatico su Vercel). App web a pagina unica, in italiano, pensata per il telefono Android di Luca.
-Il dettaglio funzione per funzione è nel `README.md` (lungo: leggilo solo se serve). Prima di pubblicare: `git pull --rebase` (l'altra chat
-"Guida D'Arte" fa commit su `custom-points.json`/`custom-inbox.json`), alza `V` in `sw.js`, aggiungi una riga al README.
+Il dettaglio funzione per funzione è nel `README.md` (ora breve, ~6 KB: leggilo solo se serve). Prima di pubblicare: `git pull --rebase` (l'altra chat
+"Guida D'Arte" fa commit su `custom-points.json`/`custom-inbox.json`), alza `V` in `sw.js`, aggiorna nel README solo la sezione che cambia (niente cronologia: c'è git log).
 
 ## File
 - `index.html` (~3000 righe di JS in un solo `<script>`), `sw.js` (cache: pagina dalla rete entro 2,5 s, librerie e tile salvate), `manifest.webmanifest`.
