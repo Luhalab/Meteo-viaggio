@@ -161,5 +161,50 @@
     "url": "https://ecm-coopculture.inera.it/en/poi/monte-iato-archaeology-park"
    }
   ]
+ },
+ {
+  "title": "Perché si chiama Partanna",
+  "lat": 38.1961143,
+  "lon": 13.3105772,
+  "kind": "curiosita",
+  "url": null,
+  "extract": "Il quartiere palermitano di Partanna-Mondello porta il nome dei Grifeo, principi di Partanna, la cui baronia era nella valle del Belice, nel Trapanese. Nel 1722 la principessa Laura La Grua, moglie di Girolamo Grifeo, ottenne dall'Arcidiocesi di Palermo la terra su cui fu costruita Villa Partanna, e il territorio prese il nome dalla famiglia.",
+  "fonti": [
+   {
+    "t": "Balarm - La villa dei principi che fondò un quartiere a Palermo",
+    "url": "https://www.balarm.it/news/la-villa-dei-principi-che-fondo-un-quartiere-a-palermo-tra-due-monti-e-un-mare-da-favola-140555"
+   }
+  ]
+ },
+ {
+  "title": "Da Partanna a Mondello: ville, tonnara e liberty",
+  "lat": 38.1961143,
+  "lon": 13.3105772,
+  "kind": "da-fare",
+  "url": null,
+  "extract": "Passeggiata di circa 2 km dal borgo di Partanna verso Mondello. Parti cercando Villa Partanna, settecentesca, tra via Euterpe e via Castelforte (guardala da fuori). Arriva poi a Piazza Mondello, intorno alla torre quattrocentesca della vecchia tonnara, e chiudi davanti allo stabilimento liberty di viale Regina Elena, l'ex Charleston.",
+  "stops": [
+   {
+    "n": "Villa Partanna (via Euterpe / via Castelforte)"
+   },
+   {
+    "n": "Piazza Mondello e torre della tonnara",
+    "lat": 38.2075981,
+    "lon": 13.3263555
+   },
+   {
+    "n": "Stabilimento liberty, viale Regina Elena"
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Balarm - Villa Partanna e la Piana dei Colli",
+    "url": "https://www.balarm.it/news/testimonianza-della-bellezza-aristocratica-di-palermo-villa-partanna-e-la-piana-dei-colli-130971"
+   },
+   {
+    "t": "Italia.it - Mondello",
+    "url": "https://www.italia.it/it/sicilia/palermo/mondello"
+   }
+  ]
  }
 ]
