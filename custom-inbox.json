@@ -302,5 +302,144 @@
     "url": "https://www.oraridiapertura24.it/filiale/Carini-Parcheggio-2062700L.html.html"
    }
   ]
+ },
+ {
+  "title": "La bomba inesplosa di San Lorenzo",
+  "lat": 44.4076283,
+  "lon": 8.9314092,
+  "extract": "Il 9 febbraio 1941 un proiettile lanciato dalla flotta inglese sfondò il tetto della cattedrale e cadde inesploso nella navata. Oggi una copia esatta dell'ordigno è esposta nella navata destra, con un'iscrizione che ricorda la «grazia» ricevuta.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "Italian Art Society",
+    "url": "https://www.italianartsociety.org/2018/02/on-february-9-1941-the-cathedral-of-san-lorenzo-in-genoa-was-bombed-by-allied-troops-during-operation-grog/"
+   },
+   {
+    "t": "ESN Genova",
+    "url": "https://genova.esn.it/content/cattedrale-di-san-lorenzo"
+   }
+  ]
+ },
+ {
+  "title": "Il cagnolino di San Lorenzo",
+  "lat": 44.4076283,
+  "lon": 8.9314092,
+  "extract": "Sulla facciata, tra i due grandi leoni, si nasconde una piccola scultura di cane, sul lato destro e ad altezza d'uomo. Secondo la leggenda, uno scultore perse il suo cane negli ultimi tempi della costruzione, alla fine del XIV secolo.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "Mentelocale Genova",
+    "url": "https://www.mentelocale.it/genova/2624-leggenda-cagnolino-san-lorenzo-dove-trovarlo-sulla-cattedrale.htm"
+   }
+  ]
+ },
+ {
+  "title": "La Lanterna e il costruttore accecato",
+  "lat": 44.4045519,
+  "lon": 8.9046428,
+  "extract": "Per tradizione la Lanterna risale al 1128 ed è alta 77 metri. Una leggenda dice che il costruttore fu accecato a fine lavori per impedirgli di farne un'altra uguale. Nel 1449 Antonio Colombo, zio paterno di Cristoforo, fu tra i suoi custodi.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "ARI Genova, scheda WAIL",
+    "url": "https://www.arigenova.it/wail/schede_referenze/LI/li-005.pdf"
+   },
+   {
+    "t": "Musement",
+    "url": "https://www.musement.com/it/genova/biglietti-per-la-lanterna-di-genova-68136/"
+   }
+  ]
+ },
+ {
+  "title": "La casa di Colombo, una ricostruzione",
+  "lat": 44.4056188,
+  "lon": 8.9351132,
+  "extract": "Secondo la tradizione qui visse Cristoforo Colombo da giovane, vicino a Porta Soprana. L'edificio originale andò distrutto nei bombardamenti del 1684: quella che si visita oggi è una ricostruzione settecentesca, oggi casa-museo.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "Siviaggia",
+    "url": "https://siviaggia.it/idee-di-viaggio/cosa-vedere-genova-un-giorno/537586/"
+   },
+   {
+    "t": "EC News",
+    "url": "https://www.ecnews.it/fiscale/viaggi-e-tempo-libero/genova-3-mete-da-non-perdere-visitando-il-capoluogo-ligure/"
+   }
+  ]
+ },
+ {
+  "title": "Il centro storico sopra i tetti",
+  "lat": 44.4115,
+  "lon": 8.9327,
+  "extract": "Una leggenda genovese racconta che il centro storico si possa attraversare da ovest a est saltando da un tetto all'altro, senza mai toccare l'asfalto. Un'altra storia parla di un doge con un passaggio sotterraneo tra il suo palazzo e la cattedrale, ancora percorso dalla sua ombra.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "Panorama",
+    "url": "https://www.panorama.it/attualita/genova-superba-e-misteriosa"
+   }
+  ]
+ },
+ {
+  "title": "Dai Rolli al Duomo, passeggiata nel centro",
+  "lat": 44.4115,
+  "lon": 8.9327,
+  "extract": "Parti da via Garibaldi, una delle Strade Nuove con i Palazzi dei Rolli (UNESCO dal 2006) e i Musei di Strada Nuova. Scendi poi alla cattedrale di San Lorenzo e chiudi a Porta Soprana e alla casa di Colombo. Colazione con focaccia in via San Lorenzo. Orari dei musei da verificare.",
+  "url": null,
+  "kind": "da-fare",
+  "fonti": [
+   {
+    "t": "Italia.it, itinerario palazzi UNESCO",
+    "url": "https://www.italia.it/it/liguria/genova/cosa-fare/genova-itinerario-tra-palazzi-unesco-e-arte"
+   },
+   {
+    "t": "Italia.it, Strade Nuove",
+    "url": "https://www.italia.it/it/liguria/genova/cosa-fare/genova-strade-nuove-palazzi-dei-rolli"
+   },
+   {
+    "t": "TheWom",
+    "url": "https://travel.thewom.it/italia/liguria/genova/palazzi-dei-rolli.html"
+   }
+  ],
+  "stops": [
+   {
+    "n": "Via Garibaldi (Rolli)",
+    "lat": 44.4112562,
+    "lon": 8.9323251
+   },
+   {
+    "n": "Cattedrale di San Lorenzo",
+    "lat": 44.4076283,
+    "lon": 8.9314092
+   },
+   {
+    "n": "Porta Soprana e Casa di Colombo",
+    "lat": 44.4055453,
+    "lon": 8.9344519
+   }
+  ]
+ },
+ {
+  "title": "Lanterna: passerella e 172 scalini",
+  "lat": 44.4045519,
+  "lon": 8.9046428,
+  "extract": "Dal Terminal traghetti una passerella in legno di circa 800 metri porta alla rocca del faro, con cartelli sulla storia dei portuali. Si salgono 172 scalini fino alla terrazza. Visite da martedì a domenica, sospese con allerta arancione o temporali: controlla orari e meteo prima.",
+  "url": null,
+  "kind": "da-fare",
+  "fonti": [
+   {
+    "t": "Visit Italy",
+    "url": "https://www.visititaly.eu/it/luoghi-e-itinerari/la-lanterna-storia-e-curiosita-sul-simbolo-di-genova-"
+   },
+   {
+    "t": "Siviaggia",
+    "url": "https://siviaggia.it/idee-di-viaggio/cosa-vedere-genova-un-giorno/537586/"
+   }
+  ]
  }
 ]
