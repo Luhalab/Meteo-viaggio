@@ -17,7 +17,7 @@
       "url": "https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf" },
     { "id": "emilia-romagna", "nome": "Emilia-Romagna", "attiva": false, "bbox": [43.73, 9.2, 45.14, 12.76],
       "url": "https://download.geofabrik.de/europe/italy/nord-est-latest.osm.pbf" },
-    { "id": "toscana", "nome": "Toscana", "attiva": false, "bbox": [42.24, 9.69, 44.47, 12.37],
+    { "id": "toscana", "nome": "Toscana", "attiva": true, "bbox": [42.24, 9.69, 44.47, 12.37],
       "url": "https://download.geofabrik.de/europe/italy/centro-latest.osm.pbf" },
     { "id": "umbria", "nome": "Umbria", "attiva": false, "bbox": [42.35, 11.89, 43.62, 13.27],
       "url": "https://download.geofabrik.de/europe/italy/centro-latest.osm.pbf" },
