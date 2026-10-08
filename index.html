@@ -1959,6 +1959,48 @@ async function fetchOverpassItems(lat, lon, radius){
       dist: haversine(lat, lon, la, lo), url: 'https://www.openstreetmap.org/'+el.type+'/'+el.id, source: 'osm' };
   }).filter(Boolean);
 }
+/* ---------- dati OpenStreetMap pronti ----------
+   File a pezzi di 0,1° nella cartella dati/ (li costruisce GitHub ogni mese con tools/costruisci_dati.py): sono la fonte normale dei monumenti OpenStreetMap.
+   Overpass dal vivo resta solo per le zone senza dati pronti, e solo se servono anche i punti senza descrizione. Voce: [lat, lon, tipo, nome, descrizione, id]. */
+let packIdx = null;
+async function packIndex(){        /* null = non riesco a leggere l'elenco (e non ne ho uno vecchio); {regioni:[]} = ancora nessun dato pronto */
+  if (packIdx) return packIdx;
+  const hit = await pc.get('pack:index', 6 * 36e5); if (hit){ packIdx = hit; return hit; }
+  try { const r = await fetch('dati/index.json', { cache:'no-cache' });
+    if (r.status === 404) return { regioni: [] };
+    if (r.ok){ const j = await r.json(); if (j && Array.isArray(j.regioni)){ packIdx = j; pc.set('pack:index', j); return j; } } } catch(e){}
+  const old = await pc.get('pack:index', 90 * DAY); if (old){ packIdx = old; return old; }
+  return null;
+}
+async function packTile(ty, tx){
+  const k = 'pack:'+ty+'_'+tx, hit = await pc.get(k, 14 * DAY); if (hit) return hit;
+  const r = await fetch('dati/osm/'+ty+'_'+tx+'.json');
+  if (r.status === 404) return { i: [] };                      /* nessun oggetto in questo pezzo */
+  if (!r.ok) throw new Error('pezzo '+r.status);
+  const j = await r.json(); pc.set(k, j); return j;
+}
+async function fetchPackItems(lat, lon, radius){
+  const idx = await packIndex(); if (!idx) throw new Error('elenco dei dati non raggiungibile');
+  const reg = idx.regioni.find(r => lat >= r.bbox[0] && lat <= r.bbox[2] && lon >= r.bbox[1] && lon <= r.bbox[3]);
+  if (!reg) return null;                                        /* fuori dalle zone con dati pronti */
+  const K = Math.round(1 / (reg.pezzo || 0.1)), dLat = radius / 111320, dLon = radius / (111320 * Math.cos(lat * Math.PI / 180)), tiles = [];
+  for (let ty = Math.floor((lat - dLat) * K); ty <= Math.floor((lat + dLat) * K); ty++)
+    for (let tx = Math.floor((lon - dLon) * K); tx <= Math.floor((lon + dLon) * K); tx++) tiles.push([ty, tx]);
+  const parts = await Promise.all(tiles.map(([ty, tx]) => packTile(ty, tx)));
+  const KIND = { '@a': "Opera d'arte pubblica", '@w': 'Luogo di culto' }, TY = { n:'node', w:'way', r:'relation' }, out = [];
+  parts.forEach(p => (p.i || []).forEach(a => {
+    const d = haversine(lat, lon, a[0], a[1]); if (d > radius) return;
+    const label = KIND[a[2]] || osmLabel({ historic: a[2] });
+    out.push({ title: a[3] || label, extract: a[4] || label, desc: !!a[4], thumb: null, lat: a[0], lon: a[1], dist: d,
+      url: 'https://www.openstreetmap.org/'+(TY[a[5][0]] || 'node')+'/'+a[5].slice(1), source: 'osm' }); }));
+  return out;
+}
+async function fetchOsmItems(lat, lon, radius){
+  const p = await fetchPackItems(lat, lon, radius);             /* se i dati non si leggono l'errore passa: la fonte risulta "non risposta" e l'app riprova */
+  if (p) return p;
+  if (!fltOn('nodesc')) return [];                              /* zona senza dati pronti: Overpass dal vivo solo se servono anche i punti senza descrizione */
+  return fetchOverpassItems(lat, lon, radius);
+}
 const isInSwitzerland = (lat, lon) => lat >= 45.8 && lat <= 47.9 && lon >= 5.9 && lon <= 10.6;
 async function fetchSwissHeritageItems(lat, lon, radius){
   if (!isInSwitzerland(lat, lon)) return [];
@@ -2152,7 +2194,7 @@ async function fetchCustomPoints(lat, lon, radius){
    e i punti compaiono man mano che arrivano, senza aspettare la più lenta. */
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), ms))]);
 /* le fonti dei monumenti (0-4) e i punti di Claude (5): le usano la ricerca di un'area e il salvataggio di una zona */
-const areaSrcs = (lat, lon, radius) => [ () => fetchWikiItems(lat, lon, radius), () => fetchOverpassItems(lat, lon, radius),
+const areaSrcs = (lat, lon, radius) => [ () => fetchWikiItems(lat, lon, radius), () => fetchOsmItems(lat, lon, radius),
   () => fetchSwissHeritageItems(lat, lon, radius), () => fetchWfsItems(lat, lon, radius, WFS_ER),
   () => fetchWfsItems(lat, lon, radius, WFS_LIG), () => fetchCustomPoints(lat, lon, radius) ];
 const AREA_TMAX = [12000, 25000, 10000, 10000, 10000, 8000];
@@ -2165,7 +2207,7 @@ async function loadArea(lat, lon, radius, retry){
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
   const srcs = areaSrcs(lat, lon, radius), TMAX = AREA_TMAX;
   const vals = srcs.map(() => []), st = srcs.map(() => 'wait');
-  const ak = sz ? 'zona:'+sz.id : 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius, mem = retry ? null : await pc.get(ak, (sz ? 60 : 7) * DAY);
+  const ak = sz ? 'zona:'+sz.id : 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius+(fltOn('nodesc') ? '+' : ''), mem = retry ? null : await pc.get(ak, (sz ? 60 : 7) * DAY);
   if (my !== eReq) return;
   const memFresh = mem && mem.t && Date.now() - mem.t < (sz ? 60 : 3) * DAY;
   if (mem) mem.vals.forEach((v, i) => { vals[i] = v || []; if (memFresh && i < 5) st[i] = 'ok'; });   /* 0-4: fonti dei monumenti, 5: punti di Claude */
@@ -2212,7 +2254,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v99';
+const APP_V = 'v100';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2293,7 +2335,7 @@ function panelClick(e){
   const zb = e.target.closest('button[data-z]'); if (zb){ zoneAct(zb.dataset.z, zb.dataset.i); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); if (b.dataset.f === 'auto') areaCheck(); eDotKey = ''; eRefreshDots(); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
+  b.classList.toggle('on', fltOn(b.dataset.f)); if (b.dataset.f === 'auto') areaCheck(); if (b.dataset.f === 'nodesc' && fltOn('nodesc') && eNear && eArea && !eArea.saved) loadArea(eArea.lat, eArea.lon, eArea.radius); eDotKey = ''; eRefreshDots(); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);
