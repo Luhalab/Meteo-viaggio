@@ -288,6 +288,8 @@ body.e-near .ectl .nr{display:flex}
 .ecard .acts #eRtClr{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-cl{min-width:30px;height:30px;padding:0 6px;box-sizing:border-box;border-radius:15px;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;color:#16211c;font:700 13px/26px var(--sans);text-align:center;transform:translate(-50%,-50%);cursor:pointer}
+.regrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px}
+.regb{border:1px solid var(--sea);background:transparent;border-radius:999px;padding:7px 14px;font:600 13px var(--sans);color:var(--sea);cursor:pointer;flex:none}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
 .gone{display:none!important}
@@ -1972,24 +1974,26 @@ async function packIndex(){        /* null = non riesco a leggere l'elenco (e no
   const old = await pc.get('pack:index', 90 * DAY); if (old){ packIdx = old; return old; }
   return null;
 }
-async function packTile(ty, tx){
-  const k = 'pack:'+ty+'_'+tx, hit = await pc.get(k, 14 * DAY); if (hit) return hit;
-  const r = await fetch('dati/osm/'+ty+'_'+tx+'.json');
+async function packTile(id, ty, tx){
+  const k = 'pack:'+id+':'+ty+'_'+tx, hit = await pc.get(k, 14 * DAY); if (hit) return hit;
+  const r = await fetch('dati/osm/'+id+'/'+ty+'_'+tx+'.json');
   if (r.status === 404) return { i: [] };                      /* nessun oggetto in questo pezzo */
   if (!r.ok) throw new Error('pezzo '+r.status);
   const j = await r.json(); pc.set(k, j); return j;
 }
 async function fetchPackItems(lat, lon, radius){
   const idx = await packIndex(); if (!idx) throw new Error('elenco dei dati non raggiungibile');
-  const reg = idx.regioni.find(r => lat >= r.bbox[0] && lat <= r.bbox[2] && lon >= r.bbox[1] && lon <= r.bbox[3]);
-  if (!reg) return null;                                        /* fuori dalle zone con dati pronti */
-  const K = Math.round(1 / (reg.pezzo || 0.1)), dLat = radius / 111320, dLon = radius / (111320 * Math.cos(lat * Math.PI / 180)), tiles = [];
-  for (let ty = Math.floor((lat - dLat) * K); ty <= Math.floor((lat + dLat) * K); ty++)
-    for (let tx = Math.floor((lon - dLon) * K); tx <= Math.floor((lon + dLon) * K); tx++) tiles.push([ty, tx]);
-  const parts = await Promise.all(tiles.map(([ty, tx]) => packTile(ty, tx)));
-  const KIND = { '@a': "Opera d'arte pubblica", '@w': 'Luogo di culto' }, TY = { n:'node', w:'way', r:'relation' }, out = [];
+  const inBox = (r, la, lo) => la >= r.bbox[0] && la <= r.bbox[2] && lo >= r.bbox[1] && lo <= r.bbox[3];
+  if (!idx.regioni.some(r => inBox(r, lat, lon))) return null;  /* fuori dalle regioni accese */
+  const dLat = radius / 111320, dLon = radius / (111320 * Math.cos(lat * Math.PI / 180)), jobs = [];
+  idx.regioni.filter(r => lat + dLat >= r.bbox[0] && lat - dLat <= r.bbox[2] && lon + dLon >= r.bbox[1] && lon - dLon <= r.bbox[3]).forEach(r => {
+    const K = Math.round(1 / (r.pezzo || 0.1));            /* solo i pezzi che cadono dentro il riquadro della regione */
+    for (let ty = Math.max(Math.floor((lat - dLat) * K), Math.floor(r.bbox[0] * K)); ty <= Math.min(Math.floor((lat + dLat) * K), Math.floor(r.bbox[2] * K)); ty++)
+      for (let tx = Math.max(Math.floor((lon - dLon) * K), Math.floor(r.bbox[1] * K)); tx <= Math.min(Math.floor((lon + dLon) * K), Math.floor(r.bbox[3] * K)); tx++) jobs.push(packTile(r.id, ty, tx)); });
+  const parts = await Promise.all(jobs);
+  const KIND = { '@a': "Opera d'arte pubblica", '@w': 'Luogo di culto' }, TY = { n:'node', w:'way', r:'relation' }, seen = new Set(), out = [];
   parts.forEach(p => (p.i || []).forEach(a => {
-    const d = haversine(lat, lon, a[0], a[1]); if (d > radius) return;
+    const d = haversine(lat, lon, a[0], a[1]); if (d > radius || seen.has(a[5])) return; seen.add(a[5]);   /* due regioni vicine possono avere lo stesso oggetto */
     const label = KIND[a[2]] || osmLabel({ historic: a[2] });
     out.push({ title: a[3] || label, extract: a[4] || label, desc: !!a[4], wp: a[6] || null, thumb: null, lat: a[0], lon: a[1], dist: d,
       url: 'https://www.openstreetmap.org/'+(TY[a[5][0]] || 'node')+'/'+a[5].slice(1), source: 'osm' }); }));
@@ -2276,7 +2280,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v101';
+const APP_V = 'v102';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2284,6 +2288,62 @@ function verCheck(){
   fetch('sw.js?v=' + verAt, { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(t => { const m = /const V = '([^']+)'/.exec(t);
     if (m){ verLatest = m[1]; if (!$('eFltP').hidden) fltPanel(); if (!$('eBgP').hidden) bgPanel(); } }).catch(() => {});
 }
+/* ---------- regioni dei dati OpenStreetMap: accendere e spegnere dall'app ----------
+   Il tocco chiama api/regione.js (funzione di Vercel, protetta da un PIN: il token di GitHub sta solo sul sito), che avvia il workflow "Dati OpenStreetMap".
+   Dopo qualche minuto GitHub pubblica i dati e l'app se ne accorge da sola (controlla dati/index.json ogni 20 secondi). */
+let regCat = null, regBuilt = {}, regNote = '', regOpen = false, regPollT = null, regLoading = false, REG_POLL_MS = 20000;
+const REG_GH = 'https://github.com/Luhalab/Meteo-viaggio/actions/workflows/dati.yml';
+async function regLoad(){
+  if (regLoading) return; regLoading = true;
+  try { const [c, i] = await Promise.all([fetch('tools/dati_zone.json').then(r => r.json()), fetch('dati/index.json').then(r => r.ok ? r.json() : { regioni: [] })]);
+    regCat = c.regioni || []; regBuilt = {}; (i.regioni || []).forEach(r => { regBuilt[r.id] = r; }); } catch(e){ regNote = 'Elenco delle regioni non raggiungibile.'; }
+  regLoading = false; zoneUi();
+}
+function regHtml(){
+  const pend = store.get('regPend', null), rn = t => '<div class="rtnote">'+t+'</div>';
+  let h = '<div class="fh">Dati per regione</div>'+rn('Monumenti di OpenStreetMap. Accendere richiede qualche minuto.');
+  if (regNote) h += rn(regNote);
+  if (!regCat){ if (!regLoading) regLoad(); return h + rn('Carico l\'elenco…'); }
+  const row = r => { const b = regBuilt[r.id], p = pend && pend.id === r.id;
+    const st = p ? (pend.az === 'accendi' ? 'in preparazione…' : 'la tolgo…') : b ? b.n.toLocaleString('it-IT')+' voci · dal '+new Date(b.data+'T12:00:00').toLocaleDateString('it-IT', { day:'numeric', month:'numeric' }) : 'spenta';
+    return '<div class="regrow"><span><b>'+esc(r.nome)+'</b><br><span class="muted" style="font-size:12px">'+st+'</span></span>'+
+      (p ? '' : '<button class="regb" data-g="'+esc(r.id)+'|'+(b ? 'spegni' : 'accendi')+'">'+(b ? 'Spegni' : 'Accendi')+'</button>')+'</div>'; };
+  const on = regCat.filter(r => regBuilt[r.id] || (pend && pend.id === r.id && pend.az === 'accendi')), off = regCat.filter(r => !on.includes(r));
+  return h + on.map(row).join('') + (off.length ? '<details'+(regOpen ? ' open' : '')+' ontoggle="regOpen = this.open"><summary class="muted" style="padding:8px 2px;cursor:pointer">Altre regioni ('+off.length+')</summary>'+off.map(row).join('')+'</details>' : '');
+}
+async function regAct(id, az){
+  const r = regCat && regCat.find(x => x.id === id); if (!r) return;
+  if (az === 'spegni' && !confirm('Spegnere '+r.nome+'? I suoi dati verranno tolti.')) return;
+  let pin = store.get('regPin', '');
+  if (!pin){ pin = (prompt('PIN per accendere e spegnere le regioni (quello impostato su Vercel)') || '').trim(); if (!pin) return; }
+  regNote = 'Invio la richiesta…'; zoneUi();
+  try {
+    const res = await fetch('api/regione', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ id, azione: az, pin }) });
+    if (res.ok){ store.set('regPin', pin); store.set('regPend', { id, az, t: Date.now() }); regNote = 'Richiesta inviata: sarà pronta tra qualche minuto.'; regPoll(); }
+    else if (res.status === 403){ store.set('regPin', ''); regNote = 'PIN errato.'; }
+    else if (res.status === 503 || res.status === 404) regNote = 'Il pulsante non è ancora configurato sul sito. Intanto puoi avviarlo da GitHub: <a href="'+REG_GH+'" target="_blank" rel="noopener">apri GitHub</a>, "Run workflow", scrivi "'+esc(id)+'" e scegli "'+az+'".';
+    else regNote = 'Non è partita (errore '+res.status+'). Riprova più tardi.';
+  } catch(e){ regNote = 'Nessuna rete: riprova.'; }
+  zoneUi();
+}
+function regPoll(){
+  clearInterval(regPollT);
+  const tick = async () => {
+    const p = store.get('regPend', null); if (!p){ clearInterval(regPollT); return; }
+    if (Date.now() - p.t > 15 * 60000){ store.set('regPend', null); clearInterval(regPollT); regNote = 'Non risulta ancora pronta: controlla GitHub, scheda Actions.'; zoneUi(); return; }
+    try {
+      const i = await fetch('dati/index.json', { cache:'no-store' }).then(r => r.ok ? r.json() : { regioni: [] });
+      const built = {}; (i.regioni || []).forEach(r => { built[r.id] = r; });
+      if (p.az === 'accendi' ? !!built[p.id] : !built[p.id]){
+        regBuilt = built; store.set('regPend', null); clearInterval(regPollT); packIdx = null; pc.del('pack:index');
+        const nome = (regCat && (regCat.find(x => x.id === p.id) || {}).nome) || p.id; regNote = '✓ '+nome+(p.az === 'accendi' ? ' è pronta.' : ' è spenta.');
+        if (p.az === 'accendi' && eNear && eArea) loadArea(eArea.lat, eArea.lon, eArea.radius, true);       /* ricarico subito la zona che guardi */
+        zoneUi(); }
+    } catch(e){}
+  };
+  regPollT = setInterval(tick, REG_POLL_MS);
+}
+if (store.get('regPend', null)) setTimeout(regPoll, 5000);      /* una richiesta in corso riprende a controllare alla riapertura */
 function fltPanel(){
   const row = (k, label, dot) => '<button data-f="'+k+'" class="'+(fltOn(k)?'on':'')+'"><span>'+dot+esc(label)+'</span><i></i></button>';
   const d = (c, inner) => '<b class="fd" style="border-color:'+c+';color:'+c+'">'+inner+'</b>';
@@ -2303,7 +2363,7 @@ function fltPanel(){
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
-    zoneHtml()+osec+(eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
+    zoneHtml()+regHtml()+osec+(eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
     (!eNear ? '' : rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+routeColor(r, i)+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
         (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
@@ -2326,7 +2386,7 @@ function setIcons(on){
   if (tileBase === 'vector') vtApply();
   else { tileBase = on ? 'osm' : 'clean'; store.set('mapBase', tileBase); setETiles(true); }
 }
-function setFltP(o){ if (o){ if (!zjob) zNote = ''; verCheck(); fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setFltP(o){ if (o){ if (!zjob) zNote = ''; regNote = ''; regCat = null; verCheck(); fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
 function setBgP(o){ if (o){ verCheck(); bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
@@ -2355,6 +2415,7 @@ function panelClick(e){
     if (id && eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); routesUI(); } return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const zb = e.target.closest('button[data-z]'); if (zb){ zoneAct(zb.dataset.z, zb.dataset.i); return; }
+  const gb = e.target.closest('button[data-g]'); if (gb){ const [gid, gaz] = gb.dataset.g.split('|'); regAct(gid, gaz); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
   b.classList.toggle('on', fltOn(b.dataset.f)); if (b.dataset.f === 'auto') areaCheck(); if (b.dataset.f === 'nodesc' && fltOn('nodesc') && eNear && eArea && !eArea.saved) loadArea(eArea.lat, eArea.lon, eArea.radius); eDotKey = ''; eRefreshDots(); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
