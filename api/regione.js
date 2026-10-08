@@ -10,7 +10,7 @@ const uguali = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(Str
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const configurato = !!(process.env.GH_DISPATCH_TOKEN && process.env.APP_PIN);
-  if (req.method === 'GET') return res.status(200).json({ configurato });
+  if (req.method === 'GET') return res.status(200).json({ configurato, token: !!process.env.GH_DISPATCH_TOKEN, pin: !!process.env.APP_PIN });   // dice solo se le variabili ci sono, mai i valori
   if (req.method !== 'POST') return res.status(405).json({ errore: 'metodo non ammesso' });
   if (!configurato) return res.status(503).json({ errore: 'non configurato' });
   let b = req.body;
@@ -28,5 +28,5 @@ module.exports = async (req, res) => {
     body: JSON.stringify({ ref: 'main', inputs: { regione: reg.id, azione: b.azione } })
   });
   if (r.status === 204) return res.status(200).json({ ok: true });
-  return res.status(502).json({ errore: 'GitHub ha risposto ' + r.status });
+  return res.status(502).json({ errore: 'GitHub ha risposto ' + r.status, github: r.status });
 };
