@@ -871,12 +871,21 @@ async function openMeteo(qs){
   try { const j = await openMeteoNet(qs); pc.set(k, j); return j; }
   catch(e){ const old = await pc.get(k, DAY); if (old) return old; throw e; }
 }
-async function openMeteoNet(qs){
-  const base = 'https://api.open-meteo.com/v1/forecast?'+qs+'&timezone=Europe%2FRome';
-  for (const u of [base+'&models='+MODELS, base]){
-    try { const r = await fetch(u); if (!r.ok) continue; const j = await r.json(); if (j && j.error) continue; return j; } catch(e){}
-  }
-  throw new Error('Open-Meteo non raggiungibile');
+function openMeteoNet(qs){
+  /* prima con i due modelli; se non risponde in 5 secondi (o sbaglia) parte subito la richiesta semplice, senza aspettare; vince la prima risposta; 15 secondi di tempo massimo */
+  const base = 'https://api.open-meteo.com/v1/forecast?'+qs+'&timezone=Europe%2FRome', urls = [base+'&models='+MODELS, base];
+  return new Promise((resolve, reject) => {
+    let idx = 0, fails = 0, done = false, hedge = null; const ctls = [];
+    const fin = (ok, v) => { if (done) return; done = true; clearTimeout(hedge); ctls.forEach(c => { try { c.abort(); } catch(e){} }); ok ? resolve(v) : reject(v); };
+    const next = () => {
+      if (done || idx >= urls.length) return;
+      const u = urls[idx++], ctl = new AbortController(); ctls.push(ctl); const t = setTimeout(() => ctl.abort(), 15000);
+      fetch(u, { signal: ctl.signal }).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(j => { if (j && j.error) throw new Error('errore'); fin(true, j); })
+        .catch(() => { if (++fails >= urls.length) fin(false, new Error('Open-Meteo non raggiungibile')); else next(); }).finally(() => clearTimeout(t));
+      clearTimeout(hedge); if (idx < urls.length) hedge = setTimeout(next, 5000);
+    };
+    next();
+  });
 }
 
 /* ================= MAPPA ================= */
@@ -899,21 +908,40 @@ const mapDay = 0;   /* giorno mostrato sulla mappa: oggi */
    quando cambi tema e non vengono riscaricate. */
 let fetchTimer = null;
 let fetchQueue = [];
+/* Meteo delle città sulla mappa e nella tabella della settimana:
+   - memoria del telefono PER CITTÀ (30 minuti): muovendo la mappa o riaprendo l'app si riusa quasi tutto senza rete;
+   - le città mancanti si chiedono a gruppi di 12 IN PARALLELO, la città scelta e quelle della tabella per prime: le righe compaiono appena arriva ogni gruppo;
+   - 7 giorni di previsione; i 15 si chiedono solo quando scegli "15 giorni". */
+const mapDays = {};
+const mapKey = c => c.lat.toFixed(3)+','+c.lon.toFixed(3);
+const needDays = () => { try { return wkDays >= 15 ? 15 : 7; } catch(e){ return 7; } };
+const needsMap = c => !mapData[c.n] || (mapDays[c.n] || 0) < needDays();
+async function mapLoadChunk(chunk, days){
+  chunk.forEach(c => pending.add(c.n));
+  try {
+    const j = await openMeteo('latitude='+chunk.map(c=>c.lat).join(',')+'&longitude='+chunk.map(c=>c.lon).join(',')+'&daily='+MAP_DV.join(',')+'&forecast_days='+days);
+    const arr = Array.isArray(j) ? j : [j];
+    arr.forEach((r, i) => { const c = chunk[i]; if (!c) return; const o = normalize(r, MAP_DV); mapData[c.n] = o; mapDays[c.n] = days; pc.set('mc:'+mapKey(c), { t: Date.now(), days, o }); });
+  } catch(e) { showMapError(); }
+  chunk.forEach(c => pending.delete(c.n));
+  eRefreshWx(); eRenderHero();
+}
 function fetchMissing(list){
   if (!list.length) return;
   fetchQueue = fetchQueue.concat(list);          /* accumulo: una chiamata non cancella le città chieste prima */
   clearTimeout(fetchTimer);
   fetchTimer = setTimeout(async () => {
-    list = fetchQueue.filter((c,i,a) => a.indexOf(c) === i && !mapData[c.n] && !pending.has(c.n)); fetchQueue = [];
-    for (let k=0; k<list.length; k+=80){
-      const chunk = list.slice(k,k+80); chunk.forEach(c => pending.add(c.n));
-      try {
-        const j = await openMeteo('latitude='+chunk.map(c=>c.lat).join(',')+'&longitude='+chunk.map(c=>c.lon).join(',')+'&daily='+MAP_DV.join(',')+'&forecast_days=15');
-        const arr = Array.isArray(j) ? j : [j];
-        arr.forEach((r,i) => { mapData[chunk[i].n] = normalize(r, MAP_DV); });
-      } catch(e) { chunk.forEach(c => pending.delete(c.n)); showMapError(); }
-      eRefreshWx(); eRenderHero();
-    }
+    const days = needDays();
+    const todo = fetchQueue.filter((c,i,a) => a.indexOf(c) === i && needsMap(c) && !pending.has(c.n)); fetchQueue = [];
+    if (!todo.length) return;
+    const rest = [];
+    await Promise.all(todo.map(async c => { const h = await pc.get('mc:'+mapKey(c), 30 * MIN);
+      if (h && h.o && h.days >= days){ mapData[c.n] = h.o; mapDays[c.n] = h.days; } else rest.push(c); }));
+    if (rest.length < todo.length){ eRefreshWx(); eRenderHero(); }                 /* quelle già in memoria si vedono subito */
+    const first = new Set([eCity && eCity.n].concat(wkList().map(c => c.n), (eVisible || []).slice(0, WK_MAX).map(c => c.n)));
+    const ctr = emap.getCenter();
+    rest.sort((x, y) => (first.has(y.n) - first.has(x.n)) || (km(ctr.lat, ctr.lng, x.lat, x.lon) - km(ctr.lat, ctr.lng, y.lat, y.lon)));
+    for (let k = 0; k < rest.length; k += 12) mapLoadChunk(rest.slice(k, k + 12), days);
   }, 250);
 }
 function showMapError(){ $('eLegend').innerHTML = '<span class="err">Previsioni non raggiungibili ora. Controlla la connessione.</span>'; }
@@ -1482,7 +1510,7 @@ function eRefreshWx(){
   });
   eVisible = want;
   const need = wkMode === 'auto' ? want : want.concat(wkList());
-  fetchMissing(need.filter((c,i,a) => a.indexOf(c) === i && !mapData[c.n] && !pending.has(c.n)));
+  fetchMissing(need.filter((c,i,a) => a.indexOf(c) === i && needsMap(c) && !pending.has(c.n)));
   eRenderWeek();
 }
 /* confronto della settimana per le città visibili: serve a decidere dove andare */
@@ -1569,7 +1597,7 @@ function eRenderWeek(){
   list.forEach(c => {
     const d = mapData[c.n];
     h += '<tr class="r'+(selC && selC.n === c.n ? ' sel' : '')+'" data-n="'+esc(c.n)+'"><td class="cn">'+(best && best.c === c ? '<span class="bst" aria-label="Settimana migliore">★</span>' : '')+esc(c.n)+'</td>';
-    if (!d){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
+    if (!d || (d.time.length < days.length && needsMap(c))){ h += '<td colspan="'+(days.length||7)+'" class="muted" style="text-align:left">Carico…</td></tr>'; return; }
     d.time.slice(0, wkDays).forEach((t,i) => { const tx = d.daily.temperature_2m_max[i], tn = d.daily.temperature_2m_min[i], r = d.daily.precipitation_sum[i]||0;
       h += '<td data-i="'+i+'" class="'+(sdOn(c) && i === selDay ? 'sd' : '')+'"><div class="wi">'+wmo(d.daily.weather_code[i])[1]+'</div><div class="tx" style="color:'+tcol(tx)+'">'+(tx==null?'–':Math.round(tx))+'°</div>'+
            '<div class="tn">'+(tn==null?'':Math.round(tn)+'°')+'</div>'+(r>=0.5?'<div class="rr">'+(r<10?r.toFixed(1):Math.round(r))+' mm</div>':'')+
@@ -1592,7 +1620,7 @@ function eRenderWeek(){
   $('eWeekT').querySelectorAll('th[data-i]').forEach(th => th.onclick = () => { if (!city) return; selDay = +th.dataset.i; renderTodo(); eRenderWeek(); });
 }
 $('eWkMode').querySelectorAll('button').forEach(b => b.onclick = () => setWkMode(b.dataset.m));
-$('eWkDays').querySelectorAll('button').forEach(b => b.onclick = () => { wkDays = +b.dataset.d; store.set('wkDays', wkDays); eRenderWeek(); });
+$('eWkDays').querySelectorAll('button').forEach(b => b.onclick = () => { wkDays = +b.dataset.d; store.set('wkDays', wkDays); eRenderWeek(); fetchMissing((eVisible || []).concat(wkList())); });
 /* ricerca dentro la tabella (modalità Cerca) */
 const wq = $('eWkQ'), wsugg = $('eWkSugg');
 wq.addEventListener('input', () => {
@@ -2282,7 +2310,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v104';
+const APP_V = 'v105';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -3292,7 +3320,7 @@ function eSelectCity(c, opts){
       openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
     if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, cityRadius(c)); }
     eRefreshWx(); eRenderHero();
-    if (!mapData[c.n]) fetchMissing([c]);
+    if (needsMap(c)) fetchMissing([c]);
     sheetSync();
   };
   if (opts.zoom){
