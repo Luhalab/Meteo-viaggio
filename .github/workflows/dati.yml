@@ -1,0 +1,39 @@
+# Costruisce i dati di OpenStreetMap a pezzetti per l'app (monumenti, opere d'arte, luoghi di culto).
+# Gira sui server di GitHub (gratis: il repo è pubblico), il primo di ogni mese e su richiesta ("Run workflow").
+# Fa un solo commit in dati/ per volta, così Vercel pubblica una volta sola.
+name: Dati OpenStreetMap
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 3 1 * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dati
+  cancel-in-progress: false
+
+jobs:
+  costruisci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installa osmium
+        run: sudo apt-get update -q && sudo apt-get install -y -q osmium-tool
+      - name: Costruisci i dati
+        run: python3 tools/costruisci_dati.py
+      - name: Salva nel repo
+        run: |
+          git config user.name "dati-bot"
+          git config user.email "dati-bot@users.noreply.github.com"
+          git add dati
+          if git diff --cached --quiet; then
+            echo "Nessuna novità nei dati"
+          else
+            git commit -m "Dati OpenStreetMap aggiornati"
+            git pull --rebase
+            git push
+          fi
