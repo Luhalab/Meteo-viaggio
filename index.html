@@ -852,10 +852,11 @@ const pc = (() => {
   return {
     async get(k, ttl){ try { const db = await open(); return await new Promise(ok => { const q = db.transaction('c').objectStore('c').get(k);
       q.onsuccess = () => { const v = q.result; ok(v && (!ttl || Date.now() - v.t < ttl) ? v.v : null); }; q.onerror = () => ok(null); }); } catch(e){ return null; } },
+    del(k){ open().then(db => { db.transaction('c', 'readwrite').objectStore('c').delete(k); }).catch(() => {}); },
     set(k, v){ open().then(db => { const tx = db.transaction('c', 'readwrite'); tx.objectStore('c').put({ t: Date.now(), v }, k); }).catch(() => {}); },
     /* tolgo quello che è più vecchio di 14 giorni, così la memoria non cresce all'infinito */
     async prune(){ try { const db = await open(); const tx = db.transaction('c', 'readwrite'), st = tx.objectStore('c');
-      st.openCursor().onsuccess = e => { const cur = e.target.result; if (!cur) return; if (Date.now() - (cur.value && cur.value.t || 0) > 14 * 864e5) cur.delete(); cur.continue(); }; } catch(e){} },
+      st.openCursor().onsuccess = e => { const cur = e.target.result; if (!cur) return; if (Date.now() - (cur.value && cur.value.t || 0) > (String(cur.key).startsWith('zona:') ? 60 : 14) * 864e5) cur.delete(); cur.continue(); }; } catch(e){} },
     async clear(){ try { const db = await open(); await new Promise(ok => { const tx = db.transaction('c', 'readwrite'); tx.objectStore('c').clear(); tx.oncomplete = ok; tx.onerror = ok; }); } catch(e){} }
   };
 })();
@@ -2150,18 +2151,23 @@ async function fetchCustomPoints(lat, lon, radius){
 /* Monumenti della zona da sei fonti. Ognuna ha un tempo massimo (una fonte lenta non blocca le altre)
    e i punti compaiono man mano che arrivano, senza aspettare la più lenta. */
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), ms))]);
+/* le fonti dei monumenti (0-4) e i punti di Claude (5): le usano la ricerca di un'area e il salvataggio di una zona */
+const areaSrcs = (lat, lon, radius) => [ () => fetchWikiItems(lat, lon, radius), () => fetchOverpassItems(lat, lon, radius),
+  () => fetchSwissHeritageItems(lat, lon, radius), () => fetchWfsItems(lat, lon, radius, WFS_ER),
+  () => fetchWfsItems(lat, lon, radius, WFS_LIG), () => fetchCustomPoints(lat, lon, radius) ];
+const AREA_TMAX = [12000, 25000, 10000, 10000, 10000, 8000];
 async function loadArea(lat, lon, radius, retry){
-  radius = radius || 2000; const my = ++eReq; eArea = {lat, lon, radius}; eLoading = true;
+  radius = radius || 2000;
+  const sz = retry ? null : findZone(lat, lon, radius);          /* zona salvata per l'offline: uso quella, con i suoi dati (anche vecchi, fino a 60 giorni) */
+  if (sz){ lat = sz.lat; lon = sz.lon; radius = sz.radius; }
+  const my = ++eReq; eArea = {lat, lon, radius, saved: !!sz}; eLoading = true;
   $('eRefetch').classList.remove('show'); $('eRefetch').dataset.retry = '';
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
-  const srcs = [ () => fetchWikiItems(lat, lon, radius), () => fetchOverpassItems(lat, lon, radius),
-    () => fetchSwissHeritageItems(lat, lon, radius), () => fetchWfsItems(lat, lon, radius, WFS_ER),
-    () => fetchWfsItems(lat, lon, radius, WFS_LIG), () => fetchCustomPoints(lat, lon, radius) ];
-  const TMAX = [12000, 25000, 10000, 10000, 10000, 8000];
+  const srcs = areaSrcs(lat, lon, radius), TMAX = AREA_TMAX;
   const vals = srcs.map(() => []), st = srcs.map(() => 'wait');
-  const ak = 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius, mem = retry ? null : await pc.get(ak, 7 * DAY);
+  const ak = sz ? 'zona:'+sz.id : 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius, mem = retry ? null : await pc.get(ak, (sz ? 60 : 7) * DAY);
   if (my !== eReq) return;
-  const memFresh = mem && mem.t && Date.now() - mem.t < 3 * DAY;
+  const memFresh = mem && mem.t && Date.now() - mem.t < (sz ? 60 : 3) * DAY;
   if (mem) mem.vals.forEach((v, i) => { vals[i] = v || []; if (memFresh && i < 5) st[i] = 'ok'; });   /* 0-4: fonti dei monumenti, 5: punti di Claude */
   let first = true;
   const render = () => {
@@ -2206,7 +2212,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v98';
+const APP_V = 'v99';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2233,7 +2239,7 @@ function fltPanel(){
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
-    osec+(eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
+    zoneHtml()+osec+(eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
     (!eNear ? '' : rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+routeColor(r, i)+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
         (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
         (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
@@ -2256,7 +2262,7 @@ function setIcons(on){
   if (tileBase === 'vector') vtApply();
   else { tileBase = on ? 'osm' : 'clean'; store.set('mapBase', tileBase); setETiles(true); }
 }
-function setFltP(o){ if (o){ verCheck(); fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setFltP(o){ if (o){ if (!zjob) zNote = ''; verCheck(); fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
 function setBgP(o){ if (o){ verCheck(); bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
@@ -2284,6 +2290,7 @@ function panelClick(e){
   const rx = e.target.closest('button[data-rx]'); if (rx){ const id = otherRoutesCache[+rx.dataset.rx];
     if (id && eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); routesUI(); } return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
+  const zb = e.target.closest('button[data-z]'); if (zb){ zoneAct(zb.dataset.z, zb.dataset.i); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
   b.classList.toggle('on', fltOn(b.dataset.f)); if (b.dataset.f === 'auto') areaCheck(); eDotKey = ''; eRefreshDots(); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
@@ -3188,6 +3195,54 @@ function nearestComune(lat, lon){
 window.eGoCity = k => { const c = byName[decodeURIComponent(k)]; if (!c) return; emap.closePopup(); eSelectCity(c, {zoom:true, src:'tap'}); };
 window.eZoomTo = (la, lo) => { emap.closePopup(); emap.flyTo([la, lo], 16); };
 
+/* ---------- zone salvate per l'offline ----------
+   "Salva questa zona" scarica le fonti dei monumenti con tanta pazienza (più tentativi, uno dopo l'altro) e le tiene 60 giorni sul telefono (IndexedDB, chiave "zona:..."). Finché l'app è aperta riprova da sola; se la chiudi, riprende alla riapertura. */
+let eZones = store.get('zones', []) || [], zjob = null, zNote = '', ZJ_DELAYS = [10, 30, 60, 120, 240];
+const findZone = (lat, lon, radius) => eZones.find(z => haversine(lat, lon, z.lat, z.lon) + Math.min(radius, z.radius) * 0.7 <= z.radius);
+const zoneUi = () => { if (!$('eFltP').hidden) fltPanel(); };
+function zoneHtml(){
+  const rn = t => '<div class="rtnote">'+esc(t)+'</div>';
+  let h = '<div class="fh">Uso offline</div>';
+  if (zjob) h += rn(zjob.msg || ('Salvo «'+zjob.name+'»…'))+'<button data-z="cancel" class="act"><span>Annulla il salvataggio</span></button>';
+  else if (eNear) h += (zNote ? rn(zNote) : '')+'<button data-z="save" class="act"><span>Salva questa zona per l\'offline (60 giorni)</span></button>';
+  else if (!eZones.length) h += rn('Da vicino, in una città, puoi salvare la zona per usarla anche senza rete.');
+  eZones.forEach((z, i) => { h += rn(z.name+' · salvata il '+new Date(z.t).toLocaleDateString('it-IT', { day:'numeric', month:'numeric' })+' · raggio '+(z.radius / 1000).toFixed(1).replace('.', ',')+' km')+
+    '<div style="display:flex;gap:6px"><button data-z="up" data-i="'+i+'" class="act"><span>Aggiorna</span></button><button data-z="del" data-i="'+i+'" class="act"><span>Togli</span></button></div>'; });
+  return h;
+}
+async function saveZone(spec){
+  if (zjob) return;
+  if (!spec && eZones.length >= 12){ zNote = 'Hai già 12 zone salvate: toglierne una.'; zoneUi(); return; }
+  const w = spec || wantArea(); zNote = '';
+  zjob = { lat: w.lat, lon: w.lon, radius: w.radius, name: spec ? spec.name : (eCity ? eCity.n : 'questa zona'), att: 0, cancel: false, msg: '' };
+  store.set('zoneJob', { lat: w.lat, lon: w.lon, radius: w.radius, name: zjob.name });
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}      /* chiedo al telefono di non cancellare questi dati da solo */
+  await runZoneJob();
+}
+async function runZoneJob(){
+  const j = zjob; if (!j) return;
+  const srcs = areaSrcs(j.lat, j.lon, j.radius), vals = [[], [], [], [], []], ok = [false, false, false, false, false], tries = ZJ_DELAYS.length + 1;
+  for (j.att = 1; j.att <= tries && !j.cancel; j.att++){
+    j.msg = 'Salvo «'+j.name+'»… tentativo '+j.att+' di '+tries; zoneUi();
+    await Promise.all(vals.map((_, i) => ok[i] ? 0 : withTimeout(Promise.resolve().then(srcs[i]), AREA_TMAX[i] + 15000).then(v => { vals[i] = v || []; ok[i] = true; }, () => {})));
+    if (ok.every(Boolean) || j.att >= tries) break;
+    for (let s = ZJ_DELAYS[j.att - 1]; s > 0 && !j.cancel; s--){ j.msg = 'Una fonte non ha risposto: riprovo tra '+s+' s (tentativo '+(j.att + 1)+' di '+tries+')'; zoneUi(); await new Promise(r => setTimeout(r, 1000)); }
+  }
+  zjob = null; store.set('zoneJob', null);
+  if (j.cancel){ zNote = ''; zoneUi(); return; }
+  if (!ok.every(Boolean)){ zNote = 'Non sono riuscito a salvare «'+j.name+'»: le fonti non rispondono. Riprova più tardi.'; zoneUi(); return; }
+  const id = j.lat.toFixed(3)+','+j.lon.toFixed(3)+','+j.radius;
+  pc.set('zona:'+id, { t: Date.now(), vals: vals.concat([[]]) });
+  eZones = eZones.filter(z => z.id !== id).concat({ id, lat: j.lat, lon: j.lon, radius: j.radius, name: j.name, t: Date.now() }); store.set('zones', eZones);
+  zNote = '✓ «'+j.name+'» salvata per l\'offline'; setHint(zNote); setTimeout(() => { if (!eLoading) setHint(); }, 5000); zoneUi();
+}
+function zoneAct(act, i){
+  if (act === 'save') saveZone();
+  else if (act === 'cancel'){ if (zjob) zjob.cancel = true; }
+  else if (act === 'up' && eZones[+i]) saveZone(eZones[+i]);
+  else if (act === 'del' && eZones[+i]){ const z = eZones[+i]; pc.del('zona:'+z.id); eZones.splice(+i, 1); store.set('zones', eZones); if (eArea && eArea.saved && eArea.lat === z.lat && eArea.lon === z.lon) eArea.saved = false; zNote = ''; zoneUi(); }
+}
+setTimeout(() => { const j = store.get('zoneJob', null); if (j && !zjob) saveZone(j); }, 6000);      /* un salvataggio rimasto a metà riprende alla riapertura */
 /* ---------- area dei monumenti: quanto cercare e quando proporre una nuova ricerca ---------- */
 const cityRadius = c => (c && c.pop >= 150000) ? 3000 : 2500;       /* le grandi città (Genova, Palermo…) si vedono più larghe al primo colpo */
 function wantArea(){
@@ -3197,6 +3252,7 @@ function wantArea(){
   return { lat: c.lat, lon: c.lng, radius: Math.max(1500, Math.min(3500, Math.round(half * 0.8))) };   /* altrove: copro lo schermo */
 }
 const areaCovers = () => { if (!eArea) return false; const b = emap.getBounds(), c = emap.getCenter();
+  if (eArea.saved) return haversine(c.lat, c.lng, eArea.lat, eArea.lon) <= eArea.radius;      /* zona salvata: è tutto ciò che ho offline */
   /* controllo il centro e i punti al 70% verso gli angoli dello schermo */
   return [[c.lat, c.lng], [b.getNorth(), b.getWest()], [b.getNorth(), b.getEast()], [b.getSouth(), b.getWest()], [b.getSouth(), b.getEast()]]
     .every(p => haversine(c.lat + (p[0] - c.lat) * 0.7, c.lng + (p[1] - c.lng) * 0.7, eArea.lat, eArea.lon) <= eArea.radius * 1.02); };
