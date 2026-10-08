@@ -441,5 +441,98 @@
     "url": "https://siviaggia.it/idee-di-viaggio/cosa-vedere-genova-un-giorno/537586/"
    }
   ]
+ },
+ {
+  "title": "Faro di Capo Gallo",
+  "lat": 38.2235025,
+  "lon": 13.3166509,
+  "extract": "Il faro segnala il promontorio di Capo Gallo, che separa i golfi di Mondello e Sferracavallo. Sorge nella Riserva naturale orientata Barcarello-Capo Gallo, a pochi chilometri dal centro di Palermo.",
+  "url": null
+ },
+ {
+  "title": "Grotta dell'Olio",
+  "lat": 38.2195334,
+  "lon": 13.3010337,
+  "extract": "Una delle 23 grotte del promontorio di Capo Gallo, lato Sferracavallo, paragonata per bellezza alla Grotta Azzurra di Capri. Si visita dal mare.",
+  "url": null
+ },
+ {
+  "title": "Grotta dell'Olio: anfore e ancore",
+  "lat": 38.2195334,
+  "lon": 13.3010337,
+  "extract": "Nella grotta riposano antiche ancore e anfore, testimonianza del rapporto millenario tra Palermo e il suo mare. L'origine del nome è incerta: una versione non confermata dagli storici parla di barili d'olio nascosti dai piccoli barconi lungo la costa.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "Balarm – Grotta dell'Olio",
+    "url": "https://www.balarm.it/news/uno-dei-tesori-piu-belli-e-sconosciuti-della-sicilia-la-meraviglie-della-grotta-dell-olio-136390"
+   },
+   {
+    "t": "Balarm – Riserva Barcarello-Capo Gallo",
+    "url": "https://www.balarm.it/luoghi/riserva-naturale-orientata-barcarello-capo-gallo-palermo-2585"
+   }
+  ]
+ },
+ {
+  "title": "Elefanti nani sul Monte Gallo",
+  "lat": 38.2079707,
+  "lon": 13.294616,
+  "extract": "In una grotta del Monte Gallo sono stati trovati resti di elefante nano, ippopotami e altri mammiferi vissuti tra 230.000 e 170.000 anni fa. La Grotta Regina, sopra la Fossa del Gallo, conserva invece centinaia di incisioni e disegni di epoche diverse.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "Mamma Sicily – Capo Gallo",
+    "url": "https://www.mammasicily.com/sites-of-interest-in-sicily/capo-gallo.html"
+   }
+  ]
+ },
+ {
+  "title": "Semaforo di Monte Gallo e l'eremita",
+  "lat": 38.2180778,
+  "lon": 13.3108907,
+  "extract": "In cima al Monte Gallo (circa 541 m) sorge il Semaforo, edificio un tempo abbandonato. Un artista eremita ne avrebbe ricoperto di mosaici tutte le stanze, secondo una guida locale.",
+  "url": null,
+  "kind": "curiosita",
+  "fonti": [
+   {
+    "t": "Mamma Sicily – Capo Gallo",
+    "url": "https://www.mammasicily.com/sites-of-interest-in-sicily/capo-gallo.html"
+   }
+  ]
+ },
+ {
+  "title": "Capo Gallo a piedi da Mondello",
+  "lat": 38.2062142,
+  "lon": 13.3245517,
+  "extract": "Passeggiata nella riserva di Capo Gallo, raggiungibile a piedi da Mondello: sentieri panoramici, grotte e calette selvagge. Porta scarpe chiuse, acqua e protezione dal sole: il promontorio è esposto. Il lato di Sferracavallo è il punto d'accesso per grotte e immersioni.",
+  "url": null,
+  "kind": "da-fare",
+  "stops": [
+   {
+    "n": "Mondello",
+    "lat": 38.2062142,
+    "lon": 13.3245517
+   },
+   {
+    "n": "Fossa del Gallo"
+   },
+   {
+    "n": "Faro di Capo Gallo",
+    "lat": 38.2235025,
+    "lon": 13.3166509
+   }
+  ],
+  "fonti": [
+   {
+    "t": "Siviaggia – Capo Gallo",
+    "url": "https://siviaggia.it/idee-di-viaggio/capo-gallo-palermo/536861/"
+   },
+   {
+    "t": "Balarm – Riserva Barcarello-Capo Gallo",
+    "url": "https://www.balarm.it/luoghi/riserva-naturale-orientata-barcarello-capo-gallo-palermo-2585"
+   }
+  ]
  }
 ]
