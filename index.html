@@ -1964,14 +1964,14 @@ async function fetchOverpassItems(lat, lon, radius){
 /* ---------- dati OpenStreetMap pronti ----------
    File a pezzi di 0,1° nella cartella dati/ (li costruisce GitHub ogni mese con tools/costruisci_dati.py): sono la fonte normale dei monumenti OpenStreetMap.
    Overpass dal vivo resta solo per le zone senza dati pronti, e solo se servono anche i punti senza descrizione. Voce: [lat, lon, tipo, nome, descrizione, id]. */
-let packIdx = null;
+let packIdx = null, packIdxAt = 0;
 async function packIndex(){        /* null = non riesco a leggere l'elenco (e non ne ho uno vecchio); {regioni:[]} = ancora nessun dato pronto */
-  if (packIdx) return packIdx;
-  const hit = await pc.get('pack:index', 6 * 36e5); if (hit){ packIdx = hit; return hit; }
+  if (packIdx && Date.now() - packIdxAt < 30 * 60000) return packIdx;        /* l'elenco delle regioni si rilegge dalla rete almeno ogni 30 minuti (e a ogni apertura) */
   try { const r = await fetch('dati/index.json', { cache:'no-cache' });
     if (r.status === 404) return { regioni: [] };
-    if (r.ok){ const j = await r.json(); if (j && Array.isArray(j.regioni)){ packIdx = j; pc.set('pack:index', j); return j; } } } catch(e){}
-  const old = await pc.get('pack:index', 90 * DAY); if (old){ packIdx = old; return old; }
+    if (r.ok){ const j = await r.json(); if (j && Array.isArray(j.regioni)){ packIdx = j; packIdxAt = Date.now(); pc.set('pack:index', j); return j; } } } catch(e){}
+  if (packIdx) return packIdx;                                                /* senza rete: tengo quello che ho */
+  const old = await pc.get('pack:index', 90 * DAY); if (old){ packIdx = old; packIdxAt = Date.now() - 25 * 60000; return old; }      /* quello salvato: riprovo la rete tra 5 minuti */
   return null;
 }
 async function packTile(id, ty, tx){
@@ -2282,7 +2282,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v103';
+const APP_V = 'v104';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
