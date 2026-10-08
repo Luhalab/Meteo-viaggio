@@ -1,7 +1,7 @@
 {
   "pezzo": 0.1,
   "regioni": [
-    { "id": "valle-d-aosta", "nome": "Valle d'Aosta", "attiva": false, "bbox": [45.45, 6.75, 45.99, 7.95],
+    { "id": "valle-d-aosta", "nome": "Valle d'Aosta", "attiva": true, "bbox": [45.45, 6.75, 45.99, 7.95],
       "url": "https://download.geofabrik.de/europe/italy/nord-ovest-latest.osm.pbf" },
     { "id": "piemonte", "nome": "Piemonte", "attiva": false, "bbox": [44.05, 6.62, 46.47, 9.22],
       "url": "https://download.geofabrik.de/europe/italy/nord-ovest-latest.osm.pbf" },
