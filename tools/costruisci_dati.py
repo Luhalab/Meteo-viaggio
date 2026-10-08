@@ -2,15 +2,17 @@
 """Costruisce i dati di OpenStreetMap a pezzetti per l'app: monumenti (historic), opere d'arte pubbliche e luoghi di culto.
 
 Per ogni regione di tools/dati_zone.json: scarica l'archivio da Geofabrik (con tentativi), tiene con osmium solo gli oggetti utili,
-li divide in pezzi di 0,1 gradi e li scrive in dati/osm/<riga>_<colonna>.json; poi aggiorna dati/index.json.
+li divide in pezzi di 0,1 gradi e li scrive in dati/osm/<regione>/<riga>_<colonna>.json; poi aggiorna dati/index.json.
 Ogni voce è [lat, lon, tipo, nome, descrizione, id] (+ un settimo campo, "it:Titolo" o "Q123", se ha un collegamento a Wikipedia/Wikidata): tipo = valore di "historic", "@a" (opera d'arte) o "@w" (luogo di culto);
 id = n123 / w456 / r789 (nodo, via, relazione di OpenStreetMap).
 
-Uso:  python3 tools/costruisci_dati.py                   tutte le regioni
-      python3 tools/costruisci_dati.py --solo liguria    una sola regione
+Uso:  python3 tools/costruisci_dati.py                   tutte le regioni accese (e toglie quelle spente)
+      python3 tools/costruisci_dati.py --solo liguria    una sola regione (anche se spenta)
+      python3 tools/costruisci_dati.py --imposta toscana accendi    accende o spegne una regione nel catalogo
+      python3 tools/costruisci_dati.py --togli toscana   toglie i dati di una regione
       python3 tools/costruisci_dati.py --solo liguria --prova file.osm.pbf     prova locale, senza scaricare
 Serve osmium-tool (sudo apt-get install osmium-tool). Dati © OpenStreetMap contributors (ODbL)."""
-import argparse, datetime, json, math, os, re, subprocess, sys, tempfile
+import argparse, datetime, json, math, os, re, shutil, subprocess, sys, tempfile
 
 RADICE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CFG = json.load(open(os.path.join(RADICE, 'tools', 'dati_zone.json'), encoding='utf-8'))
@@ -77,7 +79,7 @@ def voci(pbf, bbox, tmp):
     return list(trovati.values())
 
 def scrivi(reg, items):
-    cartella = os.path.join(OUT, 'osm'); os.makedirs(cartella, exist_ok=True)
+    cartella = os.path.join(OUT, 'osm', reg['id']); os.makedirs(cartella, exist_ok=True)
     pezzi = {}
     for v in items: pezzi.setdefault((math.floor(v[0] * K), math.floor(v[1] * K)), []).append(v)   # stessa formula dell'app: floor(lat * 10)
     nuovi = set()
@@ -88,14 +90,8 @@ def scrivi(reg, items):
         p = os.path.join(cartella, nome)
         if not (os.path.exists(p) and open(p, encoding='utf-8').read() == testo):        # non riscrivo i pezzi uguali: niente differenze inutili nel repo
             open(p, 'w', encoding='utf-8').write(testo)
-    # pezzi di questa regione che non esistono più
-    b = reg['bbox']
-    for nome in os.listdir(cartella):
-        if nome in nuovi or not nome.endswith('.json'): continue
-        try: ty, tx = [int(x) for x in nome[:-5].split('_')]
-        except ValueError: continue
-        if math.floor(b[0] * K) - 1 <= ty <= math.floor(b[2] * K) + 1 and math.floor(b[1] * K) - 1 <= tx <= math.floor(b[3] * K) + 1:
-            os.remove(os.path.join(cartella, nome))
+    for nome in os.listdir(cartella):                      # pezzi di questa regione che non esistono più
+        if nome.endswith('.json') and nome not in nuovi: os.remove(os.path.join(cartella, nome))
     return len(pezzi)
 
 def indice(reg, n, pezzi):
@@ -106,39 +102,51 @@ def indice(reg, n, pezzi):
     idx['regioni'].sort(key=lambda r: r['id'])
     open(p, 'w', encoding='utf-8').write(json.dumps(idx, ensure_ascii=False, indent=1) + '\n')
 
-def togli(reg, attive):
-    # una regione spenta: tolgo i suoi pezzi (non quelli che cadono dentro una regione accesa) e la sua riga dall'indice
-    cartella = os.path.join(OUT, 'osm'); b = reg['bbox']; n = 0
+def togli(reg):
+    # una regione spenta: tolgo la sua cartella e la sua riga dall'indice
+    cartella = os.path.join(OUT, 'osm', reg['id']); n = 0
     if os.path.isdir(cartella):
-        for nome in os.listdir(cartella):
-            try: ty, tx = [int(x) for x in nome[:-5].split('_')]
-            except ValueError: continue
-            la, lo = (ty + .5) / K, (tx + .5) / K
-            if b[0] <= la <= b[2] and b[1] <= lo <= b[3] and not any(r['bbox'][0] <= la <= r['bbox'][2] and r['bbox'][1] <= lo <= r['bbox'][3] for r in attive):
-                os.remove(os.path.join(cartella, nome)); n += 1
+        n = len(os.listdir(cartella)); shutil.rmtree(cartella)
     p = os.path.join(OUT, 'index.json')
     if os.path.exists(p):
         idx = json.load(open(p, encoding='utf-8')); idx['regioni'] = [r for r in idx['regioni'] if r['id'] != reg['id']]
         open(p, 'w', encoding='utf-8').write(json.dumps(idx, ensure_ascii=False, indent=1) + '\n')
     print('%s: spenta, tolti %d pezzi' % (reg['nome'], n), flush=True)
 
+def salva_config():
+    def riga(r): return '    { "id": "%s", "nome": %s, "attiva": %s, "bbox": %s,\n      "url": "%s" }' % (r['id'], json.dumps(r['nome'], ensure_ascii=False), 'true' if r.get('attiva', True) else 'false', json.dumps(r['bbox']), r['url'])
+    t = '{\n  "pezzo": %s,\n  "regioni": [\n' % PEZZO + ',\n'.join(riga(r) for r in CFG['regioni']) + '\n  ]\n}\n'
+    open(os.path.join(RADICE, 'tools', 'dati_zone.json'), 'w', encoding='utf-8').write(t)
+
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('--solo'); ap.add_argument('--prova')
+    ap = argparse.ArgumentParser(); ap.add_argument('--solo'); ap.add_argument('--prova'); ap.add_argument('--togli'); ap.add_argument('--imposta', nargs=2, metavar=('ID', 'accendi|spegni'))
     a = ap.parse_args()
-    tutte = CFG['regioni']; attive = [r for r in tutte if r.get('attiva', True)]
-    if a.solo:      # una o più regioni (anche spente), separate da virgola: le costruisce e basta
-        ids = a.solo.split(','); regioni = [r for r in tutte if r['id'] in ids]
-    else: regioni = attive
+    tutte = CFG['regioni']; per_id = {r['id']: r for r in tutte}
+    if a.imposta:                  # accende o spegne una regione nel catalogo
+        i, az = a.imposta
+        if i not in per_id or az not in ('accendi', 'spegni'): sys.exit('regione o azione non valide')
+        per_id[i]['attiva'] = (az == 'accendi'); salva_config(); print('%s: %s' % (per_id[i]['nome'], 'accesa' if az == 'accendi' else 'spenta')); return
+    if a.togli:
+        if a.togli not in per_id: sys.exit('regione non trovata')
+        togli(per_id[a.togli]); return
+    if a.solo:                     # una o più regioni (anche spente), separate da virgola
+        regioni = [per_id[i] for i in a.solo.split(',') if i in per_id]
+    else: regioni = [r for r in tutte if r.get('attiva', True)]
     if not regioni: sys.exit('regione non trovata')
     os.makedirs(OUT, exist_ok=True)
-    if not a.solo:
+    vecchi = os.path.join(OUT, 'osm')                         # vecchio formato (un solo elenco di pezzi): lo tolgo
+    if os.path.isdir(vecchi):
+        for f in os.listdir(vecchi):
+            if f.endswith('.json'): os.remove(os.path.join(vecchi, f))
+    if not a.solo and not a.prova:
         for r in tutte:
-            if not r.get('attiva', True): togli(r, attive)
+            if not r.get('attiva', True): togli(r)
     for reg in regioni:
         with tempfile.TemporaryDirectory() as tmp:
             pbf = a.prova
             if not pbf: pbf = os.path.join(tmp, reg['id']+'.osm.pbf'); scarica(reg['url'], pbf)
             items = voci(pbf, reg['bbox'], tmp)
+        if not items: sys.exit('%s: nessuna voce trovata (indirizzo o riquadro sbagliati?)' % reg['nome'])
         pezzi = scrivi(reg, items); indice(reg, len(items), pezzi)
         print('%s: %d voci in %d pezzi' % (reg['nome'], len(items), pezzi), flush=True)
 

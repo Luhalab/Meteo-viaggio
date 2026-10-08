@@ -1,10 +1,21 @@
 # Costruisce i dati di OpenStreetMap a pezzetti per l'app (monumenti, opere d'arte, luoghi di culto).
-# Gira sui server di GitHub (gratis: il repo è pubblico), ogni tre mesi e su richiesta ("Run workflow").
-# Fa un solo commit in dati/ per volta, così Vercel pubblica una volta sola.
+# Gira sui server di GitHub (gratis: il repo è pubblico): ogni tre mesi, quando cambiano lo script o l'elenco delle regioni,
+# e su richiesta. Su richiesta può anche accendere o spegnere una regione (è quello che fa il pulsante nell'app, tramite api/regione.js).
+# Fa un solo commit per volta, così Vercel pubblica una volta sola.
 name: Dati OpenStreetMap
 
 on:
   workflow_dispatch:
+    inputs:
+      regione:
+        description: "Regione da accendere o spegnere (id, per esempio toscana). Vuoto = ricostruisce quelle accese"
+        required: false
+        default: ''
+      azione:
+        description: "Accendi o spegni"
+        type: choice
+        options: [accendi, spegni]
+        default: accendi
   push:                       # parte anche quando cambiano lo script, l'elenco delle regioni o questo file
     paths:
       - 'tools/costruisci_dati.py'
@@ -24,17 +35,30 @@ jobs:
   costruisci:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    env:
+      REGIONE: ${{ github.event.inputs.regione }}
+      AZIONE: ${{ github.event.inputs.azione }}
     steps:
       - uses: actions/checkout@v4
       - name: Installa osmium
         run: sudo apt-get update -q && sudo apt-get install -y -q osmium-tool
-      - name: Costruisci i dati
-        run: python3 tools/costruisci_dati.py
+      - name: Accendi o spegni la regione
+        if: ${{ github.event.inputs.regione != '' }}
+        run: python3 tools/costruisci_dati.py --imposta "$REGIONE" "$AZIONE"
+      - name: Costruisci o togli i dati
+        run: |
+          if [ -n "$REGIONE" ] && [ "$AZIONE" = "spegni" ]; then
+            python3 tools/costruisci_dati.py --togli "$REGIONE"
+          elif [ -n "$REGIONE" ]; then
+            python3 tools/costruisci_dati.py --solo "$REGIONE"
+          else
+            python3 tools/costruisci_dati.py
+          fi
       - name: Salva nel repo
         run: |
           git config user.name "dati-bot"
           git config user.email "dati-bot@users.noreply.github.com"
-          git add dati
+          git add dati tools/dati_zone.json
           if git diff --cached --quiet; then
             echo "Nessuna novità nei dati"
           else
