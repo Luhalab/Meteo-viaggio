@@ -1,5 +1,5 @@
 # Costruisce i dati di OpenStreetMap a pezzetti per l'app (monumenti, opere d'arte, luoghi di culto).
-# Gira sui server di GitHub (gratis: il repo è pubblico), il primo di ogni mese e su richiesta ("Run workflow").
+# Gira sui server di GitHub (gratis: il repo è pubblico), ogni tre mesi e su richiesta ("Run workflow").
 # Fa un solo commit in dati/ per volta, così Vercel pubblica una volta sola.
 name: Dati OpenStreetMap
 
@@ -11,7 +11,7 @@ on:
       - 'tools/dati_zone.json'
       - '.github/workflows/dati.yml'
   schedule:
-    - cron: '23 3 1 * *'
+    - cron: '23 3 1 1,4,7,10 *'    # ogni tre mesi: i monumenti cambiano poco
 
 permissions:
   contents: write

@@ -1,9 +1,11 @@
 {
   "pezzo": 0.1,
   "regioni": [
-    { "id": "liguria", "nome": "Liguria", "bbox": [43.75, 7.45, 44.70, 10.10],
+    { "id": "liguria", "nome": "Liguria", "attiva": true, "bbox": [43.75, 7.45, 44.7, 10.1],
       "url": "https://download.geofabrik.de/europe/italy/nord-ovest-latest.osm.pbf" },
-    { "id": "sicilia", "nome": "Sicilia", "bbox": [35.45, 11.90, 38.35, 15.75],
-      "url": "https://download.geofabrik.de/europe/italy/isole-latest.osm.pbf" }
+    { "id": "sicilia", "nome": "Sicilia", "attiva": true, "bbox": [35.45, 11.9, 38.35, 15.75],
+      "url": "https://download.geofabrik.de/europe/italy/isole-latest.osm.pbf" },
+    { "id": "svizzera", "nome": "Svizzera", "attiva": true, "bbox": [45.8, 5.95, 47.85, 10.55],
+      "url": "https://download.geofabrik.de/europe/switzerland-latest.osm.pbf" }
   ]
 }

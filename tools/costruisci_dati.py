@@ -3,14 +3,14 @@
 
 Per ogni regione di tools/dati_zone.json: scarica l'archivio da Geofabrik (con tentativi), tiene con osmium solo gli oggetti utili,
 li divide in pezzi di 0,1 gradi e li scrive in dati/osm/<riga>_<colonna>.json; poi aggiorna dati/index.json.
-Ogni voce è [lat, lon, tipo, nome, descrizione, id]: tipo = valore di "historic", "@a" (opera d'arte) o "@w" (luogo di culto);
+Ogni voce è [lat, lon, tipo, nome, descrizione, id] (+ un settimo campo, "it:Titolo" o "Q123", se ha un collegamento a Wikipedia/Wikidata): tipo = valore di "historic", "@a" (opera d'arte) o "@w" (luogo di culto);
 id = n123 / w456 / r789 (nodo, via, relazione di OpenStreetMap).
 
 Uso:  python3 tools/costruisci_dati.py                   tutte le regioni
       python3 tools/costruisci_dati.py --solo liguria    una sola regione
       python3 tools/costruisci_dati.py --solo liguria --prova file.osm.pbf     prova locale, senza scaricare
 Serve osmium-tool (sudo apt-get install osmium-tool). Dati © OpenStreetMap contributors (ODbL)."""
-import argparse, datetime, json, math, os, subprocess, sys, tempfile
+import argparse, datetime, json, math, os, re, subprocess, sys, tempfile
 
 RADICE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CFG = json.load(open(os.path.join(RADICE, 'tools', 'dati_zone.json'), encoding='utf-8'))
@@ -69,7 +69,11 @@ def voci(pbf, bbox, tmp):
         if chiave in trovati and not oid.startswith('a'): continue
         nome = (t.get('name') or t.get('name:it') or '').strip()
         desc = (t.get('description:it') or t.get('description') or '').strip()[:300]
-        trovati[chiave] = [la, lo, h, nome, desc, chiave]
+        wp = (t.get('wikipedia') or '').strip()            # "it:Titolo"
+        if not wp and re.match(r'^Q\d+$', (t.get('wikidata') or '').strip()): wp = t['wikidata'].strip()
+        voce = [la, lo, h, nome, desc, chiave]
+        if wp: voce.append(wp)                              # solo se c'è: l'app ne prende la descrizione da Wikipedia quando tocchi il punto
+        trovati[chiave] = voce
     return list(trovati.values())
 
 def scrivi(reg, items):
@@ -102,12 +106,34 @@ def indice(reg, n, pezzi):
     idx['regioni'].sort(key=lambda r: r['id'])
     open(p, 'w', encoding='utf-8').write(json.dumps(idx, ensure_ascii=False, indent=1) + '\n')
 
+def togli(reg, attive):
+    # una regione spenta: tolgo i suoi pezzi (non quelli che cadono dentro una regione accesa) e la sua riga dall'indice
+    cartella = os.path.join(OUT, 'osm'); b = reg['bbox']; n = 0
+    if os.path.isdir(cartella):
+        for nome in os.listdir(cartella):
+            try: ty, tx = [int(x) for x in nome[:-5].split('_')]
+            except ValueError: continue
+            la, lo = (ty + .5) / K, (tx + .5) / K
+            if b[0] <= la <= b[2] and b[1] <= lo <= b[3] and not any(r['bbox'][0] <= la <= r['bbox'][2] and r['bbox'][1] <= lo <= r['bbox'][3] for r in attive):
+                os.remove(os.path.join(cartella, nome)); n += 1
+    p = os.path.join(OUT, 'index.json')
+    if os.path.exists(p):
+        idx = json.load(open(p, encoding='utf-8')); idx['regioni'] = [r for r in idx['regioni'] if r['id'] != reg['id']]
+        open(p, 'w', encoding='utf-8').write(json.dumps(idx, ensure_ascii=False, indent=1) + '\n')
+    print('%s: spenta, tolti %d pezzi' % (reg['nome'], n), flush=True)
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--solo'); ap.add_argument('--prova')
     a = ap.parse_args()
-    regioni = [r for r in CFG['regioni'] if not a.solo or r['id'] == a.solo]
+    tutte = CFG['regioni']; attive = [r for r in tutte if r.get('attiva', True)]
+    if a.solo:      # una o più regioni (anche spente), separate da virgola: le costruisce e basta
+        ids = a.solo.split(','); regioni = [r for r in tutte if r['id'] in ids]
+    else: regioni = attive
     if not regioni: sys.exit('regione non trovata')
     os.makedirs(OUT, exist_ok=True)
+    if not a.solo:
+        for r in tutte:
+            if not r.get('attiva', True): togli(r, attive)
     for reg in regioni:
         with tempfile.TemporaryDirectory() as tmp:
             pbf = a.prova
