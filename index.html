@@ -288,13 +288,13 @@ body.e-near .ectl .nr{display:flex}
 .ecard .acts #eRtClr{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-cl{min-width:30px;height:30px;padding:0 6px;box-sizing:border-box;border-radius:15px;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;color:#16211c;font:700 13px/26px var(--sans);text-align:center;transform:translate(-50%,-50%);cursor:pointer}
-.regchip{position:absolute;top:52px;left:10px;z-index:900;max-width:calc(100% - 84px);background:#16211c;color:#f4efde;border:1px solid var(--sea);border-radius:999px;padding:9px 14px;font:500 13px var(--sans);cursor:pointer;text-align:left}
-.ewrap.full .regchip{top:calc(52px + env(safe-area-inset-top,0px))}
-.erefetch.show ~ .regchip{top:100px}
-.ewrap.full .erefetch.show ~ .regchip{top:calc(100px + env(safe-area-inset-top,0px))}
-body.gm .ewrap.full .regchip{top:calc(var(--gmTop) + 50px)}
-body.gm .ewrap.full .erefetch.show ~ .regchip{top:calc(var(--gmTop) + 98px)}
-.regchip[hidden]{display:none}
+#eFlt{position:relative}
+#eFlt.dot::after{content:'';position:absolute;top:9px;right:9px;width:11px;height:11px;border-radius:50%;background:#e07a00;border:2px solid #fff}
+.regstat{display:flex;align-items:center;gap:8px;margin:4px 6px 8px;padding:10px 12px;border-radius:12px;font:600 13.5px/1.35 var(--sans);background:#e8f1fb;color:#164f86;border:1px solid #b9d3ee}
+.regstat.err{background:#fdecea;color:#8a2a17;border-color:#f1b7ab}
+.regstat.ok{background:#e8f5ee;color:#1d6b43;border-color:#b6dec7}
+.regstat span{flex:1}.regstat a{color:inherit;text-decoration:underline}
+.eopt .regstat button{flex:none;width:auto;min-height:0;padding:0 6px;border:none;background:none;color:inherit;font-size:20px;line-height:1}
 .regb[disabled]{opacity:.45;cursor:default}
 .offbar{height:6px;border-radius:3px;background:var(--line);margin:6px 8px}.offbar i{display:block;height:100%;border-radius:3px;background:var(--acc)}
 .regrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px}
@@ -655,7 +655,6 @@ footer a{color:var(--tx2)}
       <div class="navchip" id="eNavChip" hidden></div>
       <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
-      <button class="regchip" id="eRegChip" hidden></button>
       <div class="ecard" id="eCard"></div>
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
@@ -2322,7 +2321,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v107';
+const APP_V = 'v108';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2333,18 +2332,17 @@ function verCheck(){
 /* ---------- regioni dei dati OpenStreetMap: accendere e spegnere dall'app ----------
    Il tocco chiama api/regione.js (funzione di Vercel, protetta da un PIN: il token di GitHub sta solo sul sito), che avvia il workflow "Dati OpenStreetMap".
    Dopo qualche minuto GitHub pubblica i dati e l'app se ne accorge da sola (controlla dati/index.json ogni 20 secondi). */
-let regCat = null, regBuilt = {}, regNote = '', regOpen = false, regPollT = null, regLoading = false, REG_POLL_MS = 20000, regStat = null, regRowNote = null, regTickT = null, regChipHide = null;
+let regCat = null, regBuilt = {}, regMsg = null, regOpen = false, regPollT = null, regLoading = false, REG_POLL_MS = 20000, regStat = null, regRowNote = null, regTickT = null, regChipHide = null;
 const REG_GH = 'https://github.com/Luhalab/Meteo-viaggio/actions/workflows/dati.yml';
 async function regLoad(){
   if (regLoading) return; regLoading = true;
   try { const [c, i] = await Promise.all([fetch('tools/dati_zone.json').then(r => r.json()), fetch('dati/index.json').then(r => r.ok ? r.json() : { regioni: [] })]);
-    regCat = c.regioni || []; regBuilt = {}; (i.regioni || []).forEach(r => { regBuilt[r.id] = r; }); } catch(e){ regNote = 'Elenco delle regioni non raggiungibile.'; }
+    regCat = c.regioni || []; regBuilt = {}; (i.regioni || []).forEach(r => { regBuilt[r.id] = r; }); } catch(e){ regMsg = { text: 'Elenco delle regioni non raggiungibile.', tone: 'err', html: '', seen: false }; }
   regLoading = false; zoneUi();
 }
 function regHtml(){
   const pend = store.get('regPend', null), rn = t => '<div class="rtnote">'+t+'</div>';
   let h = '<div class="fh">Dati per regione</div>'+rn('Monumenti di OpenStreetMap. Accendere richiede qualche minuto.');
-  if (regNote) h += rn(regNote);
   if (!regCat){ if (!regLoading) regLoad(); return h + rn('Carico l\'elenco…'); }
   const row = r => { const b = regBuilt[r.id], p = pend && pend.id === r.id;
     const st = p ? esc((regStat && regStat.text) || (pend.az === 'accendi' ? 'in preparazione…' : 'la tolgo…')) : b ? b.n.toLocaleString('it-IT')+' voci · dal '+new Date(b.data+'T12:00:00').toLocaleDateString('it-IT', { day:'numeric', month:'numeric' }) : 'spenta';
@@ -2355,25 +2353,28 @@ function regHtml(){
 }
 const regFmt = ms => { const t = Math.max(0, Math.round(ms / 1000)); return Math.floor(t / 60)+':'+String(t % 60).padStart(2, '0'); };
 const regName = id => (regCat && (regCat.find(x => x.id === id) || {}).nome) || id;
-function regChip(text, ms){                 /* avviso sulla mappa, visibile anche a pannello chiuso */
-  const c = $('eRegChip'); clearTimeout(regChipHide);
-  if (!text){ c.hidden = true; return; }
-  c.textContent = text; c.hidden = false;
-  if (ms) regChipHide = setTimeout(() => { if (store.get('regPend', null)) regChipRefresh(); else c.hidden = true; }, ms);
+const regPendText = p => (p.az === 'accendi' ? '⬇ ' : '✕ ')+regName(p.id)+': '+((regStat && regStat.text) || 'richiesta inviata')+' · '+regFmt(Date.now() - p.t);
+function regSay(text, tone, html){ regMsg = { text, tone, html: html || '', seen: false, t: Date.now() }; regBadge(); zoneUi(); }
+function regBadge(){ const b = $('eFlt'); if (b) b.classList.toggle('dot', $('eFltP').hidden && !!(store.get('regPend', null) || (regMsg && !regMsg.seen))); }     /* puntino sul pulsante Filtri: c'è qualcosa da leggere */
+function regStatusHtml(){          /* in cima ai Filtri, così si vede appena li apri */
+  const p = store.get('regPend', null);
+  if (p) return '<div class="regstat wait"><span id="eRegStat">'+esc(regPendText(p))+'</span></div>';
+  if (regMsg && Date.now() - regMsg.t > (regMsg.tone === 'err' ? 60 : 10) * 60000) regMsg = null;       /* resta finché non lo chiudi con la ×, poi si toglie da solo */
+  if (!regMsg) return '';
+  return '<div class="regstat '+regMsg.tone+'"><span>'+esc(regMsg.text)+regMsg.html+'</span><button data-rs="x" aria-label="Chiudi">×</button></div>';
 }
-function regChipRefresh(){ const p = store.get('regPend', null); if (p) regChip((p.az === 'accendi' ? '⬇ ' : '✕ ')+regName(p.id)+': '+((regStat && regStat.text) || 'richiesta inviata')+' · '+regFmt(Date.now() - p.t)); }
-$('eRegChip').onclick = () => setFltP(true);
+const regStatTick = () => { const e = $('eRegStat'), p = store.get('regPend', null); if (e && p) e.textContent = regPendText(p); };
 function regGh(id, az){ return ' Intanto puoi avviarlo da GitHub: <a href="'+REG_GH+'" target="_blank" rel="noopener">apri GitHub</a>, "Run workflow", scrivi "'+esc(id)+'" e scegli "'+az+'".'; }
 async function regAct(id, az){
   const r = regCat && regCat.find(x => x.id === id); if (!r) return;
   if (az === 'spegni' && !confirm('Spegnere '+r.nome+'? I suoi dati verranno tolti.')) return;
   let pin = store.get('regPin', '');
   if (!pin){ pin = (prompt('PIN per accendere e spegnere le regioni (quello impostato su Vercel)') || '').trim(); if (!pin) return; }
-  regNote = ''; regRowNote = { id, text: 'Invio la richiesta a GitHub…' }; regChip('Invio la richiesta a GitHub…'); zoneUi();
-  const fail = (t, gh) => { regRowNote = { id, text: t, err: true }; regNote = esc(t)+(gh ? regGh(id, az) : ''); regChip('⚠ '+t, 15000); zoneUi(); };
+  regRowNote = { id, text: 'Invio la richiesta a GitHub…' }; regSay('Invio la richiesta a GitHub…', 'wait');
+  const fail = (t, gh) => { regRowNote = { id, text: t, err: true }; regSay('⚠ '+t, 'err', gh ? regGh(id, az) : ''); };
   try {
     const res = await fetch('api/regione', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ id, azione: az, pin }) });
-    if (res.ok){ store.set('regPin', pin); store.set('regPend', { id, az, t: Date.now() }); regRowNote = null; regNote = ''; regStat = { text: 'richiesta inviata a GitHub…' }; regPoll(); regChipRefresh(); zoneUi(); return; }
+    if (res.ok){ store.set('regPin', pin); store.set('regPend', { id, az, t: Date.now() }); regRowNote = null; regMsg = null; regStat = { text: 'richiesta inviata a GitHub…' }; regPoll(); regBadge(); zoneUi(); return; }
     const body = await res.json().catch(() => ({}));
     if (res.status === 403){ store.set('regPin', ''); return fail('PIN errato: riprova.'); }
     if (res.status === 503){ const d = await fetch('api/regione').then(x => x.json()).catch(() => null), manca = d ? (!d.token ? 'GH_DISPATCH_TOKEN' : !d.pin ? 'APP_PIN' : '') : '';
@@ -2386,11 +2387,11 @@ async function regAct(id, az){
 }
 function regDone(ok, text, url){
   clearInterval(regPollT); clearInterval(regTickT); store.set('regPend', null); regStat = null; regRowNote = null;
-  regNote = esc(text)+(url ? ' <a href="'+esc(url)+'" target="_blank" rel="noopener">Apri GitHub</a>' : ''); regChip((ok ? '' : '⚠ ')+text, ok ? 9000 : 20000); zoneUi();
+  regSay((ok ? '' : '⚠ ')+text, ok ? 'ok' : 'err', url ? ' <a href="'+esc(url)+'" target="_blank" rel="noopener">Apri GitHub</a>' : '');
 }
 function regPoll(){
   clearInterval(regPollT); clearInterval(regTickT);
-  regTickT = setInterval(() => { if (store.get('regPend', null)) regChipRefresh(); else clearInterval(regTickT); }, 1000);
+  regTickT = setInterval(() => { if (store.get('regPend', null)) regStatTick(); else clearInterval(regTickT); }, 1000);
   const tick = async () => {
     const p = store.get('regPend', null); if (!p){ clearInterval(regPollT); clearInterval(regTickT); return; }
     const el = Date.now() - p.t;
@@ -2415,7 +2416,7 @@ function regPoll(){
         if (p.az === 'accendi' && eNear && eArea) loadArea(eArea.lat, eArea.lon, eArea.radius, true);       /* ricarico subito la zona che guardi */
         return; }
     } catch(e){}
-    regChipRefresh(); zoneUi();
+    regBadge(); zoneUi();
   };
   regPollT = setInterval(tick, REG_POLL_MS); tick();
 }
@@ -2431,7 +2432,7 @@ function fltPanel(){
     otherRoutesCache.map((id, i) => { const d = eRouteDefs.get(id) || {};
       return '<button data-rx="'+i+'" class="bgr on"><span class="rtl"><span class="rtc" style="background:'+(d.color || '#2470b8')+'"></span><span>'+esc(d.title || 'Percorso')+'</span></span><i></i></button>'; }).join('')+
     (eNear && rs.length ? '' : '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>') : '';
-  $('eFltP').innerHTML = '<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
+  $('eFltP').innerHTML = regStatusHtml()+'<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
     (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('nodesc', 'Anche punti senza descrizione', dot('#9aa0a6'))+
@@ -2588,7 +2589,7 @@ $('eOffP').addEventListener('click', e => { e.stopPropagation(); const b = e.tar
   if (b.dataset.of === 'save') offSave(); else if (b.dataset.of === 'cancel'){ if (ojob) ojob.cancel = true; } else if (b.dataset.of === 'del') offDel(+b.dataset.i); });
 emap.on('moveend', () => { if (!$('eOffP').hidden && !ojob){ offEstimate(); offUi(); } });
 setTimeout(() => { eViews.filter(v => Date.now() - v.t > 60 * DAY).forEach(v => { const i = eViews.findIndex(o => o.id === v.id); if (i >= 0) offDel(i); }); }, 12000);      /* le viste salvate durano 60 giorni */
-function setFltP(o){ if (o){ if (!zjob) zNote = ''; regNote = ''; regCat = null; verCheck(); fltPanel(); setOpt(false); setBgP(false); setOffP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setFltP(o){ if (o){ if (!zjob) zNote = ''; if (regMsg) regMsg.seen = true; regCat = null; verCheck(); fltPanel(); setOpt(false); setBgP(false); setOffP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); regBadge(); }
 function setBgP(o){ if (o){ verCheck(); bgPanel(); setOpt(false); setFltP(false); setOffP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
@@ -2616,6 +2617,7 @@ function panelClick(e){
   const rx = e.target.closest('button[data-rx]'); if (rx){ const id = otherRoutesCache[+rx.dataset.rx];
     if (id && eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); routesUI(); } return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
+  const rsb = e.target.closest('button[data-rs]'); if (rsb){ regMsg = null; regBadge(); zoneUi(); return; }
   const zb = e.target.closest('button[data-z]'); if (zb){ zoneAct(zb.dataset.z, zb.dataset.i); return; }
   const gb = e.target.closest('button[data-g]'); if (gb){ const [gid, gaz] = gb.dataset.g.split('|'); regAct(gid, gaz); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
