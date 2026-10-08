@@ -2233,7 +2233,9 @@ async function loadArea(lat, lon, radius, retry){
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
   const srcs = areaSrcs(lat, lon, radius), TMAX = AREA_TMAX;
   const vals = srcs.map(() => []), st = srcs.map(() => 'wait');
-  const ak = sz ? 'zona:'+sz.id : 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius+(fltOn('nodesc') ? '+' : ''), mem = retry ? null : await pc.get(ak, (sz ? 60 : 7) * DAY);
+  /* la memoria dell'area include l'elenco delle regioni con i dati pronti: se ne accendo o spengo una, o si ricostruiscono i dati, le aree si ricaricano da sole */
+  const psig = ((await packIndex().catch(() => null)) || { regioni: [] }).regioni.map(r => r.id+r.data).join(',').split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0).toString(36);
+  const ak = sz ? 'zona:'+sz.id : 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius+(fltOn('nodesc') ? '+' : '')+':'+psig, mem = retry ? null : await pc.get(ak, (sz ? 60 : 7) * DAY);
   if (my !== eReq) return;
   const memFresh = mem && mem.t && Date.now() - mem.t < (sz ? 60 : 3) * DAY;
   if (mem) mem.vals.forEach((v, i) => { vals[i] = v || []; if (memFresh && i < 5) st[i] = 'ok'; });   /* 0-4: fonti dei monumenti, 5: punti di Claude */
@@ -2280,7 +2282,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v102';
+const APP_V = 'v103';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
