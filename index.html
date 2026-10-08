@@ -287,6 +287,7 @@ body.e-near .ectl .nr{display:flex}
 .ecard .acts a{font-size:13.5px;font-weight:500}
 .ecard .acts #eRtClr{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
+.c-cl{min-width:30px;height:30px;padding:0 6px;box-sizing:border-box;border-radius:15px;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;color:#16211c;font:700 13px/26px var(--sans);text-align:center;transform:translate(-50%,-50%);cursor:pointer}
 .c-dot.cu{background:var(--brick)}
 .c-dot.st{background:#6b4fa0}
 .gone{display:none!important}
@@ -335,7 +336,7 @@ body.gm .gchips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-w
 .gchips::-webkit-scrollbar{display:none}
 .gchips button{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:none;border-radius:18px;background:var(--card);color:var(--tx);font:500 14px var(--sans);box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer}
 .gchips button.on{background:var(--acc);color:#fff}
-body.poi-on .c-dot{display:none}
+body.poi-on .c-dot, body.poi-on .c-cl{display:none}
 .sg-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(22,33,28,.6);transform:translate(-50%,-50%);cursor:pointer}
 .sg-dot.cu{background:var(--brick)}
 .sg-dot.st{background:#6b4fa0}
@@ -1952,7 +1953,8 @@ async function fetchOverpassItems(lat, lon, radius){
     const la = el.lat != null ? el.lat : (el.center && el.center.lat), lo = el.lon != null ? el.lon : (el.center && el.center.lon);
     const t = el.tags || {}; if (la == null || lo == null) return null;
     const label = osmLabel(t);
-    return { title: t.name || t['name:it'] || label, extract: label, thumb: null, lat: la, lon: lo,
+    const dsc = (t['description:it'] || t.description || '').trim();
+    return { title: t.name || t['name:it'] || label, extract: dsc || label, desc: !!dsc, thumb: null, lat: la, lon: lo,
       dist: haversine(lat, lon, la, lo), url: 'https://www.openstreetmap.org/'+el.type+'/'+el.id, source: 'osm' };
   }).filter(Boolean);
 }
@@ -2190,7 +2192,7 @@ async function loadArea(lat, lon, radius, retry){
 const FLT_ALL = ['mon','sights','claude','storie','foto','percorsi'];
 /* due serie di filtri: in modalità meteo (da lontano) monumenti, luoghi di Claude e curiosità sono spenti di default
    (restano i luoghi imperdibili ★ e i consigli della richiesta di zona); in modalità città sono tutti accesi. Ognuna ricorda le tue scelte. */
-const FLT_DEF = { near: Object.fromEntries(FLT_ALL.map(k => [k, true])), far: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { mon:false, claude:false, storie:false }) };
+const FLT_DEF = { near: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { nodesc:false }), far: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { mon:false, claude:false, storie:false, nodesc:false }) };
 const FLT_SAVED = store.get('mapFilters2', {}) || {};
 let eFlt = { near: Object.assign({}, FLT_DEF.near, FLT_SAVED.near), far: Object.assign({}, FLT_DEF.far, FLT_SAVED.far) };
 const fltMode = () => eNear ? 'near' : 'far';
@@ -2199,7 +2201,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v96';
+const APP_V = 'v97';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2221,6 +2223,7 @@ function fltPanel(){
   $('eFltP').innerHTML = '<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
     (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
+    row('nodesc', 'Anche punti senza descrizione', dot('#9aa0a6'))+
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
@@ -2277,7 +2280,7 @@ function panelClick(e){
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); drawPhotos(); drawRouteStarts(); drawSights();
+  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);
@@ -2295,9 +2298,12 @@ function sameName(a, b){
   let n = 0; A.forEach(w => { if (B.has(w)) n++; });
   return n / Math.min(A.size, B.size) >= 0.6;
 }
+/* una voce ha una descrizione vera se viene da Claude, da Wikipedia o da un inventario ufficiale; un punto OpenStreetMap ce l'ha solo se i suoi tag la portano
+   (altrimenti il testo è solo il tipo: "Luogo di culto", "Sito storico"). Di default i punti senza descrizione non si mostrano (Filtri → "Anche punti senza descrizione"). */
+const hasDesc = o => !!(o.kind || o.source === 'custom' || (o.source === 'osm' ? o.desc : (o.extract || '').trim().length > 20));
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
-  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon'); })
+  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon') && (fltOn('nodesc') || hasDesc(it)); })
     .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
   const G = [];
   vis.forEach(i => { const it = eItems[i];
@@ -2309,7 +2315,19 @@ function buildGroups(){
 function drawArt(){
   eArt.clearLayers();
   eGroups = buildGroups();
-  eGroups.forEach(g => {
+  /* sotto lo zoom 17 i punti vicini (3 o più nella stessa cella di 60 px) diventano un cerchio col numero; il tocco ci zooma dentro. Il punto scelto non si raggruppa mai. */
+  const hidden = new Set(), z = emap.getZoom();
+  if (z < 17){
+    const cells = new Map();
+    eGroups.forEach((g, gi) => { if (g.items.includes(eSel)) return; const p = emap.project([g.lat, g.lon], z), k = Math.floor(p.x / 60)+','+Math.floor(p.y / 60);
+      if (!cells.has(k)) cells.set(k, []); cells.get(k).push(gi); });
+    cells.forEach(list => { if (list.length < 3) return;
+      list.forEach(gi => hidden.add(gi)); const gs = list.map(gi => eGroups[gi]);
+      L.marker([gs.reduce((a, g) => a + g.lat, 0) / gs.length, gs.reduce((a, g) => a + g.lon, 0) / gs.length], { icon: L.divIcon({ className:'', iconSize:[0,0], html:'<div class="c-cl">'+list.length+'</div>' }) })
+        .on('click', () => emap.fitBounds(L.latLngBounds(gs.map(g => [g.lat, g.lon])), { padding:[50, 50], maxZoom:18 })).addTo(eArt); });
+  }
+  eGroups.forEach((g, gi) => {
+    if (hidden.has(gi)) return;
     const its = g.items.map(j => eItems[j]), place = its.filter(o => !o.kind), story = its.some(o => o.kind) && fltOn('storie');
     const cls = !place.length ? ' st' : place.some(o => o.source === 'custom') ? ' cu' : '';
     const sel = g.items.includes(eSel);
@@ -2361,10 +2379,10 @@ function setHint(html){
 function renderMon(){
   if (!eItems.length && !eCity){ $('eMonS').hidden=true; return; }
   $('eMonS').hidden=false;
-  $('eMonT').textContent = eCity ? 'Monumenti '+placeDi(eCity) : 'Monumenti in zona'; const monN = eItems.filter(o => !o.kind).length; $('eMonN').textContent = monN || '';
-  if (!monN){ $('eMon').innerHTML = '<span class="muted">'+(eReq && eArea ? 'Nessun monumento catalogato qui.' : '<span class="spin"></span>Cerco…')+'</span>'; return; }
+  $('eMonT').textContent = eCity ? 'Monumenti '+placeDi(eCity) : 'Monumenti in zona'; const shown = o => !o.kind && (fltOn('nodesc') || hasDesc(o)); const monN = eItems.filter(shown).length; $('eMonN').textContent = monN || '';
+  if (!monN){ $('eMon').innerHTML = '<span class="muted">'+(eItems.some(o => !o.kind) ? 'Nessun monumento con descrizione qui. Dai Filtri puoi mostrare anche i punti senza descrizione.' : eReq && eArea ? 'Nessun monumento catalogato qui.' : '<span class="spin"></span>Cerco…')+'</span>'; return; }
   /* curiosità e consigli non sono monumenti: restano sulla mappa ma non in questo elenco */
-  $('eMon').innerHTML = eItems.map((it,i) => [it,i]).filter(x => !x[0].kind).slice(0,40).map(([it,i]) =>
+  $('eMon').innerHTML = eItems.map((it,i) => [it,i]).filter(x => shown(x[0])).slice(0,40).map(([it,i]) =>
     '<div class="mon'+(i===eSel?' on':'')+'" data-i="'+i+'"><span class="dt'+(it.source==='custom'?' cu':'')+'"></span><div class="tx">'+
     '<div class="hd"><b>'+esc(it.title)+'</b><span>'+formatDist(it.dist)+'</span></div>'+
     (it.source==='custom' ? '<div class="tag-cu">Aggiunto da Claude</div>' : '')+
@@ -2443,6 +2461,7 @@ emap.on('moveend', () => { clearTimeout(saveViewT); saveViewT = setTimeout(saveV
 const popFix = p => { if (p && p._map && p._container){ try { p._updateLayout(); p._updatePosition(); } catch(e){} } };
 /* Con la mappa vettoriale attiva l'animazione di zoom di Leaflet è spenta (_zoomAnimated = false): in quel caso il plugin di rotazione non ruota
    la posizione dei riquadri (ruota solo quella dei segnaposto) e, con la mappa ruotata, il riquadro si stacca dalla città. Lo riporto alla posizione "animata", che il plugin gestisce. */
+emap.on('zoomend', () => { if (eNear && eItems.length) drawArt(); });   /* i raggruppamenti dei punti seguono lo zoom */
 emap.on('popupopen', e => { const p = e.popup; p._zoomAnimated = true; popFix(p); requestAnimationFrame(() => popFix(p)); [150, 450, 1000].forEach(t => setTimeout(() => popFix(p), t)); });
 emap.on('moveend zoomend resize', () => popFix(emap._popup));
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveView(); });

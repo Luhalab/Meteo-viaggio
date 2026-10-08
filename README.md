@@ -26,7 +26,7 @@ Open-Meteo (modello ICON-2I) e Open-Meteo Marine. Ora per ora (6, 8 … 22 e "ad
 - Monumenti da più fonti (OSM/Overpass, Wikipedia, geo.admin.ch, patrimonioculturale-er.it, Regione Liguria), ognuna con un tempo massimo. Punti entro 30 m (o stesso nome entro 150 m) uniti in uno.
 - Foto: striscia con le immagini Wikipedia della città; il visore ha "Mostra sulla mappa" (coordinate di Commons, altrimenti stimate).
 - Locali (chip): dalla mappa vettoriale, Overpass solo se manca; al massimo 40; orari e telefono da OSM solo al tocco.
-- Filtri separati per modalità (meteo: monumenti, luoghi di Claude e curiosità spenti; città: tutto acceso), salvati in `mapFilters2`.
+- Filtri separati per modalità (meteo: monumenti, luoghi di Claude e curiosità spenti; città: tutto acceso), salvati in `mapFilters2`. Di default i punti senza una descrizione vera sono nascosti (un punto OpenStreetMap ha solo il tipo, tipo "Luogo di culto", a meno che i suoi tag portino una descrizione): interruttore "Anche punti senza descrizione" nei Filtri. Sotto lo zoom 17 i punti vicini (3 o più nella stessa cella di 60 px) si raggruppano in un cerchio col numero, che al tocco zooma dentro.
 - Eventi (15 giorni, 15 km): voci `"kind": "evento"` (campi `inizio`, `fine`, `luogo`), Wikidata, feste di Wikivoyage. "Cerca eventi con Claude" manda `[Meteo e viaggio: eventi]`.
 
 ## Indicazioni e percorsi
