@@ -3,10 +3,11 @@
    - altri file dell'app (comuni, icone): copia salvata subito, aggiornata in background;
    - librerie (cdnjs, jsDelivr, font): salvate una volta, hanno la versione nell'indirizzo;
    - mappa (tile e stile): copia salvata subito, aggiornata in background; al massimo ~4000 tile, poi si tolgono le più vecchie;
+   - mappe salvate dall'utente (cache OFFLINE): tessere, simboli e caratteri si leggono da lì per primi; lo stile e l'elenco delle tessere (che cambiano) dalla rete, e da lì solo se sei offline;
    - custom-points.json: sempre dalla rete (i punti di Claude devono essere aggiornati), copia salvata solo se sei offline.
    Previsioni, monumenti e testi li salva l'app stessa (IndexedDB) con le loro scadenze. */
-const V = 'v105';
-const SHELL = 'viaggio-shell-'+V, LIBS = 'viaggio-libs', TILES = 'viaggio-tiles';
+const V = 'v106';
+const SHELL = 'viaggio-shell-'+V, LIBS = 'viaggio-libs', TILES = 'viaggio-tiles', OFFLINE = 'viaggio-offline';   /* OFFLINE: mappe salvate dall'utente ("Salva visuale offline"), mai tolte da sole */
 const FILES = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest', './region-italia.json', './region-svizzera.json'];
 const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const TILE_HOSTS = ['tiles.openfreemap.org', 'tile.openstreetmap.org', 'server.arcgisonline.com'];
@@ -16,7 +17,7 @@ self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('viaggio-') && ![SHELL, LIBS, TILES].includes(k)).map(k => caches.delete(k))))
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('viaggio-') && ![SHELL, LIBS, TILES, OFFLINE].includes(k)).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -45,6 +46,22 @@ async function networkFirst(cacheName, req){
   try { const res = await fetch(req); if (res.ok) c.put(req, res.clone()); return res; }
   catch(e){ return (await c.match(req, { ignoreSearch: true })) || new Response('[]', { headers: { 'Content-Type': 'application/json' } }); }
 }
+/* mappa vettoriale: tessere, caratteri e simboli hanno la versione nell'indirizzo, quindi se sono nelle mappe salvate si usano subito;
+   lo stile e l'elenco delle tessere (/styles/..., /planet) cambiano: prima la rete (3,5 secondi), se manca o è lenta la copia salvata */
+const isMutableTile = url => url.hostname === 'tiles.openfreemap.org' && (url.pathname === '/planet' || url.pathname.startsWith('/styles/'));
+async function tileFetch(req, url, e){
+  const off = await caches.open(OFFLINE), saved = await off.match(req, { ignoreVary: true });
+  if (!isMutableTile(url)){
+    if (saved) return saved;
+    return staleWhileRevalidate(TILES, req, e);
+  }
+  const t = await caches.open(TILES);
+  try {
+    const res = await Promise.race([fetch(req), new Promise((_, ko) => setTimeout(() => ko(0), 3500))]);
+    if (res && res.ok){ t.put(req, res.clone()); return res; }
+  } catch(x){}
+  return saved || (await t.match(req, { ignoreVary: true })) || new Response('', { status: 504 });
+}
 let trimming = false;
 async function trimTiles(){
   if (trimming) return; trimming = true;
@@ -64,5 +81,5 @@ self.addEventListener('fetch', e => {
     e.respondWith(staleWhileRevalidate(SHELL, req, e)); return;
   }
   if (LIB_HOSTS.includes(url.hostname)){ e.respondWith(cacheFirst(LIBS, req)); return; }
-  if (TILE_HOSTS.includes(url.hostname)){ e.respondWith(staleWhileRevalidate(TILES, req, e)); if (Math.random() < 0.02) e.waitUntil(trimTiles()); return; }
+  if (TILE_HOSTS.includes(url.hostname)){ e.respondWith(tileFetch(req, url, e)); if (Math.random() < 0.02) e.waitUntil(trimTiles()); return; }
 });

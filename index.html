@@ -288,6 +288,8 @@ body.e-near .ectl .nr{display:flex}
 .ecard .acts #eRtClr{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:8px 14px;font:500 13.5px var(--sans);cursor:pointer}
 .c-dot{width:16px;height:16px;border-radius:50%;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;transform:translate(-50%,-50%);cursor:pointer}
 .c-cl{min-width:30px;height:30px;padding:0 6px;box-sizing:border-box;border-radius:15px;background:var(--gold);border:2px solid #f4efde;box-shadow:0 0 0 2px #16211c;color:#16211c;font:700 13px/26px var(--sans);text-align:center;transform:translate(-50%,-50%);cursor:pointer}
+.regb[disabled]{opacity:.45;cursor:default}
+.offbar{height:6px;border-radius:3px;background:var(--line);margin:6px 8px}.offbar i{display:block;height:100%;border-radius:3px;background:var(--acc)}
 .regrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px}
 .regb{border:1px solid var(--sea);background:transparent;border-radius:999px;padding:7px 14px;font:600 13px var(--sans);color:var(--sea);cursor:pointer;flex:none}
 .c-dot.cu{background:var(--brick)}
@@ -621,6 +623,7 @@ footer a{color:var(--tx2)}
       <div class="ectl ezb">
         <button id="eLoc" aria-label="Centra sulla mia posizione"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
         <button class="fo" id="eOpt" aria-label="Opzioni della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        <button id="eOff" aria-label="Salva la visuale offline" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0-4-4m4 4 4-4M5 19h14"/></svg></button>
         <button id="eBg" aria-label="Sfondo della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
         <button id="eFlt" aria-label="Filtri della mappa" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
         <button class="nr" id="eMark" aria-label="Segna questo punto e chiedi a Claude"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
@@ -640,6 +643,7 @@ footer a{color:var(--tx2)}
       </div>
       <div class="eopt eflt" id="eFltP" hidden></div>
       <div class="eopt eflt" id="eBgP" hidden></div>
+      <div class="eopt eflt" id="eOffP" hidden></div>
       <div class="lpm" id="eLpm" hidden></div>
       <div class="navchip" id="eNavChip" hidden></div>
       <button class="epill" id="ePill" hidden></button>
@@ -2310,7 +2314,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v105';
+const APP_V = 'v106';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2416,8 +2420,134 @@ function setIcons(on){
   if (tileBase === 'vector') vtApply();
   else { tileBase = on ? 'osm' : 'clean'; store.set('mapBase', tileBase); setETiles(true); }
 }
-function setFltP(o){ if (o){ if (!zjob) zNote = ''; regNote = ''; regCat = null; verCheck(); fltPanel(); setOpt(false); setBgP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
-function setBgP(o){ if (o){ verCheck(); bgPanel(); setOpt(false); setFltP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
+/* ---------- visuale offline (come su Google Maps) ----------
+   Salva la mappa vettoriale dell'area che vedi (stile, simboli, caratteri e tessere dallo zoom 6 al 14: sopra il 14 la mappa si ingrandisce da sola) nella memoria
+   "viaggio-offline" del telefono, e da vicino in una città anche i monumenti (come "Salva questa zona"). Il service worker usa prima questa memoria (sw.js).
+   Si tiene 60 giorni; "Togli" libera lo spazio. Funziona con lo sfondo Vettoriale (Livelli). */
+const OFF_CACHE = 'viaggio-offline', OFF_MAXTILES = 500;
+let eViews = store.get('views', []) || [], ojob = null, oNote = '', oEst = null;
+const lon2x = (lo, z) => Math.floor((lo + 180) / 360 * (1 << z));
+const lat2y = (la, z) => { const r = la * Math.PI / 180; return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * (1 << z)); };
+function viewTiles(b, zmin, zmax){                 /* b = [sud, ovest, nord, est] */
+  const out = [];
+  for (let z = zmin; z <= zmax; z++){ const x0 = lon2x(b[1], z), x1 = lon2x(b[3], z), y0 = lat2y(b[2], z), y1 = lat2y(b[0], z);
+    for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) out.push([z, x, y]); }
+  return out;
+}
+function offBox(){                                 /* ciò che vedi, allargato del 25%, almeno 9 × 7 km */
+  const bb = emap.getBounds(); let s = bb.getSouth(), w = bb.getWest(), n = bb.getNorth(), e = bb.getEast();
+  const dl = (n - s) * .25, dn = (e - w) * .25; s -= dl; n += dl; w -= dn; e += dn;
+  const mc = (s + n) / 2, mo = (w + e) / 2; if (n - s < .08){ s = mc - .04; n = mc + .04; } if (e - w < .1){ w = mo - .05; e = mo + .05; }
+  return [Math.max(s, -85), w, Math.min(n, 85), e];
+}
+const offVector = () => typeof vtGL !== 'undefined' && !!vtGL;
+function offEstimate(){
+  const b = offBox(), tiles = viewTiles(b, 6, 14).length; let bytes = 1.5e6;           /* stile, simboli e caratteri */
+  for (let z = 6; z <= 14; z++) bytes += viewTiles(b, z, z).length * (z >= 13 ? 60e3 : z >= 11 ? 25e3 : 12e3);
+  const vec = offVector(), mid = (b[0] + b[2]) / 2;
+  oEst = { w: Math.round(haversine(mid, b[1], mid, b[3]) / 1000), h: Math.round(haversine(b[0], b[1], b[2], b[1]) / 1000), tiles, bytes, ok: vec && tiles <= OFF_MAXTILES,
+    why: !vec ? 'Serve lo sfondo Vettoriale (pulsante Livelli): ora stai usando una mappa a immagini.' : tiles > OFF_MAXTILES ? 'Area troppo grande: avvicinati con lo zoom.' : '' };
+}
+const offMb = b => (b / 1048576).toFixed(b > 1e7 ? 0 : 1).replace('.', ',')+' MB';
+function offHtml(){
+  const rn = t => '<div class="rtnote">'+t+'</div>';
+  let h = '<div class="fh">Salva visuale offline</div>'+rn('La mappa (sfondo Vettoriale) e, da vicino in una città, i monumenti di ciò che vedi ora, da usare senza rete per 60 giorni.');
+  if (ojob) return h + rn(esc(ojob.msg)) + '<div class="offbar"><i style="width:'+(ojob.total ? Math.max(3, Math.round(100 * ojob.done / ojob.total)) : 3)+'%"></i></div><button class="regb" data-of="cancel" style="margin:6px 8px">Annulla</button>';
+  const e = oEst;
+  if (e) h += rn('Area: circa '+e.w+' × '+e.h+' km · '+e.tiles+' tessere · ~'+offMb(e.bytes)+' (stima)'+(eNear ? ' · più i monumenti della città' : ''));
+  if (oNote) h += rn(oNote);
+  h += '<button class="regb" data-of="save" style="margin:6px 8px"'+(e && !e.ok ? ' disabled' : '')+'>Salva questa visuale</button>';
+  if (e && !e.ok) h += rn(e.why);
+  if (eViews.length){ h += '<div class="fh">Viste salvate</div>';
+    eViews.forEach((v, i) => { h += '<div class="regrow"><span><b>'+esc(v.name)+'</b><br><span class="muted" style="font-size:12px">'+new Date(v.t).toLocaleDateString('it-IT', { day:'numeric', month:'numeric' })+' · '+offMb(v.bytes)+(v.zone ? ' · con monumenti' : '')+'</span></span><button class="regb" data-of="del" data-i="'+i+'">Togli</button></div>'; }); }
+  return h;
+}
+const offUi = () => { if (!$('eOffP').hidden) $('eOffP').innerHTML = offHtml(); };
+async function vtResources(){                       /* tutto ciò che la mappa vettoriale chiede oltre alle tessere: stile, simboli, caratteri */
+  const urls = new Set([VT_STYLE]), tpl = [], st = await (await fetch(VT_STYLE)).json();
+  if (st.sprite) ['.json', '.png', '@2x.json', '@2x.png'].forEach(x => urls.add(st.sprite + x));
+  if (st.glyphs){
+    const stacks = new Set(), SKIP = ['step', 'interpolate', 'case', 'match', 'get', 'coalesce', 'literal', 'let', 'var', 'concat'];
+    const grab = f => { if (!Array.isArray(f)) return;
+      if (f.length && f.every(x => typeof x === 'string') && !SKIP.includes(f[0])) stacks.add(f.join(','));
+      else if (f[0] === 'literal' && Array.isArray(f[1])) stacks.add(f[1].join(','));
+      else f.forEach(grab); };
+    (st.layers || []).forEach(l => { const f = l.layout && l.layout['text-font']; if (f) grab(f); });
+    stacks.forEach(sk => ['0-255', '256-511', '8192-8447'].forEach(r => urls.add(new URL(st.glyphs.replace('{fontstack}', sk).replace('{range}', r)).href)));
+  }
+  for (const k in (st.sources || {})){
+    const src = st.sources[k]; if (src.type !== 'vector') continue;
+    let tj = src; if (src.url){ urls.add(src.url); tj = await (await fetch(src.url)).json(); }
+    if (tj.tiles && tj.tiles[0]) tpl.push({ t: tj.tiles[0], max: tj.maxzoom || 14, min: tj.minzoom || 0 });
+  }
+  return { urls: [...urls], tpl };
+}
+async function offSave(){
+  if (ojob) return;
+  if (!offVector() || !('caches' in window)){ oNote = 'Serve lo sfondo Vettoriale.'; offUi(); return; }
+  const box = offBox(), name = eCity ? eCity.n : 'questa zona', cityArea = eNear ? wantArea() : null;
+  ojob = { name, done: 0, total: 0, bytes: 0, fail: 0, cancel: false, msg: 'Preparo la mappa…' }; oNote = ''; offUi();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
+  const id = 'v'+Date.now().toString(36); let urls = [], cache = null;
+  try {
+    const res = await vtResources(), tiles = [];
+    res.tpl.forEach(t => viewTiles(box, Math.max(6, t.min), Math.min(14, t.max)).forEach(([z, x, y]) => tiles.push(t.t.replace('{z}', z).replace('{x}', x).replace('{y}', y))));
+    if (tiles.length > OFF_MAXTILES) throw new Error('area troppo grande');
+    urls = res.urls.concat(tiles); ojob.total = urls.length;
+    cache = await caches.open(OFF_CACHE);
+    const queue = urls.map((u, i) => [u, i < res.urls.length]), bad = [];
+    const worker = async () => {
+      while (queue.length && !ojob.cancel){
+        const [u, crit] = queue.shift(); let ok = false;
+        for (let a = 0; a < 3 && !ok; a++){
+          try { const r = await fetch(u);
+            if (r.ok){ const c = r.clone(); await cache.put(u, r); ojob.bytes += (await c.arrayBuffer()).byteLength; ok = true; }
+            else if (r.status === 404 || r.status === 204) ok = true;                       /* tessera vuota (mare aperto): niente da salvare */
+          } catch(e){}
+          if (!ok) await new Promise(r => setTimeout(r, 400 * (a + 1)));
+        }
+        if (!ok){ ojob.fail++; if (crit) bad.push(u); }
+        ojob.done++; ojob.msg = 'Scarico la mappa… '+Math.round(100 * ojob.done / ojob.total)+'% ('+offMb(ojob.bytes)+')';
+        if (ojob.done % 4 === 0 || !queue.length) offUi();
+      } };
+    await Promise.all([0, 1, 2, 3, 4, 5].map(worker));
+    if (ojob.cancel){ for (const u of urls) await cache.delete(u); throw new Error('annullato'); }
+    if (bad.length) throw new Error('stile o simboli non scaricati');
+    if (ojob.fail > urls.length * .15) throw new Error('troppe parti non scaricate ('+ojob.fail+')');
+    const v = { id, name, box, t: Date.now(), tiles: tiles.length, bytes: ojob.bytes, fail: ojob.fail };
+    pc.set('vu:'+id, urls);
+    if (cityArea){                                  /* in città: anche i monumenti, come "Salva questa zona" */
+      ojob.msg = 'Salvo i monumenti…'; ojob.done = ojob.total; offUi();
+      const tm = setInterval(() => { if (zjob && ojob){ ojob.msg = zjob.msg || ojob.msg; offUi(); } }, 700);
+      try { await saveZone({ lat: cityArea.lat, lon: cityArea.lon, radius: cityArea.radius, name });
+        if (eZones.some(z => z.name === name && z.lat === cityArea.lat && z.lon === cityArea.lon)) v.zone = cityArea.lat.toFixed(3)+','+cityArea.lon.toFixed(3)+','+cityArea.radius; } catch(e){}
+      clearInterval(tm);
+    }
+    eViews.push(v); store.set('views', eViews);
+    oNote = '✓ «'+name+'» salvata ('+offMb(v.bytes)+')'+(v.zone || !cityArea ? '' : '. I monumenti non si sono scaricati: riprova con "Salva questa zona".')+(v.fail ? ' · '+v.fail+' parti vuote o non scaricate' : '');
+  } catch(e){
+    oNote = e.message === 'annullato' ? '' : 'Non è riuscito: '+(/area troppo grande|stile o simboli|troppe parti/.test(e.message) ? e.message : 'la rete non risponde')+'. Riprova con una rete migliore.';
+    if (cache && e.message !== 'annullato'){ for (const u of urls) await cache.delete(u).catch(() => {}); }
+  }
+  ojob = null; oEst = null; offEstimate(); offUi();
+}
+async function offDel(i){
+  const v = eViews[i]; if (!v) return;
+  const urls = (await pc.get('vu:'+v.id, 90 * DAY)) || [], keep = new Set();
+  for (const o of eViews) if (o.id !== v.id) ((await pc.get('vu:'+o.id, 90 * DAY)) || []).forEach(u => keep.add(u));   /* tessere condivise con altre viste restano */
+  try { const c = await caches.open(OFF_CACHE); for (const u of urls) if (!keep.has(u)) await c.delete(u); } catch(e){}
+  pc.del('vu:'+v.id);
+  if (v.zone && !eViews.some(o => o.id !== v.id && o.zone === v.zone)){ const zi = eZones.findIndex(z => z.id === v.zone); if (zi >= 0) zoneAct('del', zi); }      /* i monumenti restano se un'altra vista della stessa città li usa */
+  eViews.splice(eViews.findIndex(o => o.id === v.id), 1); store.set('views', eViews); oNote = ''; offUi();
+}
+function setOffP(o){ if (o){ offEstimate(); setOpt(false); setFltP(false); setBgP(false); $('eOffP').innerHTML = offHtml(); } $('eOffP').hidden = !o; $('eOff').setAttribute('aria-expanded', o); }
+$('eOff').onclick = e => { e.stopPropagation(); if ($('eOffP').hidden) oNote = ''; setOffP($('eOffP').hidden); };
+$('eOffP').addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('button[data-of]'); if (!b || b.disabled) return;
+  if (b.dataset.of === 'save') offSave(); else if (b.dataset.of === 'cancel'){ if (ojob) ojob.cancel = true; } else if (b.dataset.of === 'del') offDel(+b.dataset.i); });
+emap.on('moveend', () => { if (!$('eOffP').hidden && !ojob){ offEstimate(); offUi(); } });
+setTimeout(() => { eViews.filter(v => Date.now() - v.t > 60 * DAY).forEach(v => { const i = eViews.findIndex(o => o.id === v.id); if (i >= 0) offDel(i); }); }, 12000);      /* le viste salvate durano 60 giorni */
+function setFltP(o){ if (o){ if (!zjob) zNote = ''; regNote = ''; regCat = null; verCheck(); fltPanel(); setOpt(false); setBgP(false); setOffP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); }
+function setBgP(o){ if (o){ verCheck(); bgPanel(); setOpt(false); setFltP(false); setOffP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
 function panelClick(e){
@@ -2455,6 +2585,7 @@ $('eBgP').addEventListener('click', panelClick);
 document.addEventListener('click', e => {
   if (!$('eFltP').hidden && !e.target.closest('#eFltP,#eFlt')) setFltP(false);
   if (!$('eBgP').hidden && !e.target.closest('#eBgP,#eBg')) setBgP(false);
+  if (!$('eOffP').hidden && !e.target.closest('#eOffP,#eOff')) setOffP(false);
 });
 /* Punti vicini che parlano della stessa cosa diventano un solo punto: stesso posto (entro 30 m),
    oppure stesso nome da fonti diverse con coordinate un po' diverse (entro 150 m). La scheda unisce i testi. */
@@ -3506,7 +3637,7 @@ function optSync(){
   P.querySelector('[data-o=wake]').classList.toggle('dis', !('wakeLock' in navigator));
 }
 function setOpt(o){ $('eOptP').hidden = !o; $('eOpt').setAttribute('aria-expanded', o); if (o) optSync(); }
-$('eOpt').onclick = e => { e.stopPropagation(); if ($('eOptP').hidden) setFltP(false); setOpt($('eOptP').hidden); };
+$('eOpt').onclick = e => { e.stopPropagation(); if ($('eOptP').hidden){ setFltP(false); setOffP(false); } setOpt($('eOptP').hidden); };
 $('eOptP').addEventListener('click', e => {
   const b = e.target.closest('button[data-o]'); if (!b) return;
   const o = b.dataset.o;
