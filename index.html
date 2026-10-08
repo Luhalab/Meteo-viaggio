@@ -1991,7 +1991,7 @@ async function fetchPackItems(lat, lon, radius){
   parts.forEach(p => (p.i || []).forEach(a => {
     const d = haversine(lat, lon, a[0], a[1]); if (d > radius) return;
     const label = KIND[a[2]] || osmLabel({ historic: a[2] });
-    out.push({ title: a[3] || label, extract: a[4] || label, desc: !!a[4], thumb: null, lat: a[0], lon: a[1], dist: d,
+    out.push({ title: a[3] || label, extract: a[4] || label, desc: !!a[4], wp: a[6] || null, thumb: null, lat: a[0], lon: a[1], dist: d,
       url: 'https://www.openstreetmap.org/'+(TY[a[5][0]] || 'node')+'/'+a[5].slice(1), source: 'osm' }); }));
   return out;
 }
@@ -2000,6 +2000,28 @@ async function fetchOsmItems(lat, lon, radius){
   if (p) return p;
   if (!fltOn('nodesc')) return [];                              /* zona senza dati pronti: Overpass dal vivo solo se servono anche i punti senza descrizione */
   return fetchOverpassItems(lat, lon, radius);
+}
+/* punto OpenStreetMap con un collegamento a Wikipedia ("it:Titolo") o a Wikidata ("Q123"): la descrizione si prende da Wikipedia quando lo tocchi,
+   e si ricorda 30 giorni. Con Wikidata cerco la pagina in italiano, altrimenti in inglese. Restituisce { extract, url } o null. */
+const wpMem = {};
+async function osmWikiText(it){
+  const key = it.wp; if (!key) return null;
+  if (key in wpMem) return wpMem[key];
+  const hit = await pc.get('wp:'+key, 30 * DAY);
+  if (hit) return wpMem[key] = hit.none ? null : hit;
+  let lang = null, title = null; const m = /^([a-z]{2,3}(?:-[a-z]+)?):(.+)$/.exec(key);
+  try {
+    if (m){ lang = m[1]; title = m[2]; }
+    else if (/^Q\d+$/.test(key)){
+      const j = await (await fetch('https://www.wikidata.org/w/api.php?action=wbgetentities&ids='+key+'&props=sitelinks&sitefilter=itwiki%7Cenwiki&format=json&origin=*')).json();
+      const sl = (j.entities && j.entities[key] && j.entities[key].sitelinks) || {};
+      if (sl.itwiki){ lang = 'it'; title = sl.itwiki.title; } else if (sl.enwiki){ lang = 'en'; title = sl.enwiki.title; }
+    }
+  } catch(e){ return null; }                                    /* nessuna rete: non ricordo niente, riprovo al prossimo tocco */
+  const sum = lang ? await wikiSummary(lang, title) : null;
+  const w = sum && sum.extract ? { extract: sum.extract, url: sum.content_urls && sum.content_urls.desktop && sum.content_urls.desktop.page || null } : null;
+  if (w || !lang){ pc.set('wp:'+key, w || { none: true }); wpMem[key] = w; }
+  return w;
 }
 const isInSwitzerland = (lat, lon) => lat >= 45.8 && lat <= 47.9 && lon >= 5.9 && lon <= 10.6;
 async function fetchSwissHeritageItems(lat, lon, radius){
@@ -2254,7 +2276,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v100';
+const APP_V = 'v101';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2355,7 +2377,7 @@ function sameName(a, b){
 }
 /* una voce ha una descrizione vera se viene da Claude, da Wikipedia o da un inventario ufficiale; un punto OpenStreetMap ce l'ha solo se i suoi tag la portano
    (altrimenti il testo è solo il tipo: "Luogo di culto", "Sito storico"). Di default i punti senza descrizione non si mostrano (Filtri → "Anche punti senza descrizione"). */
-const hasDesc = o => !!(o.kind || o.source === 'custom' || (o.source === 'osm' ? o.desc : (o.extract || '').trim().length > 20));
+const hasDesc = o => !!(o.kind || o.source === 'custom' || (o.source === 'osm' ? (o.desc || !!o.wp) : (o.extract || '').trim().length > 20));
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
   const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon') && (fltOn('nodesc') || hasDesc(it)); })
@@ -2421,6 +2443,12 @@ function eShowItem(i, fly){
   /* per Wikipedia carico l'introduzione completa, non solo le prime righe */
   if (it.source === 'wikipedia' && it.lang) wikiSummary(it.lang, it.title).then(s => {
     if (eSel === i && s && s.extract && $('eCardTx')) $('eCardTx').textContent = s.extract; });
+  /* punto OpenStreetMap con collegamento a Wikipedia/Wikidata: la descrizione arriva da lì */
+  if (it.source === 'osm' && it.wp && !it.desc) osmWikiText(it).then(w => {
+    if (!w) return; it.extract = w.extract; it.desc = true;
+    if (eSel !== i || !$('eCardTx')) return;
+    $('eCardTx').textContent = w.extract;
+    const acts = document.querySelector('#eCard .acts'); if (acts && w.url) acts.insertAdjacentHTML('beforeend', '<a href="'+esc(w.url)+'" target="_blank" rel="noopener">Vedi su Wikipedia</a>'); });
 }
 function showCard(html){
   sheetOpen(false);
