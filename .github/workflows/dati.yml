@@ -5,6 +5,11 @@ name: Dati OpenStreetMap
 
 on:
   workflow_dispatch:
+  push:                       # parte anche quando cambiano lo script, l'elenco delle regioni o questo file
+    paths:
+      - 'tools/costruisci_dati.py'
+      - 'tools/dati_zone.json'
+      - '.github/workflows/dati.yml'
   schedule:
     - cron: '23 3 1 * *'
 
