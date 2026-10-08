@@ -1880,7 +1880,7 @@ async function sightCard(x){
 }
 emap.on('moveend', () => { clearTimeout(sightT); if (eNear){ eSights.clearLayers(); return; } sightT = setTimeout(loadSights, 600); });
 function eRefreshDots(){
-  if (eNear || emap.getZoom() < DOT_Z){ eDots.clearLayers(); eDotKey=''; return; }
+  if (eNear || emap.getZoom() < DOT_Z || !fltOn('mon')){ eDots.clearLayers(); eDotKey=''; return; }
   clearTimeout(eDotTimer);
   eDotTimer = setTimeout(async () => {
     const c = emap.getCenter(), key = c.lat.toFixed(2)+','+c.lng.toFixed(2);
@@ -2152,7 +2152,7 @@ async function fetchCustomPoints(lat, lon, radius){
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko(new Error('timeout')), ms))]);
 async function loadArea(lat, lon, radius, retry){
   radius = radius || 2000; const my = ++eReq; eArea = {lat, lon, radius}; eLoading = true;
-  $('eRefetch').classList.remove('show');
+  $('eRefetch').classList.remove('show'); $('eRefetch').dataset.retry = '';
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
   const srcs = [ () => fetchWikiItems(lat, lon, radius), () => fetchOverpassItems(lat, lon, radius),
     () => fetchSwissHeritageItems(lat, lon, radius), () => fetchWfsItems(lat, lon, radius, WFS_ER),
@@ -2179,20 +2179,25 @@ async function loadArea(lat, lon, radius, retry){
     if (done){ eLoading = false; setHint(); showPendingItem();
       if (st.slice(0, 5).every(x => x === 'ok') && !memFresh) pc.set(ak, { t: Date.now(), vals });
       else if (memFresh) pc.set(ak, { t: mem.t, vals });
-      if (!eItems.length && !retry && st.some(x => x === 'ko'))      /* una fonte non ha risposto: riprovo tra poco */
-        setTimeout(() => { if (my === eReq) loadArea(lat, lon, radius, true); }, 2500); }
+  }
     else if (eItems.length) setHint();
   };
   if (mem) render();                                    /* quello che ho in memoria si vede subito */
-  await Promise.all(srcs.map((f, i) => st[i] === 'ok' ? Promise.resolve() : withTimeout(Promise.resolve().then(f), TMAX[i])
-    .then(v => { vals[i] = v || []; st[i] = 'ok'; }, () => { st[i] = 'ko'; })
-    .then(render)));
+  const run = i => withTimeout(Promise.resolve().then(srcs[i]), TMAX[i]).then(v => { vals[i] = v || []; st[i] = 'ok'; }, () => { st[i] = 'ko'; }).then(render);
+  await Promise.all(srcs.map((f, i) => st[i] === 'ok' ? Promise.resolve() : run(i)));
+  /* una fonte non ha risposto (spesso OpenStreetMap): dopo 3 secondi riprovo solo quella, una volta; se manca ancora lo dico, con il pulsante per riprovare */
+  const bad = st.map((x, i) => x === 'ko' && i < 5 ? i : -1).filter(i => i >= 0);
+  if (bad.length && !retry && my === eReq){
+    await new Promise(r => setTimeout(r, 3000));
+    if (my === eReq){ bad.forEach(i => { st[i] = 'wait'; }); eLoading = true; await Promise.all(bad.map(run)); }
+  }
+  if (my === eReq && eNear && st.slice(0, 5).some(x => x === 'ko')) showRefetch(true);
 }
 /* filtri: tutti accesi di default, l'app ricorda l'ultima scelta */
 const FLT_ALL = ['mon','sights','claude','storie','foto','percorsi'];
 /* due serie di filtri: in modalità meteo (da lontano) monumenti, luoghi di Claude e curiosità sono spenti di default
    (restano i luoghi imperdibili ★ e i consigli della richiesta di zona); in modalità città sono tutti accesi. Ognuna ricorda le tue scelte. */
-const FLT_DEF = { near: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { nodesc:false }), far: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { mon:false, claude:false, storie:false, nodesc:false }) };
+const FLT_DEF = { near: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { nodesc:false, auto:false }), far: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { mon:false, claude:false, storie:false, nodesc:false }) };
 const FLT_SAVED = store.get('mapFilters2', {}) || {};
 let eFlt = { near: Object.assign({}, FLT_DEF.near, FLT_SAVED.near), far: Object.assign({}, FLT_DEF.far, FLT_SAVED.far) };
 const fltMode = () => eNear ? 'near' : 'far';
@@ -2201,7 +2206,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v97';
+const APP_V = 'v98';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2224,6 +2229,7 @@ function fltPanel(){
     (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
     row('nodesc', 'Anche punti senza descrizione', dot('#9aa0a6'))+
+    (eNear ? row('auto', 'Cerca opere da solo mentre mi sposto', d('#6b7a86', '<span style="font-size:13px;line-height:1">⟳</span>')) : '')+
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
@@ -2280,7 +2286,7 @@ function panelClick(e){
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
+  b.classList.toggle('on', fltOn(b.dataset.f)); if (b.dataset.f === 'auto') areaCheck(); eDotKey = ''; eRefreshDots(); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);
@@ -2305,11 +2311,15 @@ function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
   const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon') && (fltOn('nodesc') || hasDesc(it)); })
     .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
-  const G = [];
-  vis.forEach(i => { const it = eItems[i];
-    const g = G.find(g => { const d = haversine(g.lat, g.lon, it.lat, it.lon);
+  const G = [], grid = new Map(), cell = 0.0016, cl = vis.length ? Math.cos(eItems[vis[0]].lat * Math.PI / 180) : 1;   /* griglia di ~180 m: cerco i gruppi vicini solo nelle celle accanto */
+  const cx = o => Math.floor(o.lon * cl / cell), cy = o => Math.floor(o.lat / cell);
+  vis.forEach(i => { const it = eItems[i], x = cx(it), y = cy(it), cand = [];
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++){ const l = grid.get((x + dx)+','+(y + dy)); if (l) cand.push(...l); }
+    cand.sort((p, q) => p - q);
+    const gi = cand.find(k => { const g = G[k], d = haversine(g.lat, g.lon, it.lat, it.lon);
       return d <= (it.kind ? 35 : 30) || (!it.kind && d <= 150 && g.items.some(j => !eItems[j].kind && sameName(eItems[j].title, it.title))); });
-    if (g) g.items.push(i); else G.push({ lat: it.lat, lon: it.lon, items: [i] }); });
+    if (gi !== undefined) G[gi].items.push(i);
+    else { G.push({ lat: it.lat, lon: it.lon, items: [i] }); const k = cx(it)+','+cy(it); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(G.length - 1); } });
   return G;
 }
 function drawArt(){
@@ -3140,7 +3150,7 @@ function eSelectCity(c, opts){
       eRouteStarts.clearLayers();      /* i percorsi accesi restano sulla mappa anche cambiando città: si tolgono dal pannello Filtri */
       const my = ++eCityReq, tc = c.virt ? Object.assign({}, c.ref, {lat:c.lat, lon:c.lon}) : c;
       openCity(c); eLoadPhotos(c, my); eLoadCur(tc, my); eLoadDo(tc, my); }
-    if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, 2500); }
+    if (!opts.noArea && !(same && eArea && haversine(eArea.lat,eArea.lon,c.lat,c.lon) < 300)){ eItems = []; renderMon(); loadArea(c.lat, c.lon, cityRadius(c)); }
     eRefreshWx(); eRenderHero();
     if (!mapData[c.n]) fetchMissing([c]);
     sheetSync();
@@ -3178,6 +3188,28 @@ function nearestComune(lat, lon){
 window.eGoCity = k => { const c = byName[decodeURIComponent(k)]; if (!c) return; emap.closePopup(); eSelectCity(c, {zoom:true, src:'tap'}); };
 window.eZoomTo = (la, lo) => { emap.closePopup(); emap.flyTo([la, lo], 16); };
 
+/* ---------- area dei monumenti: quanto cercare e quando proporre una nuova ricerca ---------- */
+const cityRadius = c => (c && c.pop >= 150000) ? 3000 : 2500;       /* le grandi città (Genova, Palermo…) si vedono più larghe al primo colpo */
+function wantArea(){
+  const b = emap.getBounds(), c = emap.getCenter(), half = haversine(b.getSouth(), b.getWest(), b.getNorth(), b.getEast()) / 2, pl = placeAt(c.lat, c.lng);
+  if (pl && !pl.virt && haversine(c.lat, c.lng, pl.lat, pl.lon) <= cityRadius(pl) * 0.6)          /* sei nel cuore della città: parto dal suo centro */
+    return { lat: pl.lat, lon: pl.lon, radius: Math.max(cityRadius(pl), Math.min(3500, Math.round(half * 0.8))) };
+  return { lat: c.lat, lon: c.lng, radius: Math.max(1500, Math.min(3500, Math.round(half * 0.8))) };   /* altrove: copro lo schermo */
+}
+const areaCovers = () => { if (!eArea) return false; const b = emap.getBounds(), c = emap.getCenter();
+  /* controllo il centro e i punti al 70% verso gli angoli dello schermo */
+  return [[c.lat, c.lng], [b.getNorth(), b.getWest()], [b.getNorth(), b.getEast()], [b.getSouth(), b.getWest()], [b.getSouth(), b.getEast()]]
+    .every(p => haversine(c.lat + (p[0] - c.lat) * 0.7, c.lng + (p[1] - c.lng) * 0.7, eArea.lat, eArea.lon) <= eArea.radius * 1.02); };
+function showRefetch(retry){ const b = $('eRefetch'); b.textContent = retry ? 'Una fonte non ha risposto: riprova' : 'Cerca opere in questa zona'; b.dataset.retry = retry ? '1' : ''; b.classList.add('show'); }
+let eAutoT = null;
+function areaCheck(){
+  if (!eNear) return;
+  const c = emap.getCenter();
+  if (!eArea){ const w = wantArea(); loadArea(w.lat, w.lon, w.radius); return; }
+  if (areaCovers()){ if (!$('eRefetch').dataset.retry) $('eRefetch').classList.remove('show'); return; }
+  if (fltOn('auto')){ clearTimeout(eAutoT); eAutoT = setTimeout(() => { if (eNear && !eLoading && !areaCovers()){ const w = wantArea(); loadArea(w.lat, w.lon, w.radius); } }, 500); }
+  else showRefetch(false);
+}
 /* ---------- passaggio lontano ↔ vicino ---------- */
 emap.on('zoomend moveend', () => {
   const near = emap.getZoom() >= NEAR_Z;
@@ -3193,14 +3225,13 @@ emap.on('zoomend moveend', () => {
   if (eNear){
     const c = emap.getCenter();
     if (!eCity){ const p0 = placeAt(c.lat, c.lng); if (p0) eSelectCity(p0, {noArea:true}); }   /* città azzerata (tocco su zona vuota da lontano) e area già caricata: la riscelgo, altrimenti il pannello resta vuoto */
-    if (!eArea || haversine(c.lat, c.lng, eArea.lat, eArea.lon) > eArea.radius*0.85){
-      const pl = placeAt(c.lat, c.lng); if (pl && pl !== eCity) eSelectCity(pl, {noArea:true});
-      loadArea(c.lat, c.lng, 1800);
-    } else if (haversine(c.lat, c.lng, eArea.lat, eArea.lon) > 300) $('eRefetch').classList.add('show');
+    if (!eArea || haversine(c.lat, c.lng, eArea.lat, eArea.lon) > eArea.radius*0.85){          /* prima visita o spostamento in un'altra zona: cambio anche la città scelta */
+      const pl = placeAt(c.lat, c.lng); if (pl && pl !== eCity) eSelectCity(pl, {noArea:true}); }
+    areaCheck();
   }
   eRefreshWx(); eRefreshDots(); drawPhotos(); if (!eLoading) setHint();
 });
-$('eRefetch').onclick = () => { const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); };
+$('eRefetch').onclick = () => { if ($('eRefetch').dataset.retry && eArea) loadArea(eArea.lat, eArea.lon, eArea.radius, true); else { const w = wantArea(); loadArea(w.lat, w.lon, w.radius); } };
 
 /* ---------- schermo intero ---------- */
 $('eFull').onclick = () => {
@@ -3713,13 +3744,20 @@ function route(){ renderAskBtn(); setTimeout(() => { emap.invalidateSize(); eRef
 
 /* Overpass: provo il server principale e, se è occupato o lento, due server di riserva */
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
-async function overpass(q, ms){
-  for (const u of OVERPASS){
-    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms || 12000);
-    try { const r = await fetch(u, { method:'POST', body:'data='+encodeURIComponent(q), signal: ctl.signal }); clearTimeout(t);
-      if (r.ok) return await r.json(); } catch(e){ clearTimeout(t); }
-  }
-  throw new Error('overpass');
+function overpass(q, ms){
+  /* il server principale spesso è lento: se non risponde in 4 secondi (o sbaglia) parte subito il successivo, senza aspettare la fine del tempo massimo; vince la prima risposta */
+  return new Promise((resolve, reject) => {
+    let idx = 0, fails = 0, done = false, hedge = null; const ctls = [];
+    const fin = (ok, v) => { if (done) return; done = true; clearTimeout(hedge); ctls.forEach(c => { try { c.abort(); } catch(e){} }); ok ? resolve(v) : reject(v); };
+    const next = () => {
+      if (done || idx >= OVERPASS.length) return;
+      const u = OVERPASS[idx++], ctl = new AbortController(); ctls.push(ctl); const t = setTimeout(() => ctl.abort(), ms || 12000);
+      fetch(u, { method:'POST', body:'data='+encodeURIComponent(q), signal: ctl.signal }).then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(j => fin(true, j)).catch(() => { if (++fails >= OVERPASS.length) fin(false, new Error('overpass')); else next(); }).finally(() => clearTimeout(t));
+      clearTimeout(hedge); if (idx < OVERPASS.length) hedge = setTimeout(next, 4000);
+    };
+    next();
+  });
 }
 /* ---------- locali a richiesta (come Google Maps): compaiono solo toccando il chip, spariscono toccandolo di nuovo ---------- */
 const POIC = {
@@ -3794,7 +3832,7 @@ function poiCard(o){
 function poiSet(k){
   poiOn = poiOn === k ? null : k; ePoiL.clearLayers(); poiList = []; poiBox = null; regChips();
   document.body.classList.toggle('poi-on', !!poiOn);      /* mentre cerchi locali, monumenti e punti di Claude si nascondono */
-  if (!poiOn){ drawArt(); setHint(); if (eNear && !eItems.length && !eLoading){ const c = emap.getCenter(); loadArea(c.lat, c.lng, 1800); } return; }
+  if (!poiOn){ drawArt(); setHint(); if (eNear && !eItems.length && !eLoading){ const w = wantArea(); loadArea(w.lat, w.lon, w.radius); } return; }
   if (!poiOn) return;
   if (emap.getZoom() < 14){ const c = eCity ? [eCity.lat, eCity.lon] : emap.getCenter(); emap.setView(c, 15, { animate:true }); setTimeout(poiLoad, 600); }
   else poiLoad();
