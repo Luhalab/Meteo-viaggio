@@ -534,5 +534,140 @@
     "url": "https://www.balarm.it/luoghi/riserva-naturale-orientata-barcarello-capo-gallo-palermo-2585"
    }
   ]
+ },
+ {
+  "title": "Mondello: bagno e lungomare con i bambini",
+  "lat": 38.2062,
+  "lon": 13.3246,
+  "kind": "da-fare",
+  "citta": "Palermo",
+  "extract": "Ampia spiaggia di sabbia chiara lunga circa 1,5 km: libera alle estremità nord e sud, con lidi a pagamento (ombrellone e lettini circa 30 euro, prezzi variabili). Il Lido Sirenetta è indicato per le famiglie con bimbi. Meglio arrivare prima delle 9, con il bus 806 dal centro in circa 30 minuti. Oggi a Palermo è coperto, 32/22 gradi e vento debole di 10 km/h da NE.",
+  "stops": [
+   {
+    "n": "Spiaggia di Mondello",
+    "lat": 38.2062,
+    "lon": 13.3246
+   },
+   {
+    "n": "Lungomare e Antico Stabilimento Balneare"
+   }
+  ],
+  "url": null,
+  "fonti": [
+   {
+    "t": "Mondello: cosa fare (The Wom)",
+    "url": "https://travel.thewom.it/italia/sicilia/mondello-cosa-fare.html"
+   },
+   {
+    "t": "Spiaggia di Mondello (Travel365)",
+    "url": "https://www.travel365.it/spiaggia-mondello-palermo.htm"
+   },
+   {
+    "t": "Spiaggia di Mondello (Nomado)",
+    "url": "https://www.nomadotravel.app/it/attractions/mondello-beach"
+   }
+  ]
+ },
+ {
+  "title": "Isola delle Femmine: riserva LIPU dal porticciolo",
+  "lat": 38.1983,
+  "lon": 13.2473,
+  "kind": "da-fare",
+  "citta": "Isola delle Femmine",
+  "extract": "La Riserva naturale orientata, gestita dalla LIPU, sta a circa 500 metri dalla costa: ingresso gratuito, visite su prenotazione da luglio a ottobre, ore 9-17.30 (tel. 091 8616167). Si parte dal porticciolo del borgo; le ore meno calde sono più adatte ai bambini. Oggi a Capaci è coperto, 30/24 gradi e vento debole di 15 km/h da E.",
+  "stops": [
+   {
+    "n": "Porticciolo di Isola delle Femmine",
+    "lat": 38.1983,
+    "lon": 13.2473
+   },
+   {
+    "n": "Riserva naturale sull'isola"
+   }
+  ],
+  "url": null,
+  "fonti": [
+   {
+    "t": "Riserva Isola delle Femmine (Balarm)",
+    "url": "https://www.balarm.it/luoghi/riserva-naturale-orientata-isola-delle-femmine-isola-delle-femmine-2590"
+   },
+   {
+    "t": "Regione Siciliana - Decalogo della riserva",
+    "url": "https://orbs.regione.sicilia.it/images/Decalogo_RNO_Isola_delle_Femmine_Italiano.pdf"
+   },
+   {
+    "t": "Isola delle Femmine con i bambini",
+    "url": "https://www.nostrofiglio.it/famiglia/viaggi/isola-delle-femmine-con-i-bambini-la-gita-tra-barche-e-natura-che-sembra-un-avventura"
+   }
+  ]
+ },
+ {
+  "title": "Bagheria: Villa dei Mostri e sfincione",
+  "lat": 38.0797,
+  "lon": 13.5115,
+  "kind": "da-fare",
+  "citta": "Bagheria",
+  "extract": "Villa Palagonia (1715) è decorata da 62 statue grottesche; orari indicati 9-13 e 16-19 da aprile a ottobre, da verificare. Prima o dopo, assaggia lo sfincione bagherese bianco (tuma o ricotta, cipolla, acciughe, pangrattato), ad esempio all'Antico Forno Valenti. Oggi a Bagheria è coperto, 32/22 gradi e vento debole di 10 km/h da SO.",
+  "stops": [
+   {
+    "n": "Villa Palagonia",
+    "lat": 38.0797,
+    "lon": 13.5115
+   },
+   {
+    "n": "Antico Forno Valenti",
+    "lat": 38.0771,
+    "lon": 13.508
+   }
+  ],
+  "url": null,
+  "fonti": [
+   {
+    "t": "Villa Palagonia (ADAC)",
+    "url": "https://maps.adac.de/poi/villa-palagonia-bagheria"
+   },
+   {
+    "t": "Guida sfincione Palermo e Bagheria",
+    "url": "https://doeatbetterexperience.com/it/blog/guida-sfincione-palermo/"
+   }
+  ]
+ },
+ {
+  "title": "Centro commerciale Conca d'Oro: shopping e piano B",
+  "lat": 38.1835,
+  "lon": 13.3082,
+  "kind": "da-fare",
+  "citta": "Palermo",
+  "extract": "Circa cento negozi, area ristoro e ipermercato Auchan, con parcheggio da circa 3000 posti (500 coperti): è il piano B se piove e una pausa dal caldo. Indirizzo: via Lanza di Scalea 1963; orari riportati 9-21 tutti i giorni, da verificare. Oggi a Palermo è coperto, 32/22 gradi e vento di 10 km/h da NE.",
+  "url": null,
+  "fonti": [
+   {
+    "t": "Conca d'Oro (Balarm)",
+    "url": "https://www.balarm.it/eventi/festival-e-rassegne/la-notte-bianca-del-centro-commerciale-conca-d-oro-50940"
+   },
+   {
+    "t": "Orari Conca d'Oro (DoveConviene)",
+    "url": "https://www.doveconviene.it/negozi/bassetti/594195/via-lanza-di-scalea-1963"
+   }
+  ]
+ },
+ {
+  "title": "Museo delle Marionette Pasqualino: pupi e spettacolo",
+  "lat": 38.1185,
+  "lon": 13.3706,
+  "kind": "da-fare",
+  "citta": "Palermo",
+  "extract": "Museo con circa 5000 pezzi tra marionette, ombre e pupi siciliani. Aperto 10-18 da martedì a sabato (domenica e lunedì 10-14); intero 5 euro, ridotto 3 per bambini. Lo spettacolo di pupi da martedì a sabato è alle 17 (10 euro, ridotto 8, 45 minuti, museo incluso). Oggi a Palermo è coperto, 32/22 gradi e vento di 10 km/h da NE.",
+  "url": null,
+  "fonti": [
+   {
+    "t": "Museo Pasqualino - sito ufficiale",
+    "url": "https://museodellemarionette.it/en/contatti-2"
+   },
+   {
+    "t": "Museo Pasqualino (Balarm)",
+    "url": "https://www.balarm.it/luoghi/museo-delle-marionette-antonio-pasqualino-palermo-344"
+   }
+  ]
  }
 ]
