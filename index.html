@@ -295,8 +295,21 @@ body.e-near .ectl .nr{display:flex}
 .regstat.ok{background:#e8f5ee;color:#1d6b43;border-color:#b6dec7}
 .regstat span{flex:1}.regstat a{color:inherit;text-decoration:underline}
 .eopt .regstat button{flex:none;width:auto;min-height:0;padding:0 6px;border:none;background:none;color:inherit;font-size:20px;line-height:1}
+.enote{position:absolute;left:50%;transform:translateX(-50%);top:58px;z-index:900;max-width:calc(100% - 20px);background:rgba(255,246,222,.97);color:#6b4a00;border:1px solid #e8cf8a;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:500;text-align:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.enote.show{opacity:1}
+.ewrap.full .enote{top:calc(58px + env(safe-area-inset-top,0px))}
+.erefetch.show ~ .enote{top:106px}
+.ewrap.full .erefetch.show ~ .enote{top:calc(106px + env(safe-area-inset-top,0px))}
+body.gm .ewrap.full .enote{top:calc(var(--gmTop) + 50px)}
+body.gm .ewrap.full .erefetch.show ~ .enote{top:calc(var(--gmTop) + 98px)}
 .regb[disabled]{opacity:.45;cursor:default}
 .offbar{height:6px;border-radius:3px;background:var(--line);margin:6px 8px}.offbar i{display:block;height:100%;border-radius:3px;background:var(--acc)}
+.fsec{border-top:1px solid var(--line,#e1e6ea)}
+.fsec>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:13px 6px 11px;font:700 12px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#5b6b78}
+.fsec>summary::-webkit-details-marker{display:none}
+.fsec>summary::after{content:'▾';font-size:13px;transition:transform .2s}
+.fsec[open]>summary::after{transform:rotate(180deg)}
+.fsb{padding-bottom:6px}
 .regrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px}
 .regb{border:1px solid var(--sea);background:transparent;border-radius:999px;padding:7px 14px;font:600 13px var(--sans);color:var(--sea);cursor:pointer;flex:none}
 .c-dot.cu{background:var(--brick)}
@@ -656,6 +669,7 @@ footer a{color:var(--tx2)}
       <div class="navchip" id="eNavChip" hidden></div>
       <button class="epill" id="ePill" hidden></button>
       <div class="ehint" id="eHint"></div>
+      <div class="enote" id="eNetNote" role="status"></div>
       <div class="ecard" id="eCard"></div>
       <input type="file" id="eCam" accept="image/*" capture="environment" hidden>
     </div>
@@ -956,7 +970,7 @@ function fetchMissing(list){
     for (let k = 0; k < rest.length; k += 12) mapLoadChunk(rest.slice(k, k + 12), days);
   }, 250);
 }
-function showMapError(){ $('eLegend').innerHTML = '<span class="err">Previsioni non raggiungibili ora. Controlla la connessione.</span>'; }
+function showMapError(){ netNote('Connessione internet scarsa: il meteo non si aggiorna.'); $('eLegend').innerHTML = '<span class="err">Previsioni non raggiungibili ora. Controlla la connessione.</span>'; }
 
 /* ================= MARE & MEDUSE ================= */
 const DOUGLAS=[[0.1,'Calmo','#2a9d8f'],[0.5,'Poco mosso','#6bbf59'],[1.25,'Mosso','#e0b400'],[2.5,'Molto mosso','#e07a00'],[4,'Agitato','#c8431b'],[6,'Molto agitato','#8e1b1b'],[99,'Grosso','#5a0f0f']];
@@ -2005,18 +2019,32 @@ async function fetchOverpassItems(lat, lon, radius){
    File a pezzi di 0,1° nella cartella dati/ (li costruisce GitHub ogni mese con tools/costruisci_dati.py): sono la fonte normale dei monumenti OpenStreetMap.
    Overpass dal vivo resta solo per le zone senza dati pronti, e solo se servono anche i punti senza descrizione. Voce: [lat, lon, tipo, nome, descrizione, id]. */
 let packIdx = null, packIdxAt = 0;
-async function packIndex(){        /* null = non riesco a leggere l'elenco (e non ne ho uno vecchio); {regioni:[]} = ancora nessun dato pronto */
-  if (packIdx && Date.now() - packIdxAt < 30 * 60000) return packIdx;        /* l'elenco delle regioni si rilegge dalla rete almeno ogni 30 minuti (e a ogni apertura) */
-  try { const r = await fetch('dati/index.json', { cache:'no-cache' });
+async function packIndexNet(){                     /* dalla rete, 4 secondi al massimo; aggiorna la copia in memoria appena arriva */
+  try { const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 4000);
+    const r = await fetch('dati/index.json', { cache:'no-cache', signal: ctl.signal }).finally(() => clearTimeout(tm));
     if (r.status === 404) return { regioni: [] };
-    if (r.ok){ const j = await r.json(); if (j && Array.isArray(j.regioni)){ packIdx = j; packIdxAt = Date.now(); pc.set('pack:index', j); return j; } } } catch(e){}
-  if (packIdx) return packIdx;                                                /* senza rete: tengo quello che ho */
-  const old = await pc.get('pack:index', 90 * DAY); if (old){ packIdx = old; packIdxAt = Date.now() - 25 * 60000; return old; }      /* quello salvato: riprovo la rete tra 5 minuti */
+    if (r.ok){ const j = await r.json(); if (j && Array.isArray(j.regioni)){ packIdx = j; packIdxAt = Date.now(); pc.set('pack:index', j); return j; } }
+  } catch(e){}
   return null;
+}
+async function packIndex(){        /* null = non riesco a leggere l'elenco (e non ne ho uno vecchio); {regioni:[]} = ancora nessun dato pronto */
+  if (packIdx && Date.now() - packIdxAt < 30 * 60000) return packIdx;        /* l'elenco delle regioni si rilegge dalla rete a ogni apertura e poi almeno ogni 30 minuti */
+  const cached = packIdx || await pc.get('pack:index', 90 * DAY), net = packIndexNet();
+  if (!cached) return net;                                                    /* niente di salvato: aspetto la rete */
+  /* connessione scarsa: se la rete non risponde in un secondo e mezzo parto con l'elenco salvato; la rete lo aggiorna in sottofondo */
+  const j = await Promise.race([net, new Promise(ok => setTimeout(() => ok(null), 1500))]);
+  if (j) return j;
+  packIdx = packIdx || cached; if (Date.now() - packIdxAt >= 30 * 60000) packIdxAt = Date.now() - 25 * 60000;        /* riprovo la rete tra 5 minuti */
+  return packIdx;
 }
 async function packTile(id, ty, tx){
   const k = 'pack:'+id+':'+ty+'_'+tx, hit = await pc.get(k, 14 * DAY); if (hit) return hit;
-  const r = await fetch('dati/osm/'+id+'/'+ty+'_'+tx+'.json');
+  let r = null;
+  for (let tr = 0; tr < 2 && !r; tr++){
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000);
+    try { r = await fetch('dati/osm/'+id+'/'+ty+'_'+tx+'.json', { signal: ctl.signal }); } catch(e){ r = null; } finally { clearTimeout(tm); }
+  }
+  if (!r) throw new Error('pezzo non raggiungibile');
   if (r.status === 404) return { i: [] };                      /* nessun oggetto in questo pezzo */
   if (!r.ok) throw new Error('pezzo '+r.status);
   const j = await r.json(); pc.set(k, j); return j;
@@ -2269,12 +2297,13 @@ async function loadArea(lat, lon, radius, retry){
   const sz = retry ? null : findZone(lat, lon, radius);          /* zona salvata per l'offline: uso quella, con i suoi dati (anche vecchi, fino a 60 giorni) */
   if (sz){ lat = sz.lat; lon = sz.lon; radius = sz.radius; }
   const my = ++eReq; eArea = {lat, lon, radius, saved: !!sz}; eLoading = true;
+  setTimeout(() => { if (my === eReq && eLoading) netNote('Connessione lenta: i dati stanno arrivando…'); }, 8000);
   $('eRefetch').classList.remove('show'); $('eRefetch').dataset.retry = '';
   setHint('<span class="spin"></span>Cerco chiese, monumenti e castelli…');
   const srcs = areaSrcs(lat, lon, radius), TMAX = AREA_TMAX;
   const vals = srcs.map(() => []), st = srcs.map(() => 'wait');
   /* la memoria dell'area include l'elenco delle regioni con i dati pronti: se ne accendo o spengo una, o si ricostruiscono i dati, le aree si ricaricano da sole */
-  const psig = ((await packIndex().catch(() => null)) || { regioni: [] }).regioni.map(r => r.id+r.data).join(',').split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0).toString(36);
+  const psig = (packIdx || (await pc.get('pack:index', 90 * DAY)) || { regioni: [] }).regioni.map(r => r.id+r.data).join(',').split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0).toString(36);
   const ak = sz ? 'zona:'+sz.id : 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius+(fltOn('nodesc') ? '+' : '')+':'+psig, mem = retry ? null : await pc.get(ak, (sz ? 60 : 7) * DAY);
   if (my !== eReq) return;
   const memFresh = mem && mem.t && Date.now() - mem.t < (sz ? 60 : 3) * DAY;
@@ -2303,6 +2332,7 @@ async function loadArea(lat, lon, radius, retry){
   await Promise.all(srcs.map((f, i) => st[i] === 'ok' ? Promise.resolve() : run(i)));
   /* una fonte non ha risposto (spesso OpenStreetMap): dopo 3 secondi riprovo solo quella, una volta; se manca ancora lo dico, con il pulsante per riprovare */
   const bad = st.map((x, i) => x === 'ko' && i < 5 ? i : -1).filter(i => i >= 0);
+  if (bad.length && my === eReq) netNote('Connessione internet scarsa: alcuni dati non sono arrivati.');
   if (bad.length && !retry && my === eReq){
     await new Promise(r => setTimeout(r, 3000));
     if (my === eReq){ bad.forEach(i => { st[i] = 'wait'; }); eLoading = true; await Promise.all(bad.map(run)); }
@@ -2322,7 +2352,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v109';
+const APP_V = 'v110';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2333,6 +2363,16 @@ function verCheck(){
 /* ---------- regioni dei dati OpenStreetMap: accendere e spegnere dall'app ----------
    Il tocco chiama api/regione.js (funzione di Vercel, protetta da un PIN: il token di GitHub sta solo sul sito), che avvia il workflow "Dati OpenStreetMap".
    Dopo qualche minuto GitHub pubblica i dati e l'app se ne accorge da sola (controlla dati/index.json ogni 20 secondi). */
+/* nota che sparisce da sola quando la connessione è scarsa o manca (al massimo una ogni 45 secondi) */
+let netNoteAt = 0, netNoteT = null;
+function netNote(text){
+  const now = Date.now(); if (now - netNoteAt < 45000) return; netNoteAt = now;
+  const e = $('eNetNote'); if (!e) return; e.textContent = text; e.classList.add('show'); clearTimeout(netNoteT); netNoteT = setTimeout(() => e.classList.remove('show'), 7000);
+}
+window.addEventListener('offline', () => { netNoteAt = 0; netNote('Sei offline: uso i dati salvati sul telefono.'); });
+window.addEventListener('online', () => { const e = $('eNetNote'); if (e) e.classList.remove('show'); });
+setTimeout(() => { const c = navigator.connection; if (c && (/(^|-)2g$/.test(c.effectiveType || '') || c.saveData)) netNote('Connessione internet lenta: il caricamento può richiedere più tempo.'); }, 4000);
+let fltSec = Object.assign({ map: true, off: false, reg: false, rt: false }, store.get('fltSec', {}) || {});      /* sezioni dei Filtri aperte o chiuse */
 let regCat = null, regBuilt = {}, regMsg = null, regOpen = false, regPollT = null, regLoading = false, REG_POLL_MS = 20000, regStat = null, regRowNote = null, regTickT = null, regChipHide = null;
 const REG_GH = 'https://github.com/Luhalab/Meteo-viaggio/actions/workflows/dati.yml';
 async function regLoad(){
@@ -2343,7 +2383,7 @@ async function regLoad(){
 }
 function regHtml(){
   const pend = store.get('regPend', null), rn = t => '<div class="rtnote">'+t+'</div>';
-  let h = '<div class="fh">Dati per regione</div>'+rn('Monumenti di OpenStreetMap. Accendere richiede qualche minuto.');
+  let h = rn('Monumenti di OpenStreetMap. Accendere richiede qualche minuto.');
   if (!regCat){ if (!regLoading) regLoad(); return h + rn('Carico l\'elenco…'); }
   const row = r => { const b = regBuilt[r.id], p = pend && pend.id === r.id;
     const st = p ? esc((regStat && regStat.text) || (pend.az === 'accendi' ? 'in preparazione…' : 'la tolgo…')) : b ? b.n.toLocaleString('it-IT')+' voci · dal '+new Date(b.data+'T12:00:00').toLocaleDateString('it-IT', { day:'numeric', month:'numeric' }) : 'spenta';
@@ -2433,19 +2473,22 @@ function fltPanel(){
     otherRoutesCache.map((id, i) => { const d = eRouteDefs.get(id) || {};
       return '<button data-rx="'+i+'" class="bgr on"><span class="rtl"><span class="rtc" style="background:'+(d.color || '#2470b8')+'"></span><span>'+esc(d.title || 'Percorso')+'</span></span><i></i></button>'; }).join('')+
     (eNear && rs.length ? '' : '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>') : '';
-  $('eFltP').innerHTML = regStatusHtml()+'<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
-    (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
-    row('mon', 'Monumenti e opere', dot('#b98f3e'))+
-    row('nodesc', 'Tutte le opere, anche minori', dot('#9aa0a6'))+
-    (fltOn('nodesc') ? row('chiese', 'Comprese le chiese minori', d('#9aa0a6', '<span style="font-size:13px;line-height:1">✝</span>')) : '')+
-    row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
-    row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
-    row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
-    zoneHtml()+regHtml()+osec+(eNear ? '<div class="fh">Percorsi in zona</div>' : (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : ''))+
-    (!eNear ? '' : rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+routeColor(r, i)+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
-        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+
-        (myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '')
-      : '<div class="fh" style="text-transform:none;letter-spacing:0;font-weight:400">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>');
+  const sec = (id, title, body) => '<details class="fsec" data-s="'+id+'"'+(fltSec[id] ? ' open' : '')+' ontoggle="fltSec[this.dataset.s] = this.open; store.set(\'fltSec\', fltSec)"><summary>'+title+'</summary><div class="fsb">'+body+'</div></details>';
+  const manage = myRoutes().length ? '<button data-myr="1" class="act"><span>Gestisci i miei percorsi ('+myRoutes().length+')</span></button>' : '';
+  const rtBody = osec + (eNear ? (rs.length ? rs.map((r, i) => '<button data-r="'+i+'" class="bgr'+(eRoutesOn.has(r.id) ? ' on' : '')+'"><span class="rtl"><span class="rtc" style="background:'+routeColor(r, i)+'"></span><span>'+esc(r.title)+'<small>'+esc(r.sub)+(r.mine ? ' · <u data-del="'+esc(r.myId)+'">elimina</u>' : '')+'</small></span></span><i></i></button>').join('')+
+        (eRoutesOn.size ? '<button data-roff="1" class="act"><span>Nascondi tutti i percorsi</span></button>' : '')+manage
+      : '<div class="rtnote">'+(eCity ? 'Nessun percorso per '+esc(eCity.n)+'. Puoi crearne uno: tieni premuto sulla mappa, aggiungi le tappe e «Salva percorso».' : 'Scegli una città per vedere i suoi percorsi.')+'</div>') : manage);
+  $('eFltP').innerHTML = regStatusHtml()+
+    sec('map', 'Filtri sulla mappa · '+(eNear ? 'vista città' : 'vista meteo'),
+      row('mon', 'Monumenti e opere', dot('#b98f3e'))+
+      row('nodesc', 'Tutte le opere, anche minori', dot('#9aa0a6'))+
+      (fltOn('nodesc') ? row('chiese', 'Comprese le chiese minori', d('#9aa0a6', '<span style="font-size:13px;line-height:1">✝</span>')) : '')+
+      row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
+      row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
+      row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0')))+
+    sec('off', 'Uso offline', '<div id="offSec">'+offHtml()+'</div>'+zoneHtml())+
+    sec('reg', 'Dati per regione', regHtml())+
+    ((eNear || osec || manage) ? sec('rt', 'Percorsi in zona', rtBody) : '');
   $('eFltP').insertAdjacentHTML('beforeend', verHtml());
 }
 function bgPanel(){
@@ -2485,28 +2528,32 @@ function offBox(){                                 /* ciò che vedi, allargato d
   return [Math.max(s, -85), w, Math.min(n, 85), e];
 }
 const offVector = () => typeof vtGL !== 'undefined' && !!vtGL;
+function offPlan(b){                              /* il dettaglio massimo possibile (zoom 14 = strade ed edifici) che entra nel limite di tessere */
+  for (let zmax = 14; zmax >= 10; zmax--){ const n = viewTiles(b, 6, zmax).length; if (n <= OFF_MAXTILES) return { zmax, tiles: n }; }
+  return { zmax: 0, tiles: viewTiles(b, 6, 10).length };
+}
 function offEstimate(){
-  const b = offBox(), tiles = viewTiles(b, 6, 14).length; let bytes = 1.5e6;           /* stile, simboli e caratteri */
-  for (let z = 6; z <= 14; z++) bytes += viewTiles(b, z, z).length * (z >= 13 ? 60e3 : z >= 11 ? 25e3 : 12e3);
+  const b = offBox(), plan = offPlan(b), zt = plan.zmax || 10; let bytes = 1.5e6;           /* stile, simboli e caratteri */
+  for (let z = 6; z <= zt; z++) bytes += viewTiles(b, z, z).length * (z >= 13 ? 60e3 : z >= 11 ? 25e3 : 12e3);
   const vec = offVector(), mid = (b[0] + b[2]) / 2;
-  oEst = { w: Math.round(haversine(mid, b[1], mid, b[3]) / 1000), h: Math.round(haversine(b[0], b[1], b[2], b[1]) / 1000), tiles, bytes, ok: vec && tiles <= OFF_MAXTILES,
-    why: !vec ? 'Serve lo sfondo Vettoriale (pulsante Livelli): ora stai usando una mappa a immagini.' : tiles > OFF_MAXTILES ? 'Area troppo grande: avvicinati con lo zoom.' : '' };
+  oEst = { w: Math.round(haversine(mid, b[1], mid, b[3]) / 1000), h: Math.round(haversine(b[0], b[1], b[2], b[1]) / 1000), tiles: plan.tiles, zmax: plan.zmax, bytes, ok: vec && plan.zmax > 0,
+    why: !vec ? 'Serve lo sfondo Vettoriale (pulsante Livelli): ora stai usando una mappa a immagini.' : plan.zmax === 0 ? 'Zona troppo grande: ingrandisci la mappa.' : '' };
 }
 const offMb = b => (b / 1048576).toFixed(b > 1e7 ? 0 : 1).replace('.', ',')+' MB';
 function offHtml(){
   const rn = t => '<div class="rtnote">'+t+'</div>';
-  let h = '<div class="fh">Salva visuale offline</div>'+rn('La mappa (sfondo Vettoriale) e, da vicino in una città, i monumenti di ciò che vedi ora, da usare senza rete per 60 giorni.');
+  let h = rn(eNear ? 'La mappa e i monumenti di ciò che vedi, da usare senza rete per 60 giorni. Sposta e ingrandisci la mappa per scegliere la zona.' : 'La mappa di ciò che vedi, da usare senza rete per 60 giorni. Sposta e ingrandisci la mappa per scegliere la zona; per salvare anche i monumenti avvicinati a una città.');
   if (ojob) return h + rn(esc(ojob.msg)) + '<div class="offbar"><i style="width:'+(ojob.total ? Math.max(3, Math.round(100 * ojob.done / ojob.total)) : 3)+'%"></i></div><button class="regb" data-of="cancel" style="margin:6px 8px">Annulla</button>';
   const e = oEst;
-  if (e) h += rn('Area: circa '+e.w+' × '+e.h+' km · '+e.tiles+' tessere · ~'+offMb(e.bytes)+' (stima)'+(eNear ? ' · più i monumenti della città' : ''));
+  if (e) h += rn('Zona: circa '+e.w+' × '+e.h+' km · '+e.tiles+' tessere · ~'+offMb(e.bytes)+' (stima)'+(e.ok ? ' · '+(e.zmax >= 14 ? 'dettaglio massimo (strade ed edifici)' : e.zmax >= 12 ? 'buon dettaglio (strade e quartieri)' : 'dettaglio basso (solo strade principali e città): avvicinati per più dettaglio') : ''));
   if (oNote) h += rn(oNote);
   h += '<button class="regb" data-of="save" style="margin:6px 8px"'+(e && !e.ok ? ' disabled' : '')+'>Salva questa visuale</button>';
   if (e && !e.ok) h += rn(e.why);
-  if (eViews.length){ h += '<div class="fh">Viste salvate</div>';
+  if (eViews.length){ h += '<div class="fh" style="margin-top:6px">Viste salvate</div>';
     eViews.forEach((v, i) => { h += '<div class="regrow"><span><b>'+esc(v.name)+'</b><br><span class="muted" style="font-size:12px">'+new Date(v.t).toLocaleDateString('it-IT', { day:'numeric', month:'numeric' })+' · '+offMb(v.bytes)+(v.zone ? ' · con monumenti' : '')+'</span></span><button class="regb" data-of="del" data-i="'+i+'">Togli</button></div>'; }); }
   return h;
 }
-const offUi = () => { if (!$('eOffP').hidden) $('eOffP').innerHTML = offHtml(); };
+const offUi = () => { const e = $('offSec'); if (e) e.innerHTML = offHtml(); };
 async function vtResources(){                       /* tutto ciò che la mappa vettoriale chiede oltre alle tessere: stile, simboli, caratteri */
   const urls = new Set([VT_STYLE]), tpl = [], st = await (await fetch(VT_STYLE)).json();
   if (st.sprite) ['.json', '.png', '@2x.json', '@2x.png'].forEach(x => urls.add(st.sprite + x));
@@ -2535,7 +2582,8 @@ async function offSave(){
   const id = 'v'+Date.now().toString(36); let urls = [], cache = null;
   try {
     const res = await vtResources(), tiles = [];
-    res.tpl.forEach(t => viewTiles(box, Math.max(6, t.min), Math.min(14, t.max)).forEach(([z, x, y]) => tiles.push(t.t.replace('{z}', z).replace('{x}', x).replace('{y}', y))));
+    const plan = offPlan(box); if (!plan.zmax) throw new Error('area troppo grande');
+    res.tpl.forEach(t => viewTiles(box, Math.max(6, t.min), Math.min(plan.zmax, t.max)).forEach(([z, x, y]) => tiles.push(t.t.replace('{z}', z).replace('{x}', x).replace('{y}', y))));
     if (tiles.length > OFF_MAXTILES) throw new Error('area troppo grande');
     urls = res.urls.concat(tiles); ojob.total = urls.length;
     cache = await caches.open(OFF_CACHE);
@@ -2558,7 +2606,7 @@ async function offSave(){
     if (ojob.cancel){ for (const u of urls) await cache.delete(u); throw new Error('annullato'); }
     if (bad.length) throw new Error('stile o simboli non scaricati');
     if (ojob.fail > urls.length * .15) throw new Error('troppe parti non scaricate ('+ojob.fail+')');
-    const v = { id, name, box, t: Date.now(), tiles: tiles.length, bytes: ojob.bytes, fail: ojob.fail };
+    const v = { id, name, box, t: Date.now(), tiles: tiles.length, zmax: plan.zmax, bytes: ojob.bytes, fail: ojob.fail };
     pc.set('vu:'+id, urls);
     if (cityArea){                                  /* in città: anche i monumenti, come "Salva questa zona" */
       ojob.msg = 'Salvo i monumenti…'; ojob.done = ojob.total; offUi();
@@ -2584,13 +2632,13 @@ async function offDel(i){
   if (v.zone && !eViews.some(o => o.id !== v.id && o.zone === v.zone)){ const zi = eZones.findIndex(z => z.id === v.zone); if (zi >= 0) zoneAct('del', zi); }      /* i monumenti restano se un'altra vista della stessa città li usa */
   eViews.splice(eViews.findIndex(o => o.id === v.id), 1); store.set('views', eViews); oNote = ''; offUi();
 }
-function setOffP(o){ if (o){ offEstimate(); setOpt(false); setFltP(false); setBgP(false); $('eOffP').innerHTML = offHtml(); } $('eOffP').hidden = !o; $('eOff').setAttribute('aria-expanded', o); }
-$('eOff').onclick = e => { e.stopPropagation(); if ($('eOffP').hidden) oNote = ''; setOffP($('eOffP').hidden); };
-$('eOffP').addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('button[data-of]'); if (!b || b.disabled) return;
-  if (b.dataset.of === 'save') offSave(); else if (b.dataset.of === 'cancel'){ if (ojob) ojob.cancel = true; } else if (b.dataset.of === 'del') offDel(+b.dataset.i); });
-emap.on('moveend', () => { if (!$('eOffP').hidden && !ojob){ offEstimate(); offUi(); } });
+function setOffP(){}      /* il pannello a parte non c'è più: la visuale offline sta nei Filtri (sezione "Uso offline") */
+$('eOff').onclick = e => { e.stopPropagation();
+  if (!$('eFltP').hidden && fltSec.off){ setFltP(false); return; }
+  fltSec.off = true; store.set('fltSec', fltSec); setFltP(true); setTimeout(() => { const el = $('offSec'); if (el) el.scrollIntoView({ block:'nearest' }); }, 80); };
+emap.on('moveend', () => { if (!$('eFltP').hidden && fltSec.off && !ojob){ offEstimate(); offUi(); } });
 setTimeout(() => { eViews.filter(v => Date.now() - v.t > 60 * DAY).forEach(v => { const i = eViews.findIndex(o => o.id === v.id); if (i >= 0) offDel(i); }); }, 12000);      /* le viste salvate durano 60 giorni */
-function setFltP(o){ if (o){ if (!zjob) zNote = ''; if (regMsg) regMsg.seen = true; regCat = null; verCheck(); fltPanel(); setOpt(false); setBgP(false); setOffP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); regBadge(); }
+function setFltP(o){ if (o){ offEstimate(); if (!zjob) zNote = ''; if (regMsg) regMsg.seen = true; regCat = null; verCheck(); fltPanel(); setOpt(false); setBgP(false); setOffP(false); } $('eFltP').hidden = !o; $('eFlt').setAttribute('aria-expanded', o); regBadge(); }
 function setBgP(o){ if (o){ verCheck(); bgPanel(); setOpt(false); setFltP(false); setOffP(false); } $('eBgP').hidden = !o; $('eBg').setAttribute('aria-expanded', o); }
 $('eFlt').onclick = e => { e.stopPropagation(); setFltP($('eFltP').hidden); };
 $('eBg').onclick = e => { e.stopPropagation(); setBgP($('eBgP').hidden); };
@@ -2618,6 +2666,7 @@ function panelClick(e){
   const rx = e.target.closest('button[data-rx]'); if (rx){ const id = otherRoutesCache[+rx.dataset.rx];
     if (id && eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); routesUI(); } return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
+  const ob = e.target.closest('button[data-of]'); if (ob){ if (!ob.disabled){ if (ob.dataset.of === 'save') offSave(); else if (ob.dataset.of === 'cancel'){ if (ojob) ojob.cancel = true; } else if (ob.dataset.of === 'del') offDel(+ob.dataset.i); } return; }
   const rsb = e.target.closest('button[data-rs]'); if (rsb){ regMsg = null; regBadge(); zoneUi(); return; }
   const zb = e.target.closest('button[data-z]'); if (zb){ zoneAct(zb.dataset.z, zb.dataset.i); return; }
   const gb = e.target.closest('button[data-g]'); if (gb){ const [gid, gaz] = gb.dataset.g.split('|'); regAct(gid, gaz); return; }
@@ -3540,13 +3589,13 @@ window.eZoomTo = (la, lo) => { emap.closePopup(); emap.flyTo([la, lo], 16); };
 let eZones = store.get('zones', []) || [], zjob = null, zNote = '', ZJ_DELAYS = [10, 30, 60, 120, 240];
 const findZone = (lat, lon, radius) => eZones.find(z => haversine(lat, lon, z.lat, z.lon) + Math.min(radius, z.radius) * 0.7 <= z.radius);
 const zoneUi = () => { if (!$('eFltP').hidden) fltPanel(); };
-function zoneHtml(){
-  const rn = t => '<div class="rtnote">'+esc(t)+'</div>';
-  let h = '<div class="fh">Uso offline</div>';
-  if (zjob) h += rn(zjob.msg || ('Salvo «'+zjob.name+'»…'))+'<button data-z="cancel" class="act"><span>Annulla il salvataggio</span></button>';
-  else if (eNear) h += (zNote ? rn(zNote) : '')+'<button data-z="save" class="act"><span>Salva questa zona per l\'offline (60 giorni)</span></button>';
-  else if (!eZones.length) h += rn('Da vicino, in una città, puoi salvare la zona per usarla anche senza rete.');
-  eZones.forEach((z, i) => { h += rn(z.name+' · salvata il '+new Date(z.t).toLocaleDateString('it-IT', { day:'numeric', month:'numeric' })+' · raggio '+(z.radius / 1000).toFixed(1).replace('.', ',')+' km')+
+function zoneHtml(){          /* zone di monumenti salvate da sole (prima di "Salva visuale offline"); quelle legate a una vista si gestiscono con la vista */
+  const rn = t => '<div class="rtnote">'+esc(t)+'</div>', linked = new Set(eViews.map(v => v.zone).filter(Boolean)), own = eZones.map((z, i) => [z, i]).filter(([z]) => !linked.has(z.id));
+  let h = '';
+  if (zjob && !ojob) h += rn(zjob.msg || ('Salvo «'+zjob.name+'»…'))+'<button data-z="cancel" class="act"><span>Annulla il salvataggio</span></button>';
+  else if (zNote && !ojob) h += rn(zNote);
+  if (own.length) h += '<div class="fh" style="margin-top:6px">Monumenti salvati</div>';
+  own.forEach(([z, i]) => { h += rn(z.name+' · salvata il '+new Date(z.t).toLocaleDateString('it-IT', { day:'numeric', month:'numeric' })+' · raggio '+(z.radius / 1000).toFixed(1).replace('.', ',')+' km')+
     '<div style="display:flex;gap:6px"><button data-z="up" data-i="'+i+'" class="act"><span>Aggiorna</span></button><button data-z="del" data-i="'+i+'" class="act"><span>Togli</span></button></div>'; });
   return h;
 }
