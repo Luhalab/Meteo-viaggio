@@ -647,6 +647,7 @@ footer a{color:var(--tx2)}
         <button data-o="north" class="act"><span>Nord in alto</span></button>
         <button data-o="lock"><span>Blocca la mappa<small>niente spostamenti per sbaglio</small></span><i></i></button>
         <button data-o="wake"><span>Schermo sempre acceso<small>finché resti a schermo intero</small></span><i></i></button>
+        <button data-o="auto"><span>Cerca opere da solo mentre mi sposto<small>da vicino, ricarica i monumenti quando esci dall'area</small></span><i></i></button>
       </div>
       <div class="eopt eflt" id="eFltP" hidden></div>
       <div class="eopt eflt" id="eBgP" hidden></div>
@@ -1996,7 +1997,7 @@ async function fetchOverpassItems(lat, lon, radius){
     const t = el.tags || {}; if (la == null || lo == null) return null;
     const label = osmLabel(t);
     const dsc = (t['description:it'] || t.description || '').trim();
-    return { title: t.name || t['name:it'] || label, extract: dsc || label, desc: !!dsc, thumb: null, lat: la, lon: lo,
+    return { title: t.name || t['name:it'] || label, extract: dsc || label, desc: !!dsc, chiesa: t.amenity === 'place_of_worship' && !t.historic && !dsc && !t.wikipedia && !t.wikidata, thumb: null, lat: la, lon: lo,
       dist: haversine(lat, lon, la, lo), url: 'https://www.openstreetmap.org/'+el.type+'/'+el.id, source: 'osm' };
   }).filter(Boolean);
 }
@@ -2034,7 +2035,7 @@ async function fetchPackItems(lat, lon, radius){
   parts.forEach(p => (p.i || []).forEach(a => {
     const d = haversine(lat, lon, a[0], a[1]); if (d > radius || seen.has(a[5])) return; seen.add(a[5]);   /* due regioni vicine possono avere lo stesso oggetto */
     const label = KIND[a[2]] || osmLabel({ historic: a[2] });
-    out.push({ title: a[3] || label, extract: a[4] || label, desc: !!a[4], wp: a[6] || null, thumb: null, lat: a[0], lon: a[1], dist: d,
+    out.push({ title: a[3] || label, extract: a[4] || label, desc: !!a[4], wp: a[6] || null, chiesa: a[2] === '@w' && !a[4] && !a[6], thumb: null, lat: a[0], lon: a[1], dist: d,
       url: 'https://www.openstreetmap.org/'+(TY[a[5][0]] || 'node')+'/'+a[5].slice(1), source: 'osm' }); }));
   return out;
 }
@@ -2312,7 +2313,7 @@ async function loadArea(lat, lon, radius, retry){
 const FLT_ALL = ['mon','sights','claude','storie','foto','percorsi'];
 /* due serie di filtri: in modalità meteo (da lontano) monumenti, luoghi di Claude e curiosità sono spenti di default
    (restano i luoghi imperdibili ★ e i consigli della richiesta di zona); in modalità città sono tutti accesi. Ognuna ricorda le tue scelte. */
-const FLT_DEF = { near: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { nodesc:false, auto:false }), far: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { mon:false, claude:false, storie:false, nodesc:false }) };
+const FLT_DEF = { near: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { nodesc:false, chiese:true }), far: Object.assign(Object.fromEntries(FLT_ALL.map(k => [k, true])), { mon:false, claude:false, storie:false, nodesc:false, chiese:true }) };
 const FLT_SAVED = store.get('mapFilters2', {}) || {};
 let eFlt = { near: Object.assign({}, FLT_DEF.near, FLT_SAVED.near), far: Object.assign({}, FLT_DEF.far, FLT_SAVED.far) };
 const fltMode = () => eNear ? 'near' : 'far';
@@ -2321,7 +2322,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v108';
+const APP_V = 'v109';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2435,8 +2436,8 @@ function fltPanel(){
   $('eFltP').innerHTML = regStatusHtml()+'<div class="fh">Sulla mappa · '+(eNear ? 'vista città' : 'vista meteo')+'</div>'+
     (eNear ? '' : '<div class="rtnote">In vista meteo monumenti, luoghi e curiosità di Claude sono spenti di default: accendili se vuoi vederli. Ricordo le scelte separatamente per la vista città.</div>')+
     row('mon', 'Monumenti e opere', dot('#b98f3e'))+
-    row('nodesc', 'Anche punti senza descrizione', dot('#9aa0a6'))+
-    (eNear ? row('auto', 'Cerca opere da solo mentre mi sposto', d('#6b7a86', '<span style="font-size:13px;line-height:1">⟳</span>')) : '')+
+    row('nodesc', 'Tutte le opere, anche minori', dot('#9aa0a6'))+
+    (fltOn('nodesc') ? row('chiese', 'Comprese le chiese minori', d('#9aa0a6', '<span style="font-size:13px;line-height:1">✝</span>')) : '')+
     row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
     row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
     row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0'))+
@@ -2622,7 +2623,7 @@ function panelClick(e){
   const gb = e.target.closest('button[data-g]'); if (gb){ const [gid, gaz] = gb.dataset.g.split('|'); regAct(gid, gaz); return; }
   const b = e.target.closest('button[data-f]'); if (!b) return;
   eFlt[fltMode()][b.dataset.f] = !fltOn(b.dataset.f); store.set('mapFilters2', eFlt);
-  b.classList.toggle('on', fltOn(b.dataset.f)); if (b.dataset.f === 'auto') areaCheck(); if (b.dataset.f === 'nodesc' && fltOn('nodesc') && eNear && eArea && !eArea.saved) loadArea(eArea.lat, eArea.lon, eArea.radius); eDotKey = ''; eRefreshDots(); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
+  b.classList.toggle('on', fltOn(b.dataset.f)); if (b.dataset.f === 'nodesc'){ if (fltOn('nodesc') && eNear && eArea && !eArea.saved) loadArea(eArea.lat, eArea.lon, eArea.radius); const st = $('eFltP').scrollTop; fltPanel(); $('eFltP').scrollTop = st; }      /* la riga "chiese minori" compare o sparisce */ eDotKey = ''; eRefreshDots(); drawArt(); renderMon(); drawPhotos(); drawRouteStarts(); drawSights();
 }
 $('eFltP').addEventListener('click', panelClick);
 $('eBgP').addEventListener('click', panelClick);
@@ -2644,9 +2645,12 @@ function sameName(a, b){
 /* una voce ha una descrizione vera se viene da Claude, da Wikipedia o da un inventario ufficiale; un punto OpenStreetMap ce l'ha solo se i suoi tag la portano
    (altrimenti il testo è solo il tipo: "Luogo di culto", "Sito storico"). Di default i punti senza descrizione non si mostrano (Filtri → "Anche punti senza descrizione"). */
 const hasDesc = o => !!(o.kind || o.source === 'custom' || (o.source === 'osm' ? (o.desc || !!o.wp) : (o.extract || '').trim().length > 20));
+/* opere importanti = con descrizione, collegamento a Wikipedia, da Wikipedia/inventari/Claude; "Tutte le opere, anche minori" mostra anche le altre; dentro, "Comprese le chiese minori"
+   (luoghi di culto OpenStreetMap senza descrizione né Wikipedia) si può spegnere. */
+const artShown = o => hasDesc(o) || (fltOn('nodesc') && !(o.chiesa && !fltOn('chiese')));
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
-  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon') && (fltOn('nodesc') || hasDesc(it)); })
+  const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon') && artShown(it); })
     .sort((x, y) => rank(eItems[x]) - rank(eItems[y]));
   const G = [], grid = new Map(), cell = 0.0016, cl = vis.length ? Math.cos(eItems[vis[0]].lat * Math.PI / 180) : 1;   /* griglia di ~180 m: cerco i gruppi vicini solo nelle celle accanto */
   const cx = o => Math.floor(o.lon * cl / cell), cy = o => Math.floor(o.lat / cell);
@@ -2732,7 +2736,7 @@ function setHint(html){
 function renderMon(){
   if (!eItems.length && !eCity){ $('eMonS').hidden=true; return; }
   $('eMonS').hidden=false;
-  $('eMonT').textContent = eCity ? 'Monumenti '+placeDi(eCity) : 'Monumenti in zona'; const shown = o => !o.kind && (fltOn('nodesc') || hasDesc(o)); const monN = eItems.filter(shown).length; $('eMonN').textContent = monN || '';
+  $('eMonT').textContent = eCity ? 'Monumenti '+placeDi(eCity) : 'Monumenti in zona'; const shown = o => !o.kind && artShown(o); const monN = eItems.filter(shown).length; $('eMonN').textContent = monN || '';
   if (!monN){ $('eMon').innerHTML = '<span class="muted">'+(eItems.some(o => !o.kind) ? 'Nessun monumento con descrizione qui. Dai Filtri puoi mostrare anche i punti senza descrizione.' : eReq && eArea ? 'Nessun monumento catalogato qui.' : '<span class="spin"></span>Cerco…')+'</span>'; return; }
   /* curiosità e consigli non sono monumenti: restano sulla mappa ma non in questo elenco */
   $('eMon').innerHTML = eItems.map((it,i) => [it,i]).filter(x => shown(x[0])).slice(0,40).map(([it,i]) =>
@@ -3599,7 +3603,7 @@ function areaCheck(){
   const c = emap.getCenter();
   if (!eArea){ const w = wantArea(); loadArea(w.lat, w.lon, w.radius); return; }
   if (areaCovers()){ if (!$('eRefetch').dataset.retry) $('eRefetch').classList.remove('show'); return; }
-  if (fltOn('auto')){ clearTimeout(eAutoT); eAutoT = setTimeout(() => { if (eNear && !eLoading && !areaCovers()){ const w = wantArea(); loadArea(w.lat, w.lon, w.radius); } }, 500); }
+  if (optAuto){ clearTimeout(eAutoT); eAutoT = setTimeout(() => { if (eNear && !eLoading && !areaCovers()){ const w = wantArea(); loadArea(w.lat, w.lon, w.radius); } }, 500); }
   else showRefetch(false);
 }
 /* ---------- passaggio lontano ↔ vicino ---------- */
@@ -3671,8 +3675,11 @@ $('eLoc').onclick = async () => {
 
 /* pannello opzioni (a schermo intero) */
 let locked = false, wakeOn = false, wakeLock = null;
+let optAuto = store.get('autoSearch', null);
+if (optAuto === null) optAuto = !!(eFlt.near && eFlt.near.auto);          /* chi l'aveva acceso tra i filtri lo ritrova qui */
 function optSync(){
   const P = $('eOptP');
+  P.querySelector('[data-o=auto]').classList.toggle('on', optAuto);
   P.querySelector('[data-o=headup]').classList.toggle('on', headUp);
   P.querySelector('[data-o=rot2]').classList.toggle('on', CAN_ROT && emap.touchRotate.enabled());
   P.querySelector('[data-o=lock]').classList.toggle('on', locked);
@@ -3690,6 +3697,7 @@ $('eOptP').addEventListener('click', e => {
   else if (o === 'north'){ northUp(); setOpt(false); }
   else if (o === 'lock') setLock(!locked);
   else if (o === 'wake') setWake(!wakeOn);
+  else if (o === 'auto'){ optAuto = !optAuto; store.set('autoSearch', optAuto); if (optAuto) areaCheck(); }
   optSync();
 });
 document.addEventListener('click', e => { if (!$('eOptP').hidden && !e.target.closest('#eOptP,#eOpt')) setOpt(false); });
