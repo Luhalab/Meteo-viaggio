@@ -1044,28 +1044,72 @@ const q=$('q'), sugg=$('sugg');
 q.addEventListener('input', () => {
   const v=norm(q.value.trim()); if (!v){ sugg.style.display='none'; return; }
   const hits = COMUNI.filter(c => norm(c.n).includes(v)).sort((a,b)=> (norm(a.n).startsWith(v)?0:1)-(norm(b.n).startsWith(v)?0:1) || b.pop-a.pop).slice(0,8);
-  sugg.innerHTML = (hits.length ? hits.map(c=>'<div data-n="'+esc(c.n)+'">'+esc(c.n)+'<small>'+esc(PROV[c.p]||c.p)+'</small></div>').join('') : '')+
+  const pinHits = myPins.filter(p => norm(p.n+' '+(PIN_KIND[p.k] || {}).t).includes(v)).slice(0, 3);
+  sugg.innerHTML = pinHits.map(p => '<div data-pn="'+esc(p.id)+'">📌 '+esc(p.n)+'<small>'+(PIN_KIND[p.k] || PIN_KIND.altro).t+' · scade il '+pinDate(p.exp)+'</small></div>').join('')+(hits.length ? hits.map(c=>'<div data-n="'+esc(c.n)+'">'+esc(c.n)+'<small>'+esc(PROV[c.p]||c.p)+'</small></div>').join('') : '')+
     '<div data-addr="1" class="saddr">📍 Cerca «'+esc(q.value.trim())+'» come via o luogo<small>'+(eCity ? 'vicino a '+esc((eCity.ref||eCity).n) : 'nella zona della mappa')+'</small></div>';
   sugg.style.display='block';
   sugg.querySelectorAll('[data-n]').forEach(d => d.onclick = () => { q.value=''; sugg.style.display='none'; q.blur();
     const c=byName[d.dataset.n]; if (c) eSelectCity(c,{zoom:true, src:'search'}); });
   sugg.querySelector('[data-addr]').onclick = () => addrSearch(q.value.trim());
+  sugg.querySelectorAll('[data-pn]').forEach(d => d.onclick = () => { q.value=''; sugg.style.display='none'; q.blur(); const pp = myPins.find(x => x.id === d.dataset.pn); if (pp){ emap.setView([pp.lat, pp.lon], Math.max(emap.getZoom(), 16), { animate:true }); pinCard(pp); } });
 });
-q.addEventListener('keydown', e => { if (e.key==='Enter'){ const f=sugg.querySelector('[data-n],[data-addr]'); if(f) f.click(); } });
-/* vie, piazze e luoghi: OpenStreetMap (Nominatim) vicino alla città scelta o alla zona della mappa */
+q.addEventListener('keydown', e => { if (e.key==='Enter'){ const f=sugg.querySelector('[data-pn],[data-n],[data-addr]'); if(f) f.click(); } });
+/* vie, piazze e luoghi: OpenStreetMap (Nominatim) vicino alla città scelta o alla zona della mappa.
+   Se non risponde (connessione scarsa, servizio occupato) o non trova, riprova con l'indirizzo ripulito e poi con un secondo servizio (Photon, sempre dati OpenStreetMap).
+   Non dice mai "nessun risultato" se in realtà c'è stato un errore; le ricerche riuscite si ricordano (anche senza rete). */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function addrClean(t){      /* "Via Lomellini, 6, 16124 Genova GE, Italia" -> "Via Lomellini 6, Genova" */
+  let x = t.replace(/,\s*(Italia|Italy|Italie|Italien|Svizzera|Schweiz|Suisse|Switzerland)\s*$/i, '').replace(/\b\d{4,5}\b/g, ' ').replace(/\s+[A-Z]{2}\b(?=\s*(,|$))/g, ' ').replace(/\s+/g, ' ').replace(/(\s*,\s*)+/g, ', ').replace(/^[,\s]+|[,\s]+$/g, '');
+  const p = x.split(',').map(z => z.trim()).filter(Boolean);
+  if (p.length >= 3 && /^\d+[A-Za-z]?$/.test(p[1])) p.splice(0, 2, p[0]+' '+p[1]);       /* via e civico insieme */
+  return p.join(', ');
+}
+async function geoGet(u, ms){
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms || 8000);
+  try { const r = await fetch(u, { signal: ctl.signal }); if (!r.ok) return { err: (r.status === 429 || r.status === 403) ? 'limite' : 'server' }; return { j: await r.json() }; }
+  catch(e){ return { err: 'rete' }; } finally { clearTimeout(t); }
+}
+async function nomSearch(q, c){
+  const ctr = emap.getCenter(), lat = c ? c.lat : ctr.lat, lon = c ? c.lon : ctr.lng, d = 0.25;
+  const r = await geoGet('https://nominatim.openstreetmap.org/search?format=json&limit=8&accept-language=it&addressdetails=1&countrycodes=it,ch&viewbox='+(lon-d)+','+(lat+d)+','+(lon+d)+','+(lat-d)+'&q='+encodeURIComponent(q));
+  if (r.err) return r;
+  return { res: (r.j || []).map(x => { const a = x.address || {}, via = a.road ? a.road+(a.house_number ? ' '+a.house_number : '') : '', ci = a.village || a.town || a.city || a.municipality || '';
+    return { lat: +x.lat, lon: +x.lon, name: x.name || via || x.display_name.split(',')[0], sub: [x.name && via ? via : '', a.suburb || '', ci].filter(Boolean).join(', ') }; }) };
+}
+async function photonSearch(q, c){
+  const ctr = emap.getCenter(), lat = c ? c.lat : ctr.lat, lon = c ? c.lon : ctr.lng;
+  const r = await geoGet('https://photon.komoot.io/api/?limit=8&lat='+lat+'&lon='+lon+'&q='+encodeURIComponent(q));
+  if (r.err) return r;
+  return { res: ((r.j && r.j.features) || []).filter(f => f.geometry && f.geometry.coordinates && (!f.properties || !f.properties.countrycode || ['IT', 'CH'].includes(String(f.properties.countrycode).toUpperCase()))).map(f => { const p = f.properties || {}, via = p.street ? p.street+(p.housenumber ? ' '+p.housenumber : '') : '';
+    return { lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], name: p.name || via || q, sub: [p.name && via ? via : '', p.district || '', p.city || p.town || p.village || ''].filter(Boolean).join(', ') }; }) };
+}
 async function addrSearch(text){
   if (!text) return;
-  sugg.innerHTML = '<div class="muted">Cerco «'+esc(text)+'»…</div>';
-  const c = eCity ? (eCity.ref || eCity) : null, ctr = emap.getCenter(), lat = c ? c.lat : ctr.lat, lon = c ? c.lon : ctr.lng, d = 0.25;
-  const u = 'https://nominatim.openstreetmap.org/search?format=json&limit=8&accept-language=it&addressdetails=1&countrycodes=it,ch'+
-    '&viewbox='+(lon-d)+','+(lat+d)+','+(lon+d)+','+(lat-d)+'&q='+encodeURIComponent(text + (c && !norm(text).includes(norm(c.n)) ? ', '+c.n : ''));
-  let res = [];
-  try { res = await (await fetch(u)).json(); } catch(e){}
-  if (!res.length){ sugg.innerHTML = '<div class="muted">Nessun risultato per «'+esc(text)+'»</div>'; return; }
-  sugg.innerHTML = res.map((r, i) => { const a = r.address || {};
-    return '<div data-ar="'+i+'">'+esc(r.name || (a.road || r.display_name.split(',')[0]))+'<small>'+esc([a.road && r.name ? a.road : '', a.village || a.town || a.city || ''].filter(Boolean).join(', '))+'</small></div>'; }).join('');
-  sugg.querySelectorAll('[data-ar]').forEach(el => el.onclick = () => { const r = res[+el.dataset.ar]; q.value = ''; sugg.style.display = 'none'; q.blur();
-    showAddr({ lat: +r.lat, lon: +r.lon, n: r.name || (r.address && r.address.road) || r.display_name.split(',')[0] }); });
+  sugg.innerHTML = '<div class="muted"><span class="spin"></span>Cerco «'+esc(text)+'»…</div>';
+  const c = eCity ? (eCity.ref || eCity) : null, cleaned = addrClean(text), key = norm(text), mem0 = store.get('geoLast', {})[key];
+  const show = res => { sugg.innerHTML = res.map((r, i) => '<div data-ar="'+i+'">'+esc(r.name)+'<small>'+esc(r.sub)+'</small></div>').join('');
+    sugg.querySelectorAll('[data-ar]').forEach(el => el.onclick = () => { const r = res[+el.dataset.ar]; q.value = ''; sugg.style.display = 'none'; q.blur(); showAddr({ lat: +r.lat, lon: +r.lon, n: r.name, sub: r.sub }); }); };
+  if (mem0 && mem0.length){ show(mem0); return; }                              /* ricerca già fatta: subito, anche senza rete */
+  const withCity = x => x + (c && !norm(x).includes(norm(c.n)) ? ', '+c.n : '');
+  const tries = [() => nomSearch(withCity(text), c)];
+  if (cleaned && norm(cleaned) !== key) tries.push(() => nomSearch(withCity(cleaned), c));
+  tries.push(() => photonSearch(withCity(cleaned || text), c));
+  let res = [], errs = 0, lim = 0;
+  for (let i = 0; i < tries.length && !res.length; i++){
+    if (i > 0 && i < tries.length - 1) await sleep(1100);                     /* Nominatim chiede al massimo una richiesta al secondo */
+    const r = await tries[i]();
+    if (r.res && r.res.length) res = r.res; else if (r.err){ errs++; if (r.err === 'limite') lim++; }
+  }
+  const last = store.get('geoLast', {});
+  if (res.length){ last[key] = res.slice(0, 8); const ks = Object.keys(last); if (ks.length > 30) delete last[ks[0]]; store.set('geoLast', last); }
+  if (!res.length){
+    if (errs === tries.length){ netNote('Connessione internet scarsa: la ricerca non è arrivata.');
+      sugg.innerHTML = '<div class="muted">'+(lim ? 'Il servizio di ricerca è occupato.' : 'Connessione scarsa o assente: non riesco a cercare.')+' <u data-retry="1" style="cursor:pointer;color:var(--acc)">Riprova</u></div>';
+      sugg.querySelector('[data-retry]').onclick = () => addrSearch(text); }
+    else sugg.innerHTML = '<div class="muted">Nessun risultato per «'+esc(text)+'». Prova con via e città, per esempio «Via Garibaldi 12, Genova».</div>';
+    return;
+  }
+  show(res);
 }
 /* il risultato: segnaposto sulla mappa con le scelte per le indicazioni */
 let eAddrL = null;           /* creato al primo uso: qui la mappa non esiste ancora */
@@ -1074,18 +1118,58 @@ function showAddr(p){
   eAddrL.clearLayers();
   L.marker([p.lat, p.lon], { icon: dirPin('●', '#6b4fa0'), zIndexOffset:1700 }).addTo(eAddrL);
   emap.setView([p.lat, p.lon], Math.max(emap.getZoom(), 17), { animate:true });
+  const head = '<div class="ch"><span class="meta">Risultato della ricerca</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.n)+'</h3>'+(p.sub ? '<div class="muted" style="margin:-4px 0 8px;font-size:13px">'+esc(p.sub)+'</div>' : '');
+  const pinBtn = '<button data-pin="1">📌 Salva come punto</button>';
   if (nav){
-    showCard('<div class="ch"><span class="meta">Risultato della ricerca</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.n)+'</h3>'+
-      '<div class="dtools"><button data-u="a">Usa come partenza</button><button data-u="via">Aggiungi come tappa</button><button data-u="b">Usa come arrivo</button><button data-go="1">Nuove indicazioni fin qui</button></div>');
-    $('eCard').querySelector('[data-go]').onclick = () => { eAddrL.clearLayers(); dirOpen({ lat:p.lat, lng:p.lon }); };
+    showCard(head+'<div class="dtools"><button data-u="a">Usa come partenza</button><button data-u="via">Aggiungi come tappa</button><button data-u="b">Usa come arrivo</button><button data-go="1">Nuove indicazioni fin qui</button>'+pinBtn+'</div>');
     $('eCard').querySelectorAll('[data-u]').forEach(b => b.onclick = () => { const k = b.dataset.u, pt = { lat:p.lat, lon:p.lon, n:p.n };
       if (k === 'via') nav.via.push(pt); else nav[k] = pt; nav.pick = null; eAddrL.clearLayers(); dirCard(); dirCalc(); });
-  } else {
-    showCard('<div class="ch"><span class="meta">Risultato della ricerca</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.n)+'</h3>'+
-      '<div class="dtools"><button data-go="1">Indicazioni fin qui</button></div>');
-    $('eCard').querySelector('[data-go]').onclick = () => { eAddrL.clearLayers(); dirOpen({ lat:p.lat, lng:p.lon }); };
-  }
+  } else showCard(head+'<div class="dtools"><button data-go="1">Indicazioni fin qui</button>'+pinBtn+'</div>');
+  $('eCard').querySelector('[data-go]').onclick = () => { eAddrL.clearLayers(); dirOpen({ lat:p.lat, lng:p.lon }); };
+  $('eCard').querySelector('[data-pin]').onclick = () => pinForm(p);
 }
+/* ---------- miei punti (per esempio il pernottamento): si tolgono da soli dopo 30 giorni, o prima a mano ---------- */
+const PIN_DAYS = 30, PIN_KIND = { pernottamento: { t: 'Pernottamento', sym: '⌂', col: '#2f7d4f' }, visitare: { t: 'Da visitare', sym: '★', col: '#b8860b' }, altro: { t: 'Altro', sym: '●', col: '#6b4fa0' } };
+let myPins = store.get('myPins', []) || [], ePinL = null;
+const pinDate = t => new Date(t).toLocaleDateString('it-IT', { day:'numeric', month:'long' });
+function pinsPrune(){ const n = myPins.length; myPins = myPins.filter(p => p.exp > Date.now()); if (myPins.length !== n){ store.set('myPins', myPins); return true; } return false; }
+function drawPins(){
+  pinsPrune(); if (!ePinL) ePinL = L.layerGroup().addTo(emap); ePinL.clearLayers();
+  myPins.forEach(p => { const k = PIN_KIND[p.k] || PIN_KIND.altro; L.marker([p.lat, p.lon], { icon: dirPin(k.sym, k.col), zIndexOffset:1650 }).on('click', () => pinCard(p)).addTo(ePinL); });
+}
+const pinsRefresh = () => { drawPins(); if (!$('eFltP').hidden){ const st = $('eFltP').scrollTop; fltPanel(); $('eFltP').scrollTop = st; } };
+function pinAdd(p, kind){
+  const q = { id: 'p'+Date.now().toString(36), n: p.n, lat: p.lat, lon: p.lon, k: kind, t: Date.now(), exp: Date.now() + PIN_DAYS * DAY };
+  myPins.push(q); store.set('myPins', myPins); if (eAddrL) eAddrL.clearLayers(); pinsRefresh(); return q;
+}
+function pinDel(id){ myPins = myPins.filter(p => p.id !== id); store.set('myPins', myPins); pinsRefresh(); }
+function pinForm(p){
+  showCard('<div class="ch"><span class="meta">Salva come punto</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(p.n)+'</h3>'+
+    '<div class="dtools"><button data-pk="pernottamento">⌂ Pernottamento</button><button data-pk="visitare">★ Da visitare</button><button data-pk="altro">● Altro</button></div>'+
+    '<div class="muted" style="font-size:12.5px">Si toglie da solo dopo '+PIN_DAYS+' giorni; puoi toglierlo prima toccandolo sulla mappa o da Filtri → Miei punti.</div>');
+  $('eCard').querySelectorAll('[data-pk]').forEach(b => b.onclick = () => pinCard(pinAdd(p, b.dataset.pk), true));
+}
+function pinCard(q, fresh){
+  const k = PIN_KIND[q.k] || PIN_KIND.altro, c = $('eCard');
+  showCard('<div class="ch"><span class="meta">'+(fresh ? '✓ Salvato · ' : 'Punto salvato · ')+k.t+'</span><button class="x" aria-label="Chiudi">✕</button></div><h3>'+esc(q.n)+'</h3>'+
+    '<div class="muted" style="margin:-4px 0 8px;font-size:13px">Si toglie da solo il '+pinDate(q.exp)+'</div>'+
+    '<div class="dtools"><button data-go="1">Indicazioni fin qui</button><button data-ext="1">+'+PIN_DAYS+' giorni</button><button data-rm="1">Togli il punto</button></div>');
+  c.querySelector('[data-go]').onclick = () => dirOpen({ lat: q.lat, lng: q.lon });
+  c.querySelector('[data-ext]').onclick = () => { q.exp += PIN_DAYS * DAY; store.set('myPins', myPins); pinCard(q); pinsRefresh(); };
+  c.querySelector('[data-rm]').onclick = () => { pinDel(q.id); c.classList.remove('show'); };
+}
+function pinsHtml(){
+  pinsPrune();
+  if (!myPins.length) return '<div class="rtnote">Cerca un indirizzo, o tieni premuto sulla mappa, e scegli «Salva come punto»: per esempio il pernottamento. Si toglie da solo dopo '+PIN_DAYS+' giorni.</div>';
+  return myPins.map((p, i) => '<div class="regrow"><span><b>'+esc(p.n)+'</b><br><span class="muted" style="font-size:12px">'+(PIN_KIND[p.k] || PIN_KIND.altro).t+' · scade il '+pinDate(p.exp)+'</span></span><span style="display:flex;gap:6px"><button class="regb" data-pp="go" data-i="'+i+'">Vai</button><button class="regb" data-pp="del" data-i="'+i+'">Togli</button></span></div>').join('');
+}
+function pinAct(act, i){
+  const p = myPins[i]; if (!p) return;
+  if (act === 'del') pinDel(p.id);
+  else if (act === 'go'){ setFltP(false); emap.setView([p.lat, p.lon], Math.max(emap.getZoom(), 16), { animate:true }); pinCard(p); }
+}
+async function pinFromMap(ll){ const n = await placeName(ll); pinForm({ lat: ll.lat, lon: ll.lng != null ? ll.lng : ll.lon, n }); }
+setTimeout(drawPins, 600); setInterval(() => { if (pinsPrune()) pinsRefresh(); }, 3600000);
 document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg.style.display='none'; });
 
 /* ================= SCHEDA CITTÀ ================= */
@@ -1712,12 +1796,12 @@ function eLongPress(p){
 function lpMenu(cp, ll, best){
   const m = $('eLpm'), had = best && wkPick.includes(best.n);
   m.innerHTML = (best ? '<button data-a="wx">'+(had ? 'Togli '+esc(best.n)+' dal confronto meteo' : 'Confronta il meteo di '+esc(best.n))+'</button>' : '')+
-    '<button data-a="dir">Indicazioni fin qui</button>';
+    '<button data-a="dir">Indicazioni fin qui</button><button data-a="pin">Salva come punto</button>';
   const W = $('eWrap').getBoundingClientRect();
-  m.style.left = Math.min(Math.max(10, cp.x - 110), W.width - 230) + 'px'; m.style.top = Math.min(cp.y + 12, W.height - 130) + 'px';
+  m.style.left = Math.min(Math.max(10, cp.x - 110), W.width - 230) + 'px'; m.style.top = Math.min(cp.y + 12, W.height - 180) + 'px';
   m.hidden = false;
   m.onclick = e => { const b = e.target.closest('[data-a]'); if (!b) return; m.hidden = true;
-    if (b.dataset.a === 'dir') dirOpen(ll); else pickCity(best); };
+    if (b.dataset.a === 'dir') dirOpen(ll); else if (b.dataset.a === 'pin') pinFromMap(ll); else pickCity(best); };
 }
 document.addEventListener('pointerdown', e => { if (!$('eLpm').hidden && !e.target.closest('#eLpm')) $('eLpm').hidden = true; }, true);
 function pickCity(best){
@@ -2352,7 +2436,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v110';
+const APP_V = 'v111';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2372,7 +2456,7 @@ function netNote(text){
 window.addEventListener('offline', () => { netNoteAt = 0; netNote('Sei offline: uso i dati salvati sul telefono.'); });
 window.addEventListener('online', () => { const e = $('eNetNote'); if (e) e.classList.remove('show'); });
 setTimeout(() => { const c = navigator.connection; if (c && (/(^|-)2g$/.test(c.effectiveType || '') || c.saveData)) netNote('Connessione internet lenta: il caricamento può richiedere più tempo.'); }, 4000);
-let fltSec = Object.assign({ map: true, off: false, reg: false, rt: false }, store.get('fltSec', {}) || {});      /* sezioni dei Filtri aperte o chiuse */
+let fltSec = Object.assign({ map: true, pins: false, off: false, reg: false, rt: false }, store.get('fltSec', {}) || {});      /* sezioni dei Filtri aperte o chiuse */
 let regCat = null, regBuilt = {}, regMsg = null, regOpen = false, regPollT = null, regLoading = false, REG_POLL_MS = 20000, regStat = null, regRowNote = null, regTickT = null, regChipHide = null;
 const REG_GH = 'https://github.com/Luhalab/Meteo-viaggio/actions/workflows/dati.yml';
 async function regLoad(){
@@ -2486,6 +2570,7 @@ function fltPanel(){
       row('sights', 'Luoghi imperdibili (★, vista meteo)', d('#b98f3e', '<span style="font-size:13px;line-height:1">★</span>'))+
       row('claude', 'Luoghi aggiunti da Claude', dot('#b4553f'))+
       row('storie', 'Curiosità e consigli di Claude', dot('#6b4fa0')))+
+    sec('pins', 'Miei punti'+(myPins.length ? ' ('+myPins.length+')' : ''), pinsHtml())+
     sec('off', 'Uso offline', '<div id="offSec">'+offHtml()+'</div>'+zoneHtml())+
     sec('reg', 'Dati per regione', regHtml())+
     ((eNear || osec || manage) ? sec('rt', 'Percorsi in zona', rtBody) : '');
@@ -2667,6 +2752,7 @@ function panelClick(e){
     if (id && eRoutesOn.has(id)){ eRoute.removeLayer(eRoutesOn.get(id)); eRoutesOn.delete(id); routesUI(); } return; }
   if (e.target.closest('button[data-myr]')){ myROpen(); return; }
   const ob = e.target.closest('button[data-of]'); if (ob){ if (!ob.disabled){ if (ob.dataset.of === 'save') offSave(); else if (ob.dataset.of === 'cancel'){ if (ojob) ojob.cancel = true; } else if (ob.dataset.of === 'del') offDel(+ob.dataset.i); } return; }
+  const ppb = e.target.closest('button[data-pp]'); if (ppb){ pinAct(ppb.dataset.pp, +ppb.dataset.i); return; }
   const rsb = e.target.closest('button[data-rs]'); if (rsb){ regMsg = null; regBadge(); zoneUi(); return; }
   const zb = e.target.closest('button[data-z]'); if (zb){ zoneAct(zb.dataset.z, zb.dataset.i); return; }
   const gb = e.target.closest('button[data-g]'); if (gb){ const [gid, gaz] = gb.dataset.g.split('|'); regAct(gid, gaz); return; }
