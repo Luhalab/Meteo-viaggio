@@ -2142,13 +2142,13 @@ async function fetchPackItems(lat, lon, radius){
   idx.regioni.filter(r => lat + dLat >= r.bbox[0] && lat - dLat <= r.bbox[2] && lon + dLon >= r.bbox[1] && lon - dLon <= r.bbox[3]).forEach(r => {
     const K = Math.round(1 / (r.pezzo || 0.1));            /* solo i pezzi che cadono dentro il riquadro della regione */
     for (let ty = Math.max(Math.floor((lat - dLat) * K), Math.floor(r.bbox[0] * K)); ty <= Math.min(Math.floor((lat + dLat) * K), Math.floor(r.bbox[2] * K)); ty++)
-      for (let tx = Math.max(Math.floor((lon - dLon) * K), Math.floor(r.bbox[1] * K)); tx <= Math.min(Math.floor((lon + dLon) * K), Math.floor(r.bbox[3] * K)); tx++) jobs.push(packTile(r.id, ty, tx)); });
+      for (let tx = Math.max(Math.floor((lon - dLon) * K), Math.floor(r.bbox[1] * K)); tx <= Math.min(Math.floor((lon + dLon) * K), Math.floor(r.bbox[3] * K)); tx++) jobs.push(packTile(r.id, ty, tx).then(p => ({ p, sv: !!r.s }))); });
   const parts = await Promise.all(jobs);
   const KIND = { '@a': "Opera d'arte pubblica", '@w': 'Luogo di culto' }, TY = { n:'node', w:'way', r:'relation' }, seen = new Set(), out = [];
-  parts.forEach(p => (p.i || []).forEach(a => {
+  parts.forEach(({ p, sv }) => (p.i || []).forEach(a => {
     const d = haversine(lat, lon, a[0], a[1]); if (d > radius || seen.has(a[5])) return; seen.add(a[5]);   /* due regioni vicine possono avere lo stesso oggetto */
     const label = KIND[a[2]] || osmLabel({ historic: a[2] });
-    out.push({ title: a[3] || label, extract: a[4] || label, desc: !!a[4], wp: a[6] || null, chiesa: a[2] === '@w' && !a[4] && !a[6], thumb: null, lat: a[0], lon: a[1], dist: d,
+    out.push({ title: a[3] || label, extract: (a[6] ? label : (a[4] || label)), odesc: a[4] || '', desc: !!a[4], wp: a[6] || null, k: a[2], s: a[7] || 0, sv, chiesa: a[2] === '@w' && !a[4] && !a[6], thumb: null, lat: a[0], lon: a[1], dist: d,
       url: 'https://www.openstreetmap.org/'+(TY[a[5][0]] || 'node')+'/'+a[5].slice(1), source: 'osm' }); }));
   return out;
 }
@@ -2437,7 +2437,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v112';
+const APP_V = 'v113';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -2783,7 +2783,25 @@ function sameName(a, b){
 const hasDesc = o => !!(o.kind || o.source === 'custom' || (o.source === 'osm' ? (o.desc || !!o.wp) : (o.extract || '').trim().length > 20));
 /* opere importanti = con descrizione, collegamento a Wikipedia, da Wikipedia/inventari/Claude; "Tutte le opere, anche minori" mostra anche le altre; dentro, "Comprese le chiese minori"
    (luoghi di culto OpenStreetMap senza descrizione né Wikipedia) si può spegnere. */
-const artShown = o => hasDesc(o) || (fltOn('nodesc') && !(o.chiesa && !fltOn('chiese')));
+/* Opere importanti = quelle che servono per visitare la città, non tutto ciò che esiste. Per le voci OpenStreetMap dei dati pronti si guarda la notorietà: in quante edizioni di
+   Wikipedia si parla di quell'opera (`s`, calcolata alla costruzione dei dati). Le edicole, le croci, le lapidi e i memoriali non contano mai. Le altre fonti (Wikipedia, inventari,
+   Claude) valgono come prima; i dati senza notorietà (regione non ancora ricostruita) usano il vecchio criterio, ma senza edicole, lapidi e simili. */
+const MINOR_T = new Set(['wayside_shrine', 'wayside_cross', 'memorial', 'plaque', 'boundary_stone', 'milestone', 'cannon', 'gravestone', 'tomb', 'pillory', 'charcoal_pile', 'yes']);
+const ESS_K = 30, ESS_MIN = 2;
+function essCut(){        /* soglia di notorietà della zona: circa le 30 opere più note (almeno 2 edizioni di Wikipedia), così vale per Genova come per un paese */
+  if (eItems._ess !== undefined) return eItems._ess;
+  const ss = eItems.filter(o => o.source === 'osm' && o.sv && !MINOR_T.has(o.k)).map(o => o.s || 0).sort((x, y) => y - x);
+  let cut = Math.max(ESS_MIN, ss.length >= ESS_K ? ss[ESS_K - 1] : 0);
+  if (ss.filter(v => v >= cut).length > ESS_K * 1.4) cut++;                 /* troppi pari merito: alzo di uno */
+  return eItems._ess = cut;
+}
+function isEssential(o){
+  if (o.source !== 'osm') return hasDesc(o);
+  if (!o.sv) return hasDesc(o) && !MINOR_T.has(o.k);
+  if (MINOR_T.has(o.k)) return false;       /* edicole, croci, lapidi, memoriali: mai tra le essenziali (il collegamento a Wikidata spesso è alla persona ricordata, non al monumento) */
+  return (o.s || 0) >= essCut();
+}
+const artShown = o => isEssential(o) || (fltOn('nodesc') && !(o.chiesa && !fltOn('chiese')));
 function buildGroups(){
   const rank = it => it.kind ? 3 : it.source === 'custom' ? 0 : it.source === 'wikipedia' ? 1 : 2;
   const vis = eItems.map((it, i) => i).filter(i => { const it = eItems[i]; return fltOn(it.kind ? 'storie' : it.source === 'custom' ? 'claude' : 'mon') && artShown(it); })
@@ -2825,12 +2843,15 @@ function drawArt(){
 }
 const SRC_LABEL = { osm:'Vedi su OpenStreetMap', swiss:'Vedi su geo.admin.ch', 'emilia-romagna':'Vedi su patrimonioculturale-er.it',
   liguria:'Vedi su geoportal.regione.liguria.it', wikipedia:'Leggi su Wikipedia', custom:null };
-function eShowItem(i, fly){
+function eShowItem(i, fly, noMove){
   const it = eItems[i]; if (!it) return; eSel = i; drawArt(); renderMon();
-  if (fly || !eNear) emap.flyTo([it.lat,it.lon], Math.max(emap.getZoom(), 16)); else emap.panTo([it.lat,it.lon]);
+  if (!noMove){ if (fly || !eNear) emap.flyTo([it.lat,it.lon], Math.max(emap.getZoom(), 16)); else emap.panTo([it.lat,it.lon]); }
   const tag = it.kind === 'curiosita' ? 'Curiosità di Claude' : it.kind === 'da-fare' ? 'Consiglio di Claude' : 'Aggiunto da Claude';
   /* tutto quello che sta nello stesso punto: altre fonti sul luogo e curiosità/consigli (senza doppioni) */
   const grp = (eGroups.find(g => g.items.includes(i)) || { items:[i] }).items.map(j => eItems[j]);
+  /* i punti del gruppo con collegamento a Wikipedia: il testo si prende da lì (poi la scheda si riscrive una volta); se non c'è, resta quello di OpenStreetMap */
+  const wpPend = grp.filter(o => o.source === 'osm' && o.wp && !o.wpDone).slice(0, 6);
+  if (wpPend.length) Promise.all(wpPend.map(o => osmWikiText(o).then(w => { o.wpDone = true; if (w){ o.extract = w.extract; o.desc = true; } else if (o.odesc) o.extract = o.odesc; }))).then(() => { if (eSel === i) eShowItem(i, false, true); });
   const seenT = new Set([nrm(it.title)]), seenX = [nrm(it.extract || '')];
   const dupText = x => { const n = nrm(x || ''); if (!n) return true; if (seenX.some(y => y && (y.includes(n.slice(0, 80)) || n.includes(y.slice(0, 80))))) return true; seenX.push(n); return false; };
   const others = grp.filter(o => o !== it && !o.kind && !dupText(o.extract));
@@ -2850,8 +2871,8 @@ function eShowItem(i, fly){
   if (it.source === 'wikipedia' && it.lang) wikiSummary(it.lang, it.title).then(s => {
     if (eSel === i && s && s.extract && $('eCardTx')) $('eCardTx').textContent = s.extract; });
   /* punto OpenStreetMap con collegamento a Wikipedia/Wikidata: la descrizione arriva da lì */
-  if (it.source === 'osm' && it.wp && !it.desc) osmWikiText(it).then(w => {
-    if (!w) return; it.extract = w.extract; it.desc = true;
+  if (it.source === 'osm' && it.wp && !it.wpDone) osmWikiText(it).then(w => {
+    it.wpDone = true; if (!w){ if (it.odesc) it.extract = it.odesc; return; } it.extract = w.extract; it.desc = true;
     if (eSel !== i || !$('eCardTx')) return;
     $('eCardTx').textContent = w.extract;
     const acts = document.querySelector('#eCard .acts'); if (acts && w.url) acts.insertAdjacentHTML('beforeend', '<a href="'+esc(w.url)+'" target="_blank" rel="noopener">Vedi su Wikipedia</a>'); });
