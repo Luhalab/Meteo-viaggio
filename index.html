@@ -1170,7 +1170,8 @@ function pinAct(act, i){
 }
 async function pinFromMap(ll){ const n = await placeName(ll); pinForm({ lat: ll.lat, lon: ll.lng != null ? ll.lng : ll.lon, n }); }
 setTimeout(drawPins, 600); setInterval(() => { if (pinsPrune()) pinsRefresh(); }, 3600000);
-document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg.style.display='none'; });
+/* tocco fuori dalla ricerca: l'elenco si chiude. Si guarda il percorso dell'evento (non e.target): toccando una riga l'elenco viene riscritto e la riga sparisce dalla pagina prima di questo controllo */
+document.addEventListener('click', e => { if (!e.composedPath().some(n => n.classList && n.classList.contains('search'))) sugg.style.display='none'; });
 
 /* ================= SCHEDA CITTÀ ================= */
 const CITY_DV=['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','precipitation_probability_max','wind_speed_10m_max','wind_direction_10m_dominant','uv_index_max'];
@@ -2436,7 +2437,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v111';
+const APP_V = 'v112';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
