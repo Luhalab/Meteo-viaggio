@@ -55,7 +55,7 @@ def qid_da_titoli(coppie):
 def conta_collegamenti(qids, cache):
     """aggiorna cache {'Q123': [numero di edizioni di Wikipedia, 'AAAA-MM-GG']} per i Q-id mancanti o vecchi (50 per richiesta)"""
     oggi = datetime.date.today(); scaduti = lambda v: (oggi - datetime.date.fromisoformat(v[1])).days > VALIDITA_GIORNI
-    da_fare = [q for q in sorted(set(qids)) if q not in cache or scaduti(cache[q])]
+    da_fare = [q for q in sorted(set(qids)) if q not in cache or len(cache[q]) < 4 or scaduti(cache[q])]
     print('  notorietà: %d opere con Wikidata, %d da interrogare' % (len(set(qids)), len(da_fare)), flush=True)
     for i in range(0, len(da_fare), 50):
         blocco = da_fare[i:i + 50]
@@ -63,8 +63,29 @@ def conta_collegamenti(qids, cache):
         if not j or 'entities' not in j: continue
         for q, e in j['entities'].items():
             sl = e.get('sitelinks') or {}
-            cache[q] = [sum(1 for k in sl if re.match(r'^[a-z_]+wiki$', k) and k not in SPECIALI), oggi.isoformat()]
+            wp = [k for k in sl if re.match(r'^[a-z_]+wiki$', k) and k not in SPECIALI]
+            scelta = next((k for k in ('itwiki', 'enwiki') if k in sl), wp[0] if wp else None)        # pagina da cui controllare le coordinate
+            cache[q] = [len(wp), oggi.isoformat(), scelta[:-4].replace('_', '-') if scelta else '', sl[scelta]['title'] if scelta else '']
         time.sleep(0.3)
+
+def verifica_luoghi(qids, cache):
+    """per le opere con almeno 2 edizioni controlla che la pagina di Wikipedia abbia le coordinate (quinto campo: 1 sì, 0 no): un collegamento a una persona o a un modello di aereo non è un luogo"""
+    per_lingua = {}
+    for q in sorted(set(qids)):
+        v = cache.get(q)
+        if v and v[0] >= 2 and len(v) == 4 and v[2] and v[3]: per_lingua.setdefault(v[2], []).append((q, v[3]))
+    print('  luoghi da verificare: %d' % sum(len(x) for x in per_lingua.values()), flush=True)
+    for lingua, lista in per_lingua.items():
+        for i in range(0, len(lista), 50):
+            blocco = lista[i:i + 50]
+            j = http_json('https://%s.wikipedia.org/w/api.php?action=query&prop=coordinates&coprimary=primary&colimit=max&redirects=1&format=json&titles=%s' % (lingua, urllib.parse.quote('|'.join(t for _, t in blocco))))
+            if not j: continue
+            q_ = j.get('query', {}); norm = {n['from']: n['to'] for n in q_.get('normalized', [])}; red = {r['from']: r['to'] for r in q_.get('redirects', [])}
+            pagine = {p.get('title'): p for p in (q_.get('pages') or {}).values()}
+            for q, t in blocco:
+                t2 = norm.get(t, t); t2 = red.get(t2, t2); p = pagine.get(t2)
+                if p is not None: cache[q] = cache[q][:4] + [1 if p.get('coordinates') else 0]
+            time.sleep(0.3)
 
 def arricchisci(items):
     """aggiunge a ogni voce con Wikipedia/Wikidata il numero di edizioni di Wikipedia (ottavo campo); restituisce la copertura 0-1"""
@@ -77,6 +98,7 @@ def arricchisci(items):
         return v[6] if re.match(r'^Q\d+$', v[6]) else risolti.get(tuple(v[6].split(':', 1))) if ':' in v[6] else None
     qs = {qid(v) for v in items if qid(v)}
     conta_collegamenti(qs, cache)
+    verifica_luoghi(qs, cache)
     ok = con_q = 0
     for v in items:
         q = qid(v)
@@ -84,7 +106,8 @@ def arricchisci(items):
         con_q += 1
         if q in cache:
             ok += 1
-            if cache[q][0] > 0: v.append(cache[q][0])
+            c = cache[q]
+            if c[0] > 0 and not (len(c) > 4 and c[4] == 0 and c[0] >= 2): v.append(c[0])        # senza coordinate sulla pagina non è un luogo: niente notorietà
     open(CACHE_WD, 'w', encoding='utf-8').write(json.dumps(cache, separators=(',', ':'), sort_keys=True))
     return (ok / con_q) if con_q else 1.0           # quota delle opere con Wikidata di cui si è saputo il numero: sotto il 90% l'app non si fida
 
@@ -166,7 +189,7 @@ def scrivi(reg, items):
 def indice(reg, n, pezzi, copertura=None):
     p = os.path.join(OUT, 'index.json')
     idx = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {'regioni': []}
-    voce = {'id': reg['id'], 'nome': reg['nome'], 'bbox': reg['bbox'], 'pezzo': PEZZO, 'n': n, 'pezzi': pezzi, 'data': datetime.date.today().isoformat()}
+    voce = {'id': reg['id'], 'nome': reg['nome'], 'bbox': reg['bbox'], 'pezzo': PEZZO, 'n': n, 'pezzi': pezzi, 'data': datetime.date.today().isoformat(), 'v': int(time.time())}      # v: versione precisa, per non tenere pezzi vecchi dopo una ricostruzione nello stesso giorno
     if copertura is not None and copertura >= 0.9: voce['s'] = True            # le voci portano il numero di edizioni di Wikipedia: l'app può giudicare la notorietà
     idx['regioni'] = [r for r in idx['regioni'] if r['id'] != reg['id']] + [voce]
     idx['regioni'].sort(key=lambda r: r['id'])

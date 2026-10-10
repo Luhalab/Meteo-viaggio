@@ -6,7 +6,7 @@
    - mappe salvate dall'utente (cache OFFLINE): tessere, simboli e caratteri si leggono da lì per primi; lo stile e l'elenco delle tessere (che cambiano) dalla rete, e da lì solo se sei offline;
    - custom-points.json: sempre dalla rete (i punti di Claude devono essere aggiornati), copia salvata solo se sei offline.
    Previsioni, monumenti e testi li salva l'app stessa (IndexedDB) con le loro scadenze. */
-const V = 'v113';
+const V = 'v114';
 const SHELL = 'viaggio-shell-'+V, LIBS = 'viaggio-libs', TILES = 'viaggio-tiles', OFFLINE = 'viaggio-offline';   /* OFFLINE: mappe salvate dall'utente ("Salva visuale offline"), mai tolte da sole */
 const FILES = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest', './region-italia.json', './region-svizzera.json'];
 const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];

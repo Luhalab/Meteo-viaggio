@@ -310,6 +310,10 @@ body.gm .ewrap.full .erefetch.show ~ .enote{top:calc(var(--gmTop) + 98px)}
 .fsec>summary::after{content:'▾';font-size:13px;transition:transform .2s}
 .fsec[open]>summary::after{transform:rotate(180deg)}
 .fsb{padding-bottom:6px}
+.ess{border:1px solid var(--line,#e1e6ea);border-radius:14px;padding:12px 14px;margin:0 0 12px;background:var(--card,#fff)}
+.essh{font-weight:700;font-size:15px}
+.ess summary{cursor:pointer;font-size:13.5px;color:var(--acc)}
+.esso{margin:6px 0 8px 20px;padding:0;font-size:14px;line-height:1.45}
 .regrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px}
 .regb{border:1px solid var(--sea);background:transparent;border-radius:999px;padding:7px 14px;font:600 13px var(--sans);color:var(--sea);cursor:pointer;flex:none}
 .c-dot.cu{background:var(--brick)}
@@ -2122,8 +2126,8 @@ async function packIndex(){        /* null = non riesco a leggere l'elenco (e no
   packIdx = packIdx || cached; if (Date.now() - packIdxAt >= 30 * 60000) packIdxAt = Date.now() - 25 * 60000;        /* riprovo la rete tra 5 minuti */
   return packIdx;
 }
-async function packTile(id, ty, tx){
-  const k = 'pack:'+id+':'+ty+'_'+tx, hit = await pc.get(k, 14 * DAY); if (hit) return hit;
+async function packTile(id, data, ty, tx){        /* la data di costruzione fa parte della chiave: dopo una ricostruzione dei dati non si usano più i pezzi vecchi */
+  const k = 'pack:'+id+':'+(data || '')+':'+ty+'_'+tx, hit = await pc.get(k, 14 * DAY); if (hit) return hit;
   let r = null;
   for (let tr = 0; tr < 2 && !r; tr++){
     const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000);
@@ -2142,13 +2146,13 @@ async function fetchPackItems(lat, lon, radius){
   idx.regioni.filter(r => lat + dLat >= r.bbox[0] && lat - dLat <= r.bbox[2] && lon + dLon >= r.bbox[1] && lon - dLon <= r.bbox[3]).forEach(r => {
     const K = Math.round(1 / (r.pezzo || 0.1));            /* solo i pezzi che cadono dentro il riquadro della regione */
     for (let ty = Math.max(Math.floor((lat - dLat) * K), Math.floor(r.bbox[0] * K)); ty <= Math.min(Math.floor((lat + dLat) * K), Math.floor(r.bbox[2] * K)); ty++)
-      for (let tx = Math.max(Math.floor((lon - dLon) * K), Math.floor(r.bbox[1] * K)); tx <= Math.min(Math.floor((lon + dLon) * K), Math.floor(r.bbox[3] * K)); tx++) jobs.push(packTile(r.id, ty, tx).then(p => ({ p, sv: !!r.s }))); });
+      for (let tx = Math.max(Math.floor((lon - dLon) * K), Math.floor(r.bbox[1] * K)); tx <= Math.min(Math.floor((lon + dLon) * K), Math.floor(r.bbox[3] * K)); tx++) jobs.push(packTile(r.id, r.v || r.data, ty, tx).then(p => ({ p, sv: !!r.s }))); });
   const parts = await Promise.all(jobs);
   const KIND = { '@a': "Opera d'arte pubblica", '@w': 'Luogo di culto' }, TY = { n:'node', w:'way', r:'relation' }, seen = new Set(), out = [];
   parts.forEach(({ p, sv }) => (p.i || []).forEach(a => {
     const d = haversine(lat, lon, a[0], a[1]); if (d > radius || seen.has(a[5])) return; seen.add(a[5]);   /* due regioni vicine possono avere lo stesso oggetto */
     const label = KIND[a[2]] || osmLabel({ historic: a[2] });
-    out.push({ title: a[3] || label, extract: (a[6] ? label : (a[4] || label)), odesc: a[4] || '', desc: !!a[4], wp: a[6] || null, k: a[2], s: a[7] || 0, sv, chiesa: a[2] === '@w' && !a[4] && !a[6], thumb: null, lat: a[0], lon: a[1], dist: d,
+    out.push({ title: a[3] || label, extract: (a[6] ? label : (a[4] || label)), odesc: a[4] || '', named: !!a[3], desc: !!a[4], wp: a[6] || null, k: a[2], s: a[7] || 0, sv, chiesa: a[2] === '@w' && !a[4] && !a[6], thumb: null, lat: a[0], lon: a[1], dist: d,
       url: 'https://www.openstreetmap.org/'+(TY[a[5][0]] || 'node')+'/'+a[5].slice(1), source: 'osm' }); }));
   return out;
 }
@@ -2388,7 +2392,7 @@ async function loadArea(lat, lon, radius, retry){
   const srcs = areaSrcs(lat, lon, radius), TMAX = AREA_TMAX;
   const vals = srcs.map(() => []), st = srcs.map(() => 'wait');
   /* la memoria dell'area include l'elenco delle regioni con i dati pronti: se ne accendo o spengo una, o si ricostruiscono i dati, le aree si ricaricano da sole */
-  const psig = (packIdx || (await pc.get('pack:index', 90 * DAY)) || { regioni: [] }).regioni.map(r => r.id+r.data).join(',').split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0).toString(36);
+  const psig = (packIdx || (await pc.get('pack:index', 90 * DAY)) || { regioni: [] }).regioni.map(r => r.id+(r.v || r.data)).join(',').split('').reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0).toString(36);
   const ak = sz ? 'zona:'+sz.id : 'area:'+lat.toFixed(3)+','+lon.toFixed(3)+','+radius+(fltOn('nodesc') ? '+' : '')+':'+psig, mem = retry ? null : await pc.get(ak, (sz ? 60 : 7) * DAY);
   if (my !== eReq) return;
   const memFresh = mem && mem.t && Date.now() - mem.t < (sz ? 60 : 3) * DAY;
@@ -2405,7 +2409,7 @@ async function loadArea(lat, lon, radius, retry){
     else if (keepSel) eSel = eItems.indexOf(keepSel);
     const done = st.every(x => x !== 'wait');
     if (done || eItems.length) eLoading = !done && !eItems.length;
-    drawArt(); renderMon();
+    drawArt(); renderMon(); essRefresh();
     if (done){ eLoading = false; setHint(); showPendingItem();
       if (st.slice(0, 5).every(x => x === 'ok') && !memFresh) pc.set(ak, { t: Date.now(), vals });
       else if (memFresh) pc.set(ak, { t: mem.t, vals });
@@ -2437,7 +2441,7 @@ const fltOn = k => eFlt[fltMode()][k] !== false;
 const ROUTE_COLORS = ['#2470b8','#c0662b','#2f7d4f','#8a3fa0','#b8860b','#1f8fb5'];
 let otherRoutesCache = [];
 /* versione dell'app: si alza insieme a V in sw.js con `python3 tools/versione.py`; il pannello la confronta con l'ultima pubblicata */
-const APP_V = 'v113';
+const APP_V = 'v114';
 let verLatest = null, verAt = 0;
 const verHtml = () => '<div class="fh">Versione</div><div class="rtnote">App '+APP_V+(verLatest ? (verLatest === APP_V ? ' · è l\'ultima disponibile' : ' · <b>disponibile '+verLatest+'</b>: chiudi e riapri l\'app') : '')+'</div>';
 function verCheck(){
@@ -3242,9 +3246,9 @@ async function eLoadDo(c, my){
       '<div class="src" style="margin:0 0 6px">Foto dalla guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a></div>' : '';
     const waiting = pend.wv || pend.osm || pend.ph;
     const spin = waiting ? '<div class="muted" style="margin:8px 0;font-size:12.5px"><span class="spin"></span>Cerco anche la guida, i sentieri e le foto…</div>' : '';
-    $('eDo').innerHTML = blocks.length
+    $('eDo').innerHTML = '<div id="eEss">'+essTourHtml()+'</div>'+(blocks.length
       ? phs+blocks.join('')+spin+'<div class="muted" style="margin-top:8px;font-size:11.5px">Fonti: guida <a href="'+esc(base)+'" target="_blank" rel="noopener">Wikivoyage</a> (CC BY-SA), sentieri da OpenStreetMap, consigli di Claude</div>'
-      : (waiting ? spin : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>');
+      : (waiting ? spin : '<span class="muted">Ancora nessun consiglio per '+esc(c.n)+'. Usa il tasto «Chiedi a Claude» in alto.</span>'));
   };
   $('eDoS').hidden = false; $('eDoT').textContent = 'Cosa vedere e fare a '+c.n;
   draw(); routesChanged(); renderEvents(c, my, wv);
@@ -3262,6 +3266,7 @@ let eDoPhotos = [];
 $('eDo').addEventListener('click', e => {
   const ph = e.target.closest('[data-di]'); if (ph){ lbxShow(+ph.dataset.di, eDoPhotos); return; }
   const o = e.target.closest('[data-osm]'); if (o){ const r = eOsmRoutes[+o.dataset.osm]; if (r){ const i = routesHere().findIndex(x => x.id === r.id); toggleRoute(r, i < 0 ? 0 : i, true); } return; }
+  const eb = e.target.closest('.rt-btn[data-ess]'); if (eb){ const r = essentialRoute(); if (r) toggleRoute(r, 0, true); return; }
   const b = e.target.closest('.rt-btn[data-stops]'); if (!b) return;
   const r = routeFromBtn(b), list = routesHere(), i = list.findIndex(x => x.id === r.id);
   if (eRoutesOn.has(r.id) || i >= 0) toggleRoute(i >= 0 ? list[i] : r, Math.max(0, i), true);
@@ -3305,13 +3310,55 @@ function claudeRoutes(){
     .map(p => { const names = p.stops.map(x => typeof x === 'string' ? x : x.n);
       return { id: p.title+'|'+names.join('|'), title: p.title, sub: 'Consiglio di Claude · '+names.length+' tappe', stops: p.stops, ch: false }; });
 }
+/* ---------- Visita essenziale: un giro a piedi con le opere più note della città (le stesse "essenziali" della mappa) ----------
+   Si sceglie fino a 10 opere tra le più note vicino al centro (1,8 km, poi 3), una sola per luogo, e le si mette nell'ordine che fa camminare meno (percorso più breve: si prova a partire da ogni
+   tappa, poi si migliora con scambi 2-opt). La distanza è una stima (linea d'aria +25%); quella vera arriva quando si mostra il percorso. Non serve nessun servizio in più. */
+const ESS_STOPS = 10;
+function tourOrder(P){
+  const n = P.length, D = (a, b) => km(P[a].lat, P[a].lon, P[b].lat, P[b].lon), len = o => { let t = 0; for (let i = 1; i < o.length; i++) t += D(o[i - 1], o[i]); return t; };
+  let best = null, bl = Infinity;
+  for (let s0 = 0; s0 < n; s0++){
+    const o = [s0], left = new Set(P.map((_, i) => i)); left.delete(s0);
+    while (left.size){ const last = o[o.length - 1]; let nx = -1, nd = Infinity; left.forEach(j => { const d = D(last, j); if (d < nd){ nd = d; nx = j; } }); o.push(nx); left.delete(nx); }
+    for (let imp = true; imp;){ imp = false;
+      for (let i = 1; i < n - 1; i++) for (let j = i + 1; j < n; j++){ const o2 = o.slice(0, i).concat(o.slice(i, j + 1).reverse(), o.slice(j + 1)); if (len(o2) < len(o) - 1e-9){ o.splice(0, n, ...o2); imp = true; } } }
+    const l = len(o); if (l < bl){ bl = l; best = o.slice(); }
+  }
+  return { order: best, km: bl };
+}
+function essentialRoute(){
+  if (!eNear || !eCity || eCity.virt || !eItems.length) return null;
+  if (eItems._tour && eItems._tour.key === eCity.n) return eItems._tour.r;
+  const done = r => { eItems._tour = { key: eCity.n, r }; return r; };
+  const cand = eItems.filter(o => o.source === 'osm' && o.sv && o.named && o.s > 0 && isEssential(o)).sort((a, b) => b.s - a.s), uniq = [];
+  /* un solo punto per luogo (il più noto): doppioni = stesso nome, oppure quasi nello stesso punto (40 m), oppure entro 250 m con una parola importante in comune ("La Lanterna de Genova" e "Lanterna di Genova");
+     palazzi e chiese diversi uno accanto all'altro (Via Garibaldi) restano tutti */
+  const GEN = new Set(['di', 'de', 'del', 'della', 'dei', 'delle', 'dello', 'degli', 'da', 'dal', 'la', 'le', 'il', 'lo', 'gli', 'san', 'santa', 'santo', 'sant', 'chiesa', 'basilica', 'cattedrale', 'palazzo', 'museo', 'villa', 'torre', 'porta', 'castello', 'parrocchia', 'oratorio', 'santuario', 'convento', 'abbazia', 'nostra', 'signora']);
+  const toks = t => nrm(t).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w.length >= 4 && !GEN.has(w) && !nrm(eCity.n).split(/\s+/).includes(w));
+  const same = (u, o) => { const d = haversine(u.lat, u.lon, o.lat, o.lon); return nrm(u.title) === nrm(o.title) || d < 40 || (d < 250 && toks(u.title).some(w => toks(o.title).includes(w))); };
+  cand.forEach(o => { if (!uniq.some(u => same(u, o))) uniq.push(o); });
+  const dc = o => km(eCity.lat, eCity.lon, o.lat, o.lon);
+  let core = uniq.filter(o => dc(o) <= 1.8); if (core.length < 6) core = uniq.filter(o => dc(o) <= 3);
+  core = core.slice(0, ESS_STOPS); if (core.length < 4) return done(null);
+  const t = tourOrder(core), stops = t.order.map(i => ({ n: core[i].title, lat: core[i].lat, lon: core[i].lon })), kmEst = t.km * 1.25;
+  return done({ id: 'ess|'+eCity.n, title: 'Visita essenziale di '+eCity.n, sub: stops.length+' tappe · circa '+kmEst.toFixed(1).replace('.', ',')+' km a piedi', stops, ch: false, ess: true, kmEst });
+}
+function essTourHtml(){
+  const r = essentialRoute(); if (!r) return '';
+  const on = eRoutesOn.has(r.id);
+  return '<div class="ess"><div class="essh">🚶 '+esc(r.title)+'</div><div class="muted" style="font-size:13px;margin:2px 0 6px">'+esc(r.sub)+' (stima) · le opere più note, nell\'ordine che fa camminare meno</div>'+
+    '<details><summary>Le tappe</summary><ol class="esso">'+r.stops.map(x => '<li>'+esc(x.n)+'</li>').join('')+'</ol></details>'+
+    '<button class="rt-btn'+(on ? ' on' : '')+'" data-ess="1">'+RT_IC+(on ? 'Togli il percorso dalla mappa' : 'Mostra il percorso sulla mappa')+'</button></div>';
+}
+const essRefresh = () => { const e = $('eEss'); if (e) e.innerHTML = essTourHtml(); };
 function routesHere(){
-  const base = claudeRoutes().concat(eOsmRoutes).concat(myRoutesHere()), ids = new Set(base.map(r => r.id));
+  const base = (essentialRoute() ? [essentialRoute()] : []).concat(claudeRoutes(), eOsmRoutes, myRoutesHere()), ids = new Set(base.map(r => r.id));
   const extra = [...eRoutesOn.keys()].filter(id => !ids.has(id) && eRouteDefs.has(id)).map(id => eRouteDefs.get(id));
   return base.concat(extra);
 }
 /* aggiorno pannello Filtri e tasti nella scheda: acceso / spento in tutti e due i posti */
 function routesUI(){
+  document.querySelectorAll('#eDo .rt-btn[data-ess]').forEach(b => { const r = essentialRoute(), on = !!(r && eRoutesOn.has(r.id)); b.classList.toggle('on', on); b.innerHTML = RT_IC + (on ? 'Togli il percorso dalla mappa' : 'Mostra il percorso sulla mappa'); });
   if (!$('eWxPz').hidden) zonePanel();
   if (!$('eFltP').hidden) fltPanel();
   document.querySelectorAll('#eDo .rt-btn[data-stops], #eDo .rt-btn[data-osm]').forEach(b => {
